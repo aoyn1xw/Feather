@@ -24,7 +24,7 @@ struct CreditsView: View {
 			githubUsername: "aoyn1xw",
 			role: .localized("Developer"),
 			githubUrl: "https://github.com/aoyn1xw",
-			gradientColors: [Color(hex: "#B496DC"), Color(hex: "#848ef9")],
+			gradientColors: [SwiftUI.Color(hex: "#B496DC"), SwiftUI.Color(hex: "#848ef9")],
 			icon: "person.fill"
 		),
 		CreditItem(
@@ -32,7 +32,7 @@ struct CreditsView: View {
 			githubUsername: "dylans2010",
 			role: .localized("Designer"),
 			githubUrl: "https://github.com/dylans2010",
-			gradientColors: [Color(hex: "#ff7a83"), Color(hex: "#FF2D55")],
+			gradientColors: [SwiftUI.Color(hex: "#ff7a83"), SwiftUI.Color(hex: "#FF2D55")],
 			icon: "paintbrush.fill"
 		),
 		CreditItem(
@@ -40,7 +40,7 @@ struct CreditsView: View {
 			githubUsername: "khcrysalis",
 			role: .localized("Original Developer Team"),
 			githubUrl: "https://github.com/khcrysalis/Feather",
-			gradientColors: [Color(hex: "#4CD964"), Color(hex: "#4860e8")],
+			gradientColors: [SwiftUI.Color(hex: "#4CD964"), SwiftUI.Color(hex: "#4860e8")],
 			icon: "star.fill"
 		)
 	]

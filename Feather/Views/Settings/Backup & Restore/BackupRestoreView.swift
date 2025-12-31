@@ -158,9 +158,11 @@ struct BackupRestoreView: View {
 			try? FileManager.default.createDirectory(at: certificatesDir, withIntermediateDirectories: true)
 			let certificates = Storage.shared.getAllCertificates()
 			for cert in certificates {
-				if let certData = cert.file, let uuid = cert.uuid {
-					let certURL = certificatesDir.appendingPathComponent("\(uuid).p12")
-					try certData.write(to: certURL)
+				if let uuid = cert.uuid,
+				   let certURL = Storage.shared.getFile(.certificate, from: cert),
+				   let certData = try? Data(contentsOf: certURL) {
+					let destURL = certificatesDir.appendingPathComponent("\(uuid).p12")
+					try certData.write(to: destURL)
 				}
 			}
 			
@@ -169,8 +171,9 @@ struct BackupRestoreView: View {
 			let sources = Storage.shared.getSources()
 			let sourcesData = sources.compactMap { source -> [String: String]? in
 				guard let urlString = source.sourceURL?.absoluteString,
-					  let name = source.name else { return nil }
-				return ["url": urlString, "name": name]
+					  let name = source.name,
+					  let identifier = source.identifier else { return nil }
+				return ["url": urlString, "name": name, "identifier": identifier]
 			}
 			if let jsonData = try? JSONSerialization.data(withJSONObject: sourcesData) {
 				try jsonData.write(to: sourcesFile)
@@ -250,8 +253,16 @@ struct BackupRestoreView: View {
 				let jsonData = try Data(contentsOf: sourcesFile)
 				if let sources = try JSONSerialization.jsonObject(with: jsonData) as? [[String: String]] {
 					for source in sources {
-						if let urlString = source["url"], let sourceURL = URL(string: urlString) {
-							Storage.shared.addSource(sourceURL, repository: nil, completion: { _ in })
+						if let urlString = source["url"], 
+						   let sourceURL = URL(string: urlString),
+						   let name = source["name"] {
+							let identifier = source["identifier"] ?? sourceURL.absoluteString
+							Storage.shared.addSource(
+								sourceURL,
+								name: name,
+								identifier: identifier,
+								completion: { _ in }
+							)
 						}
 					}
 				}

@@ -13,7 +13,7 @@ struct FeatherApp: App {
 	let storage = Storage.shared
 	
 	var body: some Scene {
-		WindowGroup {
+		WindowGroup(content: {
 			VStack {
 				DownloadHeaderView(downloadManager: downloadManager)
 					.transition(.move(edge: .top).combined(with: .opacity))
@@ -41,12 +41,12 @@ struct FeatherApp: App {
 				if colorType == "gradient" {
 					// For gradient, use the start color as the tint
 					let gradientStartHex = UserDefaults.standard.string(forKey: "Feather.userTintGradientStart") ?? "#B496DC"
-					UIApplication.topViewController()?.view.window?.tintColor = UIColor(Color(hex: gradientStartHex))
+					UIApplication.topViewController()?.view.window?.tintColor = UIColor(SwiftUI.Color(hex: gradientStartHex))
 				} else {
-					UIApplication.topViewController()?.view.window?.tintColor = UIColor(Color(hex: UserDefaults.standard.string(forKey: "Feather.userTintColor") ?? "#B496DC"))
+					UIApplication.topViewController()?.view.window?.tintColor = UIColor(SwiftUI.Color(hex: UserDefaults.standard.string(forKey: "Feather.userTintColor") ?? "#B496DC"))
 				}
 			}
-		}
+		})
 	}
 	
 	private func _handleURL(_ url: URL) {
