@@ -25,8 +25,11 @@ struct SigningProcessView: View {
                         .symbolEffect(.bounce, value: progress)
                     
                     Text("Signing \(appName)")
-                        .font(.title2)
+                        .font(.headline)
                         .fontWeight(.bold)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                        .minimumScaleFactor(0.7)
                     
                     Text(currentStep)
                         .font(.subheadline)
