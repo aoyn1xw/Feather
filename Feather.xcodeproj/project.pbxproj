@@ -287,7 +287,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo \"Will copy acknowledgements\"\n\nACKNOWLEDGEMENTS_DIR=${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/com.mono0926.LicensePlist.Output\nDESTINATION_PATH=${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Settings.bundle/\n\ncp -r \"${ACKNOWLEDGEMENTS_DIR}\"/thewonderofyou.Feather \"${DESTINATION_PATH}\"\ncp -r \"${ACKNOWLEDGEMENTS_DIR}\"/thewonderofyou.Feather.plist \"${DESTINATION_PATH}\"\nrm -rf \"${ACKNOWLEDGEMENTS_DIR}\"\n";
+			shellScript = "echo \"Will copy acknowledgements\"\n\nACKNOWLEDGEMENTS_DIR=${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/com.mono0926.LicensePlist.Output\nDESTINATION_PATH=${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Settings.bundle/\n\ncp -r \"${ACKNOWLEDGEMENTS_DIR}\"/ayon1xw.Feather \"${DESTINATION_PATH}\"\ncp -r \"${ACKNOWLEDGEMENTS_DIR}\"/ayon1xw.Feather.plist \"${DESTINATION_PATH}\"\nrm -rf \"${ACKNOWLEDGEMENTS_DIR}\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -484,7 +484,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = 2.5.0;
-				PRODUCT_BUNDLE_IDENTIFIER = thewonderofyou.Feather;
+				PRODUCT_BUNDLE_IDENTIFIER = ayon1xw.Feather;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
@@ -548,7 +548,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = 2.5.0;
-				PRODUCT_BUNDLE_IDENTIFIER = thewonderofyou.Feather;
+				PRODUCT_BUNDLE_IDENTIFIER = ayon1xw.Feather;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
@@ -580,7 +580,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = thewonderofyou.FeatherTests;
+				PRODUCT_BUNDLE_IDENTIFIER = ayon1xw.FeatherTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
@@ -605,7 +605,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = thewonderofyou.FeatherTests;
+				PRODUCT_BUNDLE_IDENTIFIER = ayon1xw.FeatherTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;

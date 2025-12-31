@@ -5,58 +5,80 @@ import NukeUI
 // MARK: - View
 struct SourcesCellView: View {
 	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
+	@StateObject var viewModel = SourcesViewModel.shared
 	@State private var dominantColor: Color = .accentColor
 	
 	var source: AltSource
 	
 	// MARK: Body
 	var body: some View {
-		let isRegular = horizontalSizeClass != .compact
+		let isPinned = viewModel.isPinned(source)
 		
-		FRIconCellView(
-			title: source.name ?? .localized("Unknown"),
-			subtitle: source.sourceURL?.absoluteString ?? "",
-			iconUrl: source.iconURL,
-			onColorExtracted: { color in
-				dominantColor = color
+		HStack {
+			FRIconCellView(
+				title: source.name ?? .localized("Unknown"),
+				subtitle: source.sourceURL?.absoluteString ?? "",
+				iconUrl: source.iconURL,
+				onColorExtracted: { color in
+					dominantColor = color
+				}
+			)
+			
+			if isPinned {
+				Image(systemName: "pin.fill")
+					.font(.caption)
+					.foregroundStyle(.secondary)
+					.rotationEffect(.degrees(45))
+					.padding(.trailing, 8)
 			}
-		)
-		.padding(isRegular ? 16 : 0)
+		}
+		.padding(12)
 		.background(
-			isRegular
-			? RoundedRectangle(cornerRadius: 20, style: .continuous)
+			RoundedRectangle(cornerRadius: 18, style: .continuous)
 				.fill(
 					LinearGradient(
 						colors: [
-							dominantColor.opacity(0.25),
-							dominantColor.opacity(0.08)
+							dominantColor.opacity(0.15),
+							dominantColor.opacity(0.05)
 						],
 						startPoint: .topLeading,
 						endPoint: .bottomTrailing
 					)
 				)
-				.overlay(
-					RoundedRectangle(cornerRadius: 20, style: .continuous)
-						.stroke(
-							LinearGradient(
-								colors: [
-									dominantColor.opacity(0.3),
-									Color.clear
-								],
-								startPoint: .topLeading,
-								endPoint: .bottomTrailing
-							),
-							lineWidth: 1
-						)
-				)
-				.shadow(color: dominantColor.opacity(0.2), radius: 10, x: 0, y: 4)
-			: nil
 		)
-		.swipeActions {
+		.overlay(
+			RoundedRectangle(cornerRadius: 18, style: .continuous)
+				.stroke(
+					LinearGradient(
+						colors: [
+							dominantColor.opacity(0.3),
+							Color.clear
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					),
+					lineWidth: 1
+				)
+		)
+		.swipeActions(edge: .leading) {
+			Button {
+				viewModel.togglePin(for: source)
+			} label: {
+				Label(isPinned ? "Unpin" : "Pin", systemImage: isPinned ? "pin.slash.fill" : "pin.fill")
+			}
+			.tint(.orange)
+		}
+		.swipeActions(edge: .trailing) {
 			_actions(for: source)
 			_contextActions(for: source)
 		}
 		.contextMenu {
+			Button {
+				viewModel.togglePin(for: source)
+			} label: {
+				Label(isPinned ? "Unpin" : "Pin", systemImage: isPinned ? "pin.slash" : "pin")
+			}
+			
 			_contextActions(for: source)
 			Divider()
 			_actions(for: source)

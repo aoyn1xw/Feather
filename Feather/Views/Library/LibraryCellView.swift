@@ -38,10 +38,9 @@ struct LibraryCellView: View {
 	
 	// MARK: Body
 	var body: some View {
-		let isRegular = horizontalSizeClass != .compact
 		let isEditing = editMode?.wrappedValue == .active
 		
-		HStack(spacing: 18) {
+		HStack(spacing: 16) {
 			if isEditing {
 				Button {
 					_toggleSelection()
@@ -55,22 +54,58 @@ struct LibraryCellView: View {
 			
 			FRAppIconView(app: app, size: 57)
 			
-			NBTitleWithSubtitleView(
-				title: app.name ?? .localized("Unknown"),
-				subtitle: _desc,
-				linelimit: 0
-			)
+			VStack(alignment: .leading, spacing: 4) {
+				Text(app.name ?? .localized("Unknown"))
+					.font(.headline)
+					.foregroundStyle(.primary)
+					.lineLimit(1)
+				
+				Text(_desc)
+					.font(.caption)
+					.foregroundStyle(.secondary)
+					.lineLimit(1)
+				
+				if let certInfo = certInfo {
+					Text("Expires On: \(certInfo.formatted)")
+						.font(.caption2)
+						.foregroundStyle(certInfo.color)
+						.padding(.top, 2)
+				}
+			}
+			
+			Spacer()
 			
 			if !isEditing {
 				_buttonActions(for: app)
 			}
 		}
-		.padding(isRegular ? 12 : 0)
+		.padding(12)
 		.background(
-			isRegular
-			? RoundedRectangle(cornerRadius: 18, style: .continuous)
-				.fill(_isSelected && isEditing ? Color.accentColor.opacity(0.1) : Color(.quaternarySystemFill))
-			: nil
+			RoundedRectangle(cornerRadius: 18, style: .continuous)
+				.fill(
+					LinearGradient(
+						colors: [
+							Color.accentColor.opacity(0.15),
+							Color.accentColor.opacity(0.05)
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+				)
+		)
+		.overlay(
+			RoundedRectangle(cornerRadius: 18, style: .continuous)
+				.stroke(
+					LinearGradient(
+						colors: [
+							Color.accentColor.opacity(0.3),
+							Color.clear
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					),
+					lineWidth: 1
+				)
 		)
 		.contentShape(Rectangle())
 		.onTapGesture {

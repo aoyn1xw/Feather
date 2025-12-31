@@ -63,7 +63,9 @@ struct DeveloperView: View {
                     
                     Toggle("Slow Animations", isOn: $slowAnimations)
                         .onChange(of: slowAnimations) { newValue in
-                            UIApplication.shared.windows.first?.layer.speed = newValue ? 0.1 : 1.0
+                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                                windowScene.windows.first?.layer.speed = newValue ? 0.1 : 1.0
+                            }
                         }
                 } header: {
                     Text("UI Debugging")

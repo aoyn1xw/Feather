@@ -6,7 +6,7 @@
   "apps": [
     {
       "name": "Feather",
-      "bundleIdentifier": "thewonderofyou.Feather",
+      "bundleIdentifier": "ayon1xw.Feather",
       "developerName": "Samara",
       "iconURL": "https://github.com/khcrysalis/Feather/blob/v1.x/iOS/Resources/Icons/Main/Mac@3x.png?raw=true",
       "localizedDescription": "Feather is a free on-device iOS application manager/installer built with UIKit for quality.",

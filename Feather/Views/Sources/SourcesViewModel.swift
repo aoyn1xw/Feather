@@ -14,6 +14,26 @@ final class SourcesViewModel: ObservableObject {
 	var isFinished = true
 	@Published var sources: [AltSource: ASRepository] = [:]
 	
+	@Published var pinnedSourceIDs: [String] = UserDefaults.standard.stringArray(forKey: "pinnedSources") ?? [] {
+		didSet {
+			UserDefaults.standard.set(pinnedSourceIDs, forKey: "pinnedSources")
+		}
+	}
+	
+	func togglePin(for source: AltSource) {
+		guard let id = source.sourceURL?.absoluteString else { return }
+		if pinnedSourceIDs.contains(id) {
+			pinnedSourceIDs.removeAll { $0 == id }
+		} else {
+			pinnedSourceIDs.append(id)
+		}
+	}
+	
+	func isPinned(_ source: AltSource) -> Bool {
+		guard let id = source.sourceURL?.absoluteString else { return false }
+		return pinnedSourceIDs.contains(id)
+	}
+	
 	func fetchSources(_ sources: FetchedResults<AltSource>, refresh: Bool = false, batchSize: Int = 4) async {
 		guard isFinished else { return }
 		

@@ -173,7 +173,7 @@ struct SourceDetailsView: View {
 				.foregroundStyle(dominantColor)
 				.font(.body)
 			
-			TextField("Search \(repository?.apps?.count ?? 0) Apps", text: $_searchText)
+			TextField("Search \((repository?.apps ?? []).count) Apps", text: $_searchText)
 				.textFieldStyle(.plain)
 			
 			if !_searchText.isEmpty {
@@ -493,7 +493,7 @@ struct SourceAppsListView: View {
 	
 	var body: some View {
 		NBList("Apps") {
-			ForEach(repository.apps ?? [], id: \.id) { app in
+			ForEach(repository.apps, id: \.id) { app in
 				Button {
 					_selectedRoute = SourceAppRoute(source: repository, app: app)
 				} label: {

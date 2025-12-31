@@ -15,7 +15,14 @@ struct SourcesView: View {
 	@State private var _searchText = ""
 	
 	private var _filteredSources: [AltSource] {
-		_sources.filter { _searchText.isEmpty || ($0.name?.localizedCaseInsensitiveContains(_searchText) ?? false) }
+		let filtered = _sources.filter { _searchText.isEmpty || ($0.name?.localizedCaseInsensitiveContains(_searchText) ?? false) }
+		return filtered.sorted { s1, s2 in
+			let p1 = viewModel.isPinned(s1)
+			let p2 = viewModel.isPinned(s2)
+			if p1 && !p2 { return true }
+			if !p1 && p2 { return false }
+			return (s1.name ?? "") < (s2.name ?? "")
+		}
 	}
 	
 	@FetchRequest(

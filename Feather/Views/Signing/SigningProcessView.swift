@@ -1,6 +1,7 @@
 import SwiftUI
 import NimbleViews
 
+@available(iOS 17.0, *)
 struct SigningProcessView: View {
     @Environment(\.dismiss) var dismiss
     @State private var progress: Double = 0.0
