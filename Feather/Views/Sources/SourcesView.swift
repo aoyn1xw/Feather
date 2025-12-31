@@ -52,7 +52,13 @@ struct SourcesView: View {
 							.background(
 								isRegular
 								? RoundedRectangle(cornerRadius: 18, style: .continuous)
-									.fill(Color(.quaternarySystemFill))
+									.fill(
+										LinearGradient(
+											colors: [Color.accentColor.opacity(0.3), Color.accentColor.opacity(0.1)],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
 								: nil
 							)
 						}

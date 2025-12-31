@@ -27,6 +27,7 @@ struct LibraryView: View {
 	@State private var _searchText = ""
 	@State private var _selectedScope: Scope = .all
 	
+	@State private var _importedSectionExpanded = true
 	
 	@Namespace private var _namespace
 	
@@ -88,21 +89,29 @@ struct LibraryView: View {
 					!_filteredImportedApps.isEmpty,
 					_selectedScope == .all || _selectedScope == .imported
 				{
-					NBSection(
-						.localized("Imported"),
-						secondary: _filteredImportedApps.count.description
-					) {
-						ForEach(_filteredImportedApps, id: \.uuid) { app in
-							LibraryCellView(
-								app: app,
-								selectedInfoAppPresenting: $_selectedInfoAppPresenting,
-								selectedSigningAppPresenting: $_selectedSigningAppPresenting,
-								selectedInstallAppPresenting: $_selectedInstallAppPresenting,
-								selectedAppUUIDs: $_selectedAppUUIDs
-							)
-							.compatMatchedTransitionSource(id: app.uuid ?? "", ns: _namespace)
+					DisclosureGroup(
+						isExpanded: $_importedSectionExpanded,
+						content: {
+							ForEach(_filteredImportedApps, id: \.uuid) { app in
+								LibraryCellView(
+									app: app,
+									selectedInfoAppPresenting: $_selectedInfoAppPresenting,
+									selectedSigningAppPresenting: $_selectedSigningAppPresenting,
+									selectedInstallAppPresenting: $_selectedInstallAppPresenting,
+									selectedAppUUIDs: $_selectedAppUUIDs
+								)
+								.compatMatchedTransitionSource(id: app.uuid ?? "", ns: _namespace)
+							}
+						},
+						label: {
+							HStack {
+								Text(.localized("Imported"))
+								Spacer()
+								Text(_filteredImportedApps.count.description)
+									.foregroundStyle(.secondary)
+							}
 						}
-					}
+					)
 				}
 			}
 			.searchable(text: $_searchText, placement: .platform())

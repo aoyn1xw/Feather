@@ -23,6 +23,10 @@ struct SigningView: View {
 	@State private var _selectedPhoto: PhotosPickerItem? = nil
 	@State var appIcon: UIImage?
 	
+	@State private var _isNameDialogPresenting = false
+	@State private var _isIdentifierDialogPresenting = false
+	@State private var _isVersionDialogPresenting = false
+	
 	// MARK: Fetch
 	@FetchRequest(
 		entity: CertificatePair.entity(),
@@ -113,6 +117,33 @@ struct SigningView: View {
 			.disabled(_isSigning)
 			.animation(.smooth, value: _isSigning)
 		}
+		.alert(.localized("Name"), isPresented: $_isNameDialogPresenting) {
+			TextField(_temporaryOptions.appName ?? (app.name ?? ""), text: Binding(
+				get: { _temporaryOptions.appName ?? app.name ?? "" },
+				set: { _temporaryOptions.appName = $0 }
+			))
+			.textInputAutocapitalization(.none)
+			Button(.localized("Cancel"), role: .cancel) { }
+			Button(.localized("Save")) { }
+		}
+		.alert(.localized("Identifier"), isPresented: $_isIdentifierDialogPresenting) {
+			TextField(_temporaryOptions.appIdentifier ?? (app.identifier ?? ""), text: Binding(
+				get: { _temporaryOptions.appIdentifier ?? app.identifier ?? "" },
+				set: { _temporaryOptions.appIdentifier = $0 }
+			))
+			.textInputAutocapitalization(.none)
+			Button(.localized("Cancel"), role: .cancel) { }
+			Button(.localized("Save")) { }
+		}
+		.alert(.localized("Version"), isPresented: $_isVersionDialogPresenting) {
+			TextField(_temporaryOptions.appVersion ?? (app.version ?? ""), text: Binding(
+				get: { _temporaryOptions.appVersion ?? app.version ?? "" },
+				set: { _temporaryOptions.appVersion = $0 }
+			))
+			.textInputAutocapitalization(.none)
+			Button(.localized("Cancel"), role: .cancel) { }
+			Button(.localized("Save")) { }
+		}
 		.onAppear {
 			// ppq protection
 			if
@@ -160,25 +191,13 @@ extension SigningView {
 			}
 			
 			_infoCell(.localized("Name"), desc: _temporaryOptions.appName ?? app.name) {
-				SigningPropertiesView(
-					title: .localized("Name"),
-					initialValue: _temporaryOptions.appName ?? (app.name ?? ""),
-					bindingValue: $_temporaryOptions.appName
-				)
+				_isNameDialogPresenting = true
 			}
 			_infoCell(.localized("Identifier"), desc: _temporaryOptions.appIdentifier ?? app.identifier) {
-				SigningPropertiesView(
-					title: .localized("Identifier"),
-					initialValue: _temporaryOptions.appIdentifier ?? (app.identifier ?? ""),
-					bindingValue: $_temporaryOptions.appIdentifier
-				)
+				_isIdentifierDialogPresenting = true
 			}
 			_infoCell(.localized("Version"), desc: _temporaryOptions.appVersion ?? app.version) {
-				SigningPropertiesView(
-					title: .localized("Version"),
-					initialValue: _temporaryOptions.appVersion ?? (app.version ?? ""),
-					bindingValue: $_temporaryOptions.appVersion
-				)
+				_isVersionDialogPresenting = true
 			}
 		}
 	}
@@ -244,14 +263,13 @@ extension SigningView {
 	}
 	
 	@ViewBuilder
-	private func _infoCell<V: View>(_ title: String, desc: String?, @ViewBuilder destination: () -> V) -> some View {
-		NavigationLink {
-			destination()
-		} label: {
+	private func _infoCell(_ title: String, desc: String?, action: @escaping () -> Void) -> some View {
+		Button(action: action) {
 			LabeledContent(title) {
 				Text(desc ?? .localized("Unknown"))
 			}
 		}
+		.buttonStyle(.plain)
 	}
 }
 
