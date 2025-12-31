@@ -88,17 +88,39 @@ extension CertificatesView {
 			CertificatesCellView(
 				cert: cert
 			)
-			.padding()
+			.padding(16)
 			.background(
-				RoundedRectangle(cornerRadius: 10.5)
-					.fill(Color(uiColor: .quaternarySystemFill))
+				ZStack {
+					RoundedRectangle(cornerRadius: 18, style: .continuous)
+						.fill(
+							LinearGradient(
+								colors: [
+									Color.accentColor.opacity(_selectedCertBinding.wrappedValue == index ? 0.15 : 0.05),
+									Color.accentColor.opacity(_selectedCertBinding.wrappedValue == index ? 0.08 : 0.02)
+								],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+					RoundedRectangle(cornerRadius: 18, style: .continuous)
+						.stroke(
+							LinearGradient(
+								colors: [
+									Color.accentColor.opacity(_selectedCertBinding.wrappedValue == index ? 0.5 : 0.15),
+									Color.clear
+								],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							),
+							lineWidth: _selectedCertBinding.wrappedValue == index ? 2 : 1
+						)
+				}
 			)
-			.overlay(
-				RoundedRectangle(cornerRadius: 10.5)
-					.strokeBorder(
-						_selectedCertBinding.wrappedValue == index ? Color.accentColor : Color.clear,
-						lineWidth: 2
-					)
+			.shadow(
+				color: _selectedCertBinding.wrappedValue == index ? Color.accentColor.opacity(0.3) : Color.black.opacity(0.05),
+				radius: _selectedCertBinding.wrappedValue == index ? 12 : 4,
+				x: 0,
+				y: _selectedCertBinding.wrappedValue == index ? 6 : 2
 			)
 			.contextMenu {
 				_contextActions(for: cert)

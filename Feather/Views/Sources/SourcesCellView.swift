@@ -12,6 +12,7 @@ import NukeUI
 // MARK: - View
 struct SourcesCellView: View {
 	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
+	@State private var dominantColor: Color = .accentColor
 	
 	var source: AltSource
 	
@@ -22,13 +23,40 @@ struct SourcesCellView: View {
 		FRIconCellView(
 			title: source.name ?? .localized("Unknown"),
 			subtitle: source.sourceURL?.absoluteString ?? "",
-			iconUrl: source.iconURL
+			iconUrl: source.iconURL,
+			onColorExtracted: { color in
+				dominantColor = color
+			}
 		)
-		.padding(isRegular ? 12 : 0)
+		.padding(isRegular ? 16 : 0)
 		.background(
 			isRegular
-			? RoundedRectangle(cornerRadius: 18, style: .continuous)
-				.fill(Color(.quaternarySystemFill))
+			? RoundedRectangle(cornerRadius: 20, style: .continuous)
+				.fill(
+					LinearGradient(
+						colors: [
+							dominantColor.opacity(0.25),
+							dominantColor.opacity(0.08)
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+				)
+				.overlay(
+					RoundedRectangle(cornerRadius: 20, style: .continuous)
+						.stroke(
+							LinearGradient(
+								colors: [
+									dominantColor.opacity(0.3),
+									Color.clear
+								],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							),
+							lineWidth: 1
+						)
+				)
+				.shadow(color: dominantColor.opacity(0.2), radius: 10, x: 0, y: 4)
 			: nil
 		)
 		.swipeActions {
