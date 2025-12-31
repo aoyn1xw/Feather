@@ -5,6 +5,7 @@ import NimbleViews
 // MARK: - View
 struct SigningView: View {
 	@Environment(\.dismiss) var dismiss
+    @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
 	@StateObject private var _optionsManager = OptionsManager.shared
 	
 	@State private var _temporaryOptions: Options = OptionsManager.shared.options
@@ -364,39 +365,76 @@ extension SigningView {
 		_isSigning = true
         _isSigningProcessPresented = true
 		
-		FR.remoteSignPackageFile(
-			app,
-			using: _temporaryOptions,
-			certificate: cert
-		) { result in
-            _isSigningProcessPresented = false
-            switch result {
-            case .success(let installLink):
-                let install = UIAlertAction(title: .localized("Install"), style: .default) { _ in
-                    if let url = URL(string: installLink) {
-                        UIApplication.shared.open(url)
+        if _serverMethod == 2 {
+            // Fully Remote
+            FR.remoteSignPackageFile(
+                app,
+                using: _temporaryOptions,
+                certificate: cert
+            ) { result in
+                _isSigningProcessPresented = false
+                switch result {
+                case .success(let installLink):
+                    let install = UIAlertAction(title: .localized("Install"), style: .default) { _ in
+                        if let url = URL(string: installLink) {
+                            UIApplication.shared.open(url)
+                        }
                     }
+                    let copy = UIAlertAction(title: .localized("Copy Link"), style: .default) { _ in
+                        UIPasteboard.general.string = installLink
+                    }
+                    let cancel = UIAlertAction(title: .localized("Cancel"), style: .cancel)
+                    
+                    UIAlertController.showAlert(
+                        title: .localized("Signing Successful"),
+                        message: .localized("Your app is ready to install."),
+                        actions: [install, copy, cancel]
+                    )
+                    
+                case .failure(let error):
+                    let ok = UIAlertAction(title: .localized("Dismiss"), style: .cancel)
+                    UIAlertController.showAlert(
+                        title: "Error",
+                        message: error.localizedDescription,
+                        actions: [ok]
+                    )
                 }
-                let copy = UIAlertAction(title: .localized("Copy Link"), style: .default) { _ in
-                    UIPasteboard.general.string = installLink
-                }
-                let cancel = UIAlertAction(title: .localized("Cancel"), style: .cancel)
-                
-                UIAlertController.showAlert(
-                    title: .localized("Signing Successful"),
-                    message: .localized("Your app is ready to install."),
-                    actions: [install, copy, cancel]
-                )
-                
-            case .failure(let error):
-                let ok = UIAlertAction(title: .localized("Dismiss"), style: .cancel)
-                UIAlertController.showAlert(
-                    title: "Error",
-                    message: error.localizedDescription,
-                    actions: [ok]
-                )
             }
-            // self.dismiss() // Don't dismiss immediately so user can see the alert
-		}
+        } else {
+            // Local or Semi-Local
+            FR.signPackageFile(
+                app,
+                using: _temporaryOptions,
+                icon: appIcon,
+                certificate: cert
+            ) { error in
+                if let error {
+                    _isSigningProcessPresented = false
+                    let ok = UIAlertAction(title: .localized("Dismiss"), style: .cancel) { _ in
+                        dismiss()
+                    }
+                    
+                    UIAlertController.showAlert(
+                        title: "Error",
+                        message: error.localizedDescription,
+                        actions: [ok]
+                    )
+                } else {
+                    if
+                        _temporaryOptions.post_deleteAppAfterSigned,
+                        !app.isSigned
+                    {
+                        Storage.shared.deleteApp(for: app)
+                    }
+                    
+                    if _temporaryOptions.post_installAppAfterSigned {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                            NotificationCenter.default.post(name: Notification.Name("Feather.installApp"), object: nil)
+                        }
+                    }
+                    dismiss()
+                }
+            }
+        }
 	}
 }

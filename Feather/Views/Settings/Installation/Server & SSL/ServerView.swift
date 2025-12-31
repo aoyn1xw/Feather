@@ -43,7 +43,7 @@ extension ServerView {
 struct ServerView: View {
 	@AppStorage("Feather.ipFix") private var _ipFix: Bool = false
 	@AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
-	private let _serverMethods: [String] = [.localized("Fully Local"), .localized("Semi Local")]
+	private let _serverMethods: [String] = [.localized("Fully Local"), .localized("Semi Local"), .localized("Fully Remote")]
 	
 	private let _dataService = NBFetchService()
 	private let _serverPackUrl = "https://backloop.dev/pack.json"
