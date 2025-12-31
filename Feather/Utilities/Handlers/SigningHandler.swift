@@ -389,7 +389,7 @@ extension SigningHandler {
 		_enumerateFiles(at: app) { $0.hasSuffix("_CodeSignature") }
 	}
 	
-	@available(iOS 19, *)
+	@available(iOS 16.0, *)
 	private func _locateMachosAndFixupArm64eSlice(for app: URL) async throws {
 		let machoFiles = _enumerateFiles(at: app) {
 			$0.hasSuffix(".dylib") || $0.hasSuffix(".framework")

@@ -1,6 +1,7 @@
 import SwiftUI
 import NimbleViews
 
+@available(iOS 17.0, *)
 struct OnboardingView: View {
     @AppStorage("hasCompletedOnboarding") var hasCompletedOnboarding: Bool = false
     @State private var currentPage = 0

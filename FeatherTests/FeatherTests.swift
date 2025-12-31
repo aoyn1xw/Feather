@@ -3,7 +3,7 @@
 
 import XCTest
 @testable import Feather
-@testable import Esign
+import AltSourceKit
  
 final class FeatherTests: XCTestCase {
 
@@ -53,10 +53,10 @@ final class FeatherTests: XCTestCase {
 		dateFormatter.dateFormat = "yyyy-MM-dd"
 		decoder.dateDecodingStrategy = .formatted(dateFormatter)
 		
-		var accumulated: [Repository] = []
+		var accumulated: [ASRepository] = []
 		for (url, data) in repoDatas {
 			do {
-				let repo = try decoder.decode(Repository.self, from: data)
+				let repo = try decoder.decode(ASRepository.self, from: data)
 				accumulated.append(repo)
 			} catch {
 				XCTFail("Failed to decode repo data: \(error)\n\nFailed for \(url)\n\n======================================\n\n")
@@ -120,7 +120,7 @@ final class FeatherTests: XCTestCase {
 		}
 		
 		if trimmedCode.hasPrefix("source[") {
-			let c = eRepoDecrypt(input: code)
+			let c = ASDecrypt(input: code)
 			print(c.decrypt() ?? [])
 			return
 		} else {

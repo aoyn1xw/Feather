@@ -98,4 +98,66 @@ class ServerInstaller: Identifiable, ObservableObject {
 	func getIPFix() -> Bool {
 		UserDefaults.standard.bool(forKey: "Feather.ipFix")
 	}
+
+	func install() async throws {
+		_updateStatus(.preparing)
+
+		// Sign the app
+		let signingHandler = SigningHandler(app: app)
+		let signedAppURL = try await signingHandler.sign()
+
+		// Set package URL for the server to serve
+		self.packageUrl = signedAppURL
+
+		// Check installation method
+		let installationMethod = UserDefaults.standard.integer(forKey: "Feather.installationMethod")
+
+		if installationMethod == 1 {
+			// IDevice installation
+			_updateStatus(.connecting)
+			try await _installViaIDevice(signedAppURL)
+		} else {
+			// Server-based installation
+			_updateStatus(.ready)
+		}
+	}
+
+	func export() async throws {
+		_updateStatus(.preparing)
+
+		// Sign the app
+		let signingHandler = SigningHandler(app: app)
+		let signedAppURL = try await signingHandler.sign()
+
+		// Export via share sheet
+		await MainActor.run {
+			let shareSheet = UIActivityViewController(
+				activityItems: [signedAppURL],
+				applicationActivities: nil
+			)
+
+			if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+			   let viewController = windowScene.windows.first?.rootViewController {
+				viewController.present(shareSheet, animated: true)
+			}
+		}
+
+		_updateStatus(.completed)
+	}
+
+	private func _installViaIDevice(_ ipaURL: URL) async throws {
+		_updateStatus(.installing)
+
+		// Get connected device
+		guard let device = try? IDevice.lookupFirstDevice() else {
+			throw NSError(domain: "ServerInstaller", code: 1, userInfo: [
+				NSLocalizedDescriptionKey: "No device connected"
+			])
+		}
+
+		// Install via IDevice
+		try device.installApp(ipaURL)
+
+		_updateStatus(.completed)
+	}
 }
