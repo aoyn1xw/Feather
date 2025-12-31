@@ -29,6 +29,10 @@ jobs:
           rm -rf ~/Library/Developer/Xcode/DerivedData/Feather-* || true
 
       - name: Compile Feather
+        env:
+          # Skip asset catalog validation for simulator runtimes
+          ASSETCATALOG_COMPILER_SKIP_APP_STORE_DEPLOYMENT: "NO"
+          ASSETCATALOG_COMPILER_OPTIMIZATION: "time"
         run: |
           agvtool new-version -all $(git rev-parse HEAD)
           make
