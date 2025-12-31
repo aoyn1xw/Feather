@@ -28,49 +28,117 @@ self._installer = StateObject(wrappedValue: try! ServerInstaller(app: app, viewM
 
 // MARK: Body
 var body: some View {
-VStack(spacing: 20) {
-            // Icon & Progress
-InstallProgressView(app: app, viewModel: viewModel)
-                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+VStack(spacing: 24) {
+            // Modern Status Card
+            ZStack {
+                // Gradient Background
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: viewModel.isCompleted
+                                ? [Color.green.opacity(0.15), Color.green.opacity(0.05)]
+                                : viewModel.status == .broken
+                                ? [Color.red.opacity(0.15), Color.red.opacity(0.05)]
+                                : [Color.accentColor.opacity(0.15), Color.accentColor.opacity(0.05)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .stroke(
+                                LinearGradient(
+                                    colors: viewModel.isCompleted
+                                        ? [Color.green.opacity(0.3), Color.green.opacity(0.1)]
+                                        : viewModel.status == .broken
+                                        ? [Color.red.opacity(0.3), Color.red.opacity(0.1)]
+                                        : [Color.accentColor.opacity(0.3), Color.accentColor.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.5
+                            )
+                    )
 
-            // Status Text
-            VStack(spacing: 8) {
-                Text(viewModel.statusLabel)
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-                    .contentTransition(.numericText())
-                
-                if viewModel.status == .broken {
-                    Text(.localized("An error occurred during installation."))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
+                VStack(spacing: 16) {
+                    // Icon & Progress
+                    InstallProgressView(app: app, viewModel: viewModel)
+                        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+
+                    // Modern Status Text with Icon
+                    VStack(spacing: 8) {
+                        HStack(spacing: 8) {
+                            if !viewModel.isCompleted && viewModel.status != .broken {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                    .tint(.accentColor)
+                            } else if viewModel.isCompleted {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(.green)
+                            } else if viewModel.status == .broken {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(.red)
+                            }
+
+                            Text(viewModel.statusLabel)
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.primary)
+                        }
+                        .contentTransition(.symbolEffect)
+
+                        if viewModel.status == .broken {
+                            Text(.localized("An error occurred during installation."))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        } else if !viewModel.isCompleted {
+                            Text(getStatusSubtitle())
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        }
+                    }
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.statusLabel)
                 }
+                .padding(20)
             }
-            .animation(.snappy, value: viewModel.statusLabel)
+            .frame(height: 180)
+            .padding(.horizontal, 20)
 
             // Action Button
-if viewModel.isCompleted {
-Button {
-UIApplication.openApp(with: app.identifier ?? "")
-} label: {
-                    HStack {
+            if viewModel.isCompleted {
+                Button {
+                    UIApplication.openApp(with: app.identifier ?? "")
+                } label: {
+                    HStack(spacing: 8) {
                         Text(.localized("Open App"))
-                            .fontWeight(.semibold)
+                            .fontWeight(.bold)
                         Image(systemName: "arrow.up.right.circle.fill")
+                            .font(.title3)
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(Color.accentColor)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        LinearGradient(
+                            colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
                     .foregroundStyle(.white)
                     .clipShape(Capsule())
-                    .shadow(color: Color.accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
-}
-.transition(.scale.combined(with: .opacity))
-}
-}
-.frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .shadow(color: Color.accentColor.opacity(0.4), radius: 12, x: 0, y: 6)
+                }
+                .padding(.horizontal, 20)
+                .transition(.scale.combined(with: .opacity))
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(uiColor: .systemBackground))
 .sheet(isPresented: $_isWebviewPresenting) {
 SafariRepresentableView(url: installer.pageEndpoint).ignoresSafeArea()
@@ -107,7 +175,7 @@ private func _install() {
 guard isSharing || app.identifier != Bundle.main.bundleIdentifier! || _installationMethod == 1 else {
 UIAlertController.showAlertWithOk(
 title: .localized("Install"),
-message: .localized("You cannot update ‘%@‘ with itself, please use an alternative tool to update it.", arguments: Bundle.main.name)
+message: .localized("You cannot update '%@' with itself, please use an alternative tool to update it.", arguments: Bundle.main.name)
 )
 dismiss()
 return
@@ -128,4 +196,19 @@ dismiss()
 }
 }
 }
+
+    private func getStatusSubtitle() -> String {
+        switch viewModel.status {
+        case .sendingManifest:
+            return "Preparing installation manifest..."
+        case .sendingPayload:
+            return "Transferring app payload..."
+        case .installing:
+            return "Installing application..."
+        case .ready:
+            return "Ready to install"
+        default:
+            return "Processing..."
+        }
+    }
 }

@@ -63,26 +63,22 @@ struct SettingsView: View {
                     NavigationLink(destination: CreditsView()) {
                         Label(.localized("Credits"), systemImage: "person.3.fill")
                     }
-                    
-                    HStack {
-                        Label("CoreSign", systemImage: "app.badge")
-                            .font(.body)
-                            .fontWeight(.medium)
-                        Spacer()
-                        Text("Version 1.0")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .onTapGesture {
-                                developerTapCount += 1
-                                if developerTapCount >= 7 {
-                                    isDeveloperModeEnabled = true
-                                    developerTapCount = 0
-                                    let generator = UINotificationFeedbackGenerator()
-                                    generator.notificationOccurred(.success)
-                                }
+                }
+
+                // CoreSign Header
+                Section {
+                    CoreSignHeaderView()
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .onTapGesture {
+                            developerTapCount += 1
+                            if developerTapCount >= 7 {
+                                isDeveloperModeEnabled = true
+                                developerTapCount = 0
+                                let generator = UINotificationFeedbackGenerator()
+                                generator.notificationOccurred(.success)
                             }
-                    }
-                    .padding(.vertical, 4)
+                        }
                 }
             }
         }

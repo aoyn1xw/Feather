@@ -66,14 +66,12 @@ struct LibraryView: View {
 	var body: some View {
 		NBNavigationView(.localized("Library")) {
 			NBListAdaptable {
+				// Centered Section Headers with modern styling
 				if
 					!_filteredSignedApps.isEmpty,
 					_selectedScope == .all || _selectedScope == .signed
 				{
-					NBSection(
-						.localized("Signed"),
-						secondary: _filteredSignedApps.count.description
-					) {
+					Section {
 						ForEach(_filteredSignedApps, id: \.uuid) { app in
 							LibraryCellView(
 								app: app,
@@ -84,36 +82,64 @@ struct LibraryView: View {
 							)
 							.compatMatchedTransitionSource(id: app.uuid ?? "", ns: _namespace)
 						}
+					} header: {
+						VStack(spacing: 4) {
+							Text(.localized("Signed"))
+								.font(.title3)
+								.fontWeight(.bold)
+								.foregroundStyle(.primary)
+							Text("\(_filteredSignedApps.count) \(_filteredSignedApps.count == 1 ? String.localized("App") : String.localized("Apps"))")
+								.font(.caption)
+								.foregroundStyle(.secondary)
+						}
+						.frame(maxWidth: .infinity)
+						.padding(.vertical, 8)
+						.textCase(nil)
 					}
 				}
-				
+
 				if
 					!_filteredImportedApps.isEmpty,
 					_selectedScope == .all || _selectedScope == .imported
 				{
-					DisclosureGroup(
-						isExpanded: $_importedSectionExpanded,
-						content: {
-							ForEach(_filteredImportedApps, id: \.uuid) { app in
-								LibraryCellView(
-									app: app,
-									selectedInfoAppPresenting: $_selectedInfoAppPresenting,
-									selectedSigningAppPresenting: $_selectedSigningAppPresenting,
-									selectedInstallAppPresenting: $_selectedInstallAppPresenting,
-									selectedAppUUIDs: $_selectedAppUUIDs
-								)
-								.compatMatchedTransitionSource(id: app.uuid ?? "", ns: _namespace)
-							}
-						},
-						label: {
+					Section {
+						ForEach(_filteredImportedApps, id: \.uuid) { app in
+							LibraryCellView(
+								app: app,
+								selectedInfoAppPresenting: $_selectedInfoAppPresenting,
+								selectedSigningAppPresenting: $_selectedSigningAppPresenting,
+								selectedInstallAppPresenting: $_selectedInstallAppPresenting,
+								selectedAppUUIDs: $_selectedAppUUIDs
+							)
+							.compatMatchedTransitionSource(id: app.uuid ?? "", ns: _namespace)
+						}
+					} header: {
+						VStack(spacing: 4) {
 							HStack {
 								Text(.localized("Imported"))
-								Spacer()
-								Text(_filteredImportedApps.count.description)
-									.foregroundStyle(.secondary)
+									.font(.title3)
+									.fontWeight(.bold)
+									.foregroundStyle(.primary)
+								Button {
+									withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+										_importedSectionExpanded.toggle()
+									}
+								} label: {
+									Image(systemName: _importedSectionExpanded ? "chevron.down.circle.fill" : "chevron.right.circle.fill")
+										.font(.title3)
+										.foregroundStyle(.secondary)
+										.rotationEffect(.degrees(_importedSectionExpanded ? 0 : 0))
+								}
+								.buttonStyle(.plain)
 							}
+							Text("\(_filteredImportedApps.count) \(_filteredImportedApps.count == 1 ? String.localized("App") : String.localized("Apps"))")
+								.font(.caption)
+								.foregroundStyle(.secondary)
 						}
-					)
+						.frame(maxWidth: .infinity)
+						.padding(.vertical, 8)
+						.textCase(nil)
+					}
 				}
 			}
 			.searchable(text: $_searchText, placement: .platform())

@@ -10,14 +10,15 @@ struct StatusBarOverlay: View {
     @AppStorage("statusBar.leftPadding") private var leftPadding: Double = 0
     @AppStorage("statusBar.rightPadding") private var rightPadding: Double = 0
     @AppStorage("statusBar.topPadding") private var topPadding: Double = 0
-    
+    @AppStorage("statusBar.bottomPadding") private var bottomPadding: Double = 0
+
     // New Options
     @AppStorage("statusBar.fontSize") private var fontSize: Double = 12
-    @AppStorage("statusBar.fontDesign") private var fontDesign: String = "default" // default, monospaced, rounded, serif
+    @AppStorage("statusBar.fontDesign") private var fontDesign: String = "default"
     @AppStorage("statusBar.showBackground") private var showBackground: Bool = false
     @AppStorage("statusBar.backgroundColor") private var backgroundColorHex: String = "#000000"
     @AppStorage("statusBar.backgroundOpacity") private var backgroundOpacity: Double = 0.2
-    
+
     private var selectedFontDesign: Font.Design {
         switch fontDesign {
         case "monospaced": return .monospaced
@@ -26,43 +27,46 @@ struct StatusBarOverlay: View {
         default: return .default
         }
     }
-    
+
     var body: some View {
         if showCustomText || showSFSymbol {
-            VStack {
+            VStack(spacing: 0) {
                 ZStack {
+                    // Background with shadow for better visibility
+                    if showBackground {
+                        Capsule()
+                            .fill(SwiftUI.Color(hex: backgroundColorHex).opacity(backgroundOpacity))
+                            .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                    }
+
                     HStack(spacing: 8) {
                         if showCustomText && !customText.isEmpty {
                             Text(customText)
                                 .font(.system(size: fontSize, weight: isBold ? .bold : .regular, design: selectedFontDesign))
                                 .foregroundStyle(SwiftUI.Color(hex: colorHex))
+                                .lineLimit(1)
                         }
-                        
+
                         if showSFSymbol && !sfSymbol.isEmpty {
                             Image(systemName: sfSymbol)
                                 .font(.system(size: fontSize, weight: isBold ? .bold : .regular, design: selectedFontDesign))
                                 .foregroundStyle(SwiftUI.Color(hex: colorHex))
                         }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                    .background(
-                        Capsule()
-                            .fill(SwiftUI.Color(hex: backgroundColorHex).opacity(showBackground ? backgroundOpacity : 0))
-                    )
-                    .padding(.leading, leftPadding)
-                    .padding(.trailing, rightPadding)
-                    .padding(.top, topPadding)
+                    .padding(.horizontal, showBackground ? 12 : 0)
+                    .padding(.vertical, showBackground ? 6 : 0)
                 }
-                .frame(maxWidth: .infinity)
-                .frame(height: 44) // Standard status bar height
-                .background(Color.clear)
-                
+                .padding(.leading, leftPadding)
+                .padding(.trailing, rightPadding)
+                .padding(.top, topPadding + 8) // Add 8pt to account for notch/status bar
+                .padding(.bottom, bottomPadding)
+                .frame(maxWidth: .infinity, alignment: .center)
+
                 Spacer()
             }
             .ignoresSafeArea()
-            .allowsHitTesting(false) // Pass touches through
-            .zIndex(9999) // Ensure it's on top
+            .allowsHitTesting(false)
+            .zIndex(9999)
         }
     }
 }

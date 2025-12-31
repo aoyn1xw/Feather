@@ -14786,6 +14786,149 @@
           }
         }
       }
+    },
+    "subtitle.ae_lovers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A & E are lovers"
+          }
+        }
+      }
+    },
+    "subtitle.kravashit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KravaShit"
+          }
+        }
+      }
+    },
+    "subtitle.wsf_top" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WSF on top"
+          }
+        }
+      }
+    },
+    "subtitle.just_when" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "when just when"
+          }
+        }
+      }
+    },
+    "subtitle.no_competition" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no competition."
+          }
+        }
+      }
+    },
+    "subtitle.love_ragebaiting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "love ragebaiting"
+          }
+        }
+      }
+    },
+    "subtitle.drizzy_kendrick" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drizzy > Kendrick"
+          }
+        }
+      }
+    },
+    "subtitle.crashouts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "made with some crashouts"
+          }
+        }
+      }
+    },
+    "subtitle.random_project" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Random Project lol"
+          }
+        }
+      }
+    },
+    "subtitle.want_s" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I want S 🫦"
+          }
+        }
+      }
+    },
+    "subtitle.use_coresign" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use CoreSign gng"
+          }
+        }
+      }
+    },
+    "subtitle.made_in" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Made in 🇩🇪 & 🇺🇸"
+          }
+        }
+      }
+    },
+    "subtitle.swiftui" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "💯 in SwiftUI"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
