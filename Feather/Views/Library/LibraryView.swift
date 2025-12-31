@@ -251,7 +251,7 @@ struct LibraryView: View {
 						}
 						
 						let downloadId = "FeatherManualDownload_\(UUID().uuidString)"
-						let download = downloadManager.startDownload(from: url, id: downloadId)
+						_ = downloadManager.startDownload(from: url, id: downloadId)
 						
 						// Monitor download completion - dismiss loading after showing it
 						// The actual success/failure will be handled by the download manager

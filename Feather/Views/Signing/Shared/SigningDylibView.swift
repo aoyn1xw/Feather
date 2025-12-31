@@ -40,7 +40,7 @@ struct SigningDylibView: View {
 			}
 			.disabled(options == nil)
 			
-			NBSection {
+			NBSection(.localized("Hidden")) {
 				HStack {
 					Image(systemName: "eye.slash.fill")
 						.foregroundStyle(.secondary)
@@ -49,12 +49,6 @@ struct SigningDylibView: View {
 						.font(.footnote)
 						.foregroundColor(.secondary)
 				}
-			} header: {
-				Text(.localized("Hidden"))
-					.font(.subheadline)
-					.fontWeight(.semibold)
-					.textCase(.none)
-					.foregroundStyle(.primary)
 			}
 		}
 		.onAppear(perform: _loadDylibs)

@@ -28,7 +28,7 @@ struct SigningTweaksView: View {
 				.padding(.vertical, 4)
 			}
 			
-			NBSection {
+			NBSection(.localized("Tweaks"), systemName: "wrench.and.screwdriver.fill") {
 				if !options.injectionFiles.isEmpty {
 					ForEach(options.injectionFiles, id: \.absoluteString) { tweak in
 						_file(tweak: tweak)
@@ -49,22 +49,6 @@ struct SigningTweaksView: View {
 						Spacer()
 					}
 				}
-			} header: {
-				HStack {
-					Image(systemName: "wrench.and.screwdriver.fill")
-						.foregroundStyle(
-							LinearGradient(
-								colors: [Color.accentColor, Color.accentColor.opacity(0.6)],
-								startPoint: .topLeading,
-								endPoint: .bottomTrailing
-							)
-						)
-					Text(.localized("Tweaks"))
-						.font(.subheadline)
-						.fontWeight(.semibold)
-				}
-				.textCase(.none)
-				.foregroundStyle(.primary)
 			}
 		}
 		.toolbar {
