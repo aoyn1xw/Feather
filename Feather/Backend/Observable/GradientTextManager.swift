@@ -69,6 +69,8 @@ extension View {
 
 // MARK: - UIKit Support
 extension UILabel {
+	private static var gradientImageCache = [String: UIImage]()
+	
 	func applyGradientText() {
 		let manager = GradientTextManager.shared
 		
@@ -78,9 +80,18 @@ extension UILabel {
 			return
 		}
 		
+		// Create cache key from gradient parameters
+		let cacheKey = "\(manager.gradientStartColorHex)_\(manager.gradientEndColorHex)_\(manager.gradientDirection)_\(Int(self.bounds.width))_\(Int(self.bounds.height))"
+		
+		// Check cache first
+		if let cachedImage = UILabel.gradientImageCache[cacheKey] {
+			self.textColor = UIColor(patternImage: cachedImage)
+			return
+		}
+		
 		// Create gradient layer
 		let gradientLayer = CAGradientLayer()
-		gradientLayer.frame = self.bounds
+		gradientLayer.frame = self.bounds.isEmpty ? CGRect(x: 0, y: 0, width: 200, height: 50) : self.bounds
 		
 		let startColor = UIColor(Color(hex: manager.gradientStartColorHex))
 		let endColor = UIColor(Color(hex: manager.gradientEndColorHex))
@@ -110,9 +121,15 @@ extension UILabel {
 		let gradientImage = UIGraphicsGetImageFromCurrentImageContext()
 		UIGraphicsEndImageContext()
 		
-		// Apply as text color
+		// Apply as text color and cache
 		if let image = gradientImage {
+			UILabel.gradientImageCache[cacheKey] = image
 			self.textColor = UIColor(patternImage: image)
+			
+			// Limit cache size to prevent memory issues
+			if UILabel.gradientImageCache.count > 20 {
+				UILabel.gradientImageCache.removeAll()
+			}
 		}
 	}
 }
