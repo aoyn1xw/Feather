@@ -236,17 +236,12 @@ struct BackupRestoreView: View {
 			
 			// 1. Restore certificates - Note: Certificate restoration is limited
 			// Full certificate restoration requires password handling and proper ZsignHandler integration
-			// For now, we only restore the certificate files to the directory structure
+			// Users will need to manually re-import certificates after restore
 			let certificatesDir = tempDir.appendingPathComponent("certificates")
 			if FileManager.default.fileExists(atPath: certificatesDir.path) {
-				let certFiles = try FileManager.default.contentsOfDirectory(at: certificatesDir, includingPropertiesForKeys: nil)
-				for certFile in certFiles where certFile.pathExtension == "p12" {
-					let certData = try Data(contentsOf: certFile)
-					// TODO: Implement proper certificate import with password prompt
-					// This requires integration with ZsignHandler and password management
-					// For now, users will need to manually re-import certificates
-					_ = certData // Suppress unused variable warning
-				}
+				// Certificate files are backed up but require manual re-import
+				// TODO: Implement proper certificate import with password prompt
+				// This requires integration with ZsignHandler and password management
 			}
 			
 			// 2. Restore sources

@@ -402,10 +402,11 @@ struct PerformanceMonitorView: View {
             
             for i in 0..<Int(numCPUs) {
                 let cpuLoad = cpuLoadInfo[i]
-                totalUser += cpuLoad.cpu_ticks.0
-                totalSystem += cpuLoad.cpu_ticks.1
-                totalIdle += cpuLoad.cpu_ticks.2
-                totalNice += cpuLoad.cpu_ticks.3
+                // CPU_STATE_USER = 0, CPU_STATE_SYSTEM = 1, CPU_STATE_IDLE = 2, CPU_STATE_NICE = 3
+                totalUser += cpuLoad.cpu_ticks.0    // CPU_STATE_USER
+                totalSystem += cpuLoad.cpu_ticks.1  // CPU_STATE_SYSTEM
+                totalIdle += cpuLoad.cpu_ticks.2    // CPU_STATE_IDLE
+                totalNice += cpuLoad.cpu_ticks.3    // CPU_STATE_NICE
             }
             
             let totalTicks = totalUser + totalSystem + totalIdle + totalNice
