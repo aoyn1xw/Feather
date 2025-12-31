@@ -136,10 +136,70 @@ extension CertificatesView {
 		}
 	}
 	
+	private func _exportEntitlements(for cert: CertificatePair) {
+		guard let data = Storage.shared.getProvisionFileDecoded(for: cert),
+			  let entitlements = data.Entitlements else {
+			return
+		}
+		
+		// Format entitlements as text
+		var text = "Certificate: \(cert.nickname ?? "Unknown")\n"
+		text += "Entitlements Export\n"
+		text += String(repeating: "=", count: 50) + "\n\n"
+		
+		let sortedKeys = entitlements.keys.sorted()
+		for key in sortedKeys {
+			if let value = entitlements[key]?.value {
+				text += "\(key):\n"
+				text += _formatValue(value, indent: 1) + "\n\n"
+			}
+		}
+		
+		// Create temporary file
+		let tempDir = FileManager.default.temporaryDirectory
+		let fileName = "\(cert.nickname ?? "certificate")_entitlements.txt"
+		let fileURL = tempDir.appendingPathComponent(fileName)
+		
+		do {
+			try text.write(to: fileURL, atomically: true, encoding: .utf8)
+			UIActivityViewController.show(activityItems: [fileURL])
+		} catch {
+			print("Error writing entitlements file: \(error)")
+		}
+	}
+	
+	private func _formatValue(_ value: Any, indent: Int) -> String {
+		let indentStr = String(repeating: "  ", count: indent)
+		
+		if let dict = value as? [String: Any] {
+			var result = "{\n"
+			let sortedKeys = dict.keys.sorted()
+			for key in sortedKeys {
+				result += "\(indentStr)\(key): \(_formatValue(dict[key]!, indent: indent + 1))\n"
+			}
+			result += String(repeating: "  ", count: indent - 1) + "}"
+			return result
+		} else if let array = value as? [Any] {
+			var result = "[\n"
+			for (index, item) in array.enumerated() {
+				result += "\(indentStr)[\(index)]: \(_formatValue(item, indent: indent + 1))\n"
+			}
+			result += String(repeating: "  ", count: indent - 1) + "]"
+			return result
+		} else if let bool = value as? Bool {
+			return bool ? "true" : "false"
+		} else {
+			return String(describing: value)
+		}
+	}
+	
 	@ViewBuilder
 	private func _contextActions(for cert: CertificatePair) -> some View {
 		Button(.localized("Get Info"), systemImage: "info.circle") {
 			_isSelectedInfoPresenting = cert
+		}
+		Button(.localized("Export Entitlements"), systemImage: "square.and.arrow.up") {
+			_exportEntitlements(for: cert)
 		}
 		Divider()
 		Button(.localized("Check Revokage"), systemImage: "person.text.rectangle") {
