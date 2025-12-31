@@ -17,24 +17,54 @@ struct SigningTweaksView: View {
 					selection: $options.injectPath,
 					values: Options.InjectPath.allCases
 				)
+				.padding(.vertical, 4)
+				
 				SigningOptionsView.picker(
 					.localized("Injection Folder"),
 					systemImage: "folder.badge.gearshape",
 					selection: $options.injectFolder,
 					values: Options.InjectFolder.allCases
 				)
+				.padding(.vertical, 4)
 			}
 			
-			NBSection(.localized("Tweaks")) {
+			NBSection {
 				if !options.injectionFiles.isEmpty {
 					ForEach(options.injectionFiles, id: \.absoluteString) { tweak in
 						_file(tweak: tweak)
 					}
 				} else {
-					Text(verbatim: .localized("No files chosen."))
-						.font(.footnote)
-						.foregroundColor(.disabled())
+					HStack {
+						Spacer()
+						VStack(spacing: 12) {
+							Image(systemName: "puzzlepiece.extension")
+								.font(.system(size: 40))
+								.foregroundColor(.secondary.opacity(0.6))
+							
+							Text(verbatim: .localized("No files chosen."))
+								.font(.subheadline)
+								.foregroundColor(.secondary)
+						}
+						.padding(.vertical, 20)
+						Spacer()
+					}
 				}
+			} header: {
+				HStack {
+					Image(systemName: "wrench.and.screwdriver.fill")
+						.foregroundStyle(
+							LinearGradient(
+								colors: [Color.accentColor, Color.accentColor.opacity(0.6)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+					Text(.localized("Tweaks"))
+						.font(.subheadline)
+						.fontWeight(.semibold)
+				}
+				.textCase(.none)
+				.foregroundStyle(.primary)
 			}
 		}
 		.toolbar {
@@ -62,7 +92,7 @@ struct SigningTweaksView: View {
 			)
 			.ignoresSafeArea()
 		}
-		.animation(.smooth, value: options.injectionFiles)
+		.animation(.spring(response: 0.5, dampingFraction: 0.8), value: options.injectionFiles)
 	}
 }
 
@@ -70,15 +100,42 @@ struct SigningTweaksView: View {
 extension SigningTweaksView {
 	@ViewBuilder
 	private func _file(tweak: URL) -> some View {
-		Label(tweak.lastPathComponent, systemImage: "folder.fill")
-			.lineLimit(2)
-			.frame(maxWidth: .infinity, alignment: .leading)
-			.swipeActions(edge: .trailing, allowsFullSwipe: true) {
-				_fileActions(tweak: tweak)
+		HStack(spacing: 12) {
+			ZStack {
+				Circle()
+					.fill(
+						LinearGradient(
+							colors: [Color.accentColor.opacity(0.2), Color.accentColor.opacity(0.05)],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						)
+					)
+					.frame(width: 40, height: 40)
+				
+				Image(systemName: "puzzlepiece.extension.fill")
+					.font(.system(size: 18))
+					.foregroundStyle(Color.accentColor)
 			}
-			.contextMenu {
-				_fileActions(tweak: tweak)
+			
+			VStack(alignment: .leading, spacing: 2) {
+				Text(tweak.lastPathComponent)
+					.font(.body)
+					.lineLimit(1)
+				
+				Text(tweak.pathExtension.uppercased())
+					.font(.caption)
+					.foregroundStyle(.secondary)
 			}
+			
+			Spacer()
+		}
+		.padding(.vertical, 4)
+		.swipeActions(edge: .trailing, allowsFullSwipe: true) {
+			_fileActions(tweak: tweak)
+		}
+		.contextMenu {
+			_fileActions(tweak: tweak)
+		}
 	}
 	
 	@ViewBuilder
@@ -86,7 +143,9 @@ extension SigningTweaksView {
 		Button(role: .destructive) {
 			FileManager.default.deleteStored(tweak) { url in
 				if let index = options.injectionFiles.firstIndex(where: { $0 == url }) {
-					options.injectionFiles.remove(at: index)
+					withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+						options.injectionFiles.remove(at: index)
+					}
 				}
 			}
 		} label: {

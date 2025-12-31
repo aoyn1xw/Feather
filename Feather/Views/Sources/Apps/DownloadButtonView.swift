@@ -18,15 +18,28 @@ struct DownloadButtonView: View {
 			if let currentDownload = downloadManager.getDownload(by: app.currentUniqueId) {
 				ZStack {
 					Circle()
+						.stroke(Color.accentColor.opacity(0.2), lineWidth: 2.5)
+						.frame(width: 34, height: 34)
+					
+					Circle()
 						.trim(from: 0, to: downloadProgress)
-						.stroke(Color.accentColor, style: StrokeStyle(lineWidth: 2.3, lineCap: .round))
+						.stroke(
+							LinearGradient(
+								colors: [Color.accentColor, Color.accentColor.opacity(0.6)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							),
+							style: StrokeStyle(lineWidth: 2.5, lineCap: .round)
+						)
 						.rotationEffect(.degrees(-90))
-						.frame(width: 31, height: 31)
+						.frame(width: 34, height: 34)
 						.animation(.smooth, value: downloadProgress)
 
-					Image(systemName: downloadProgress >= 0.75 ? "archivebox" : "square.fill")
+					Image(systemName: downloadProgress >= 0.75 ? "checkmark" : "stop.fill")
 						.foregroundStyle(.tint)
-						.font(.footnote).bold()
+						.font(.system(size: 12, weight: .bold))
+						.scaleEffect(downloadProgress >= 0.75 ? 1.1 : 0.9)
+						.animation(.spring(response: 0.3, dampingFraction: 0.7), value: downloadProgress >= 0.75)
 				}
 				.onTapGesture {
 					if downloadProgress <= 0.75 {
@@ -43,11 +56,18 @@ struct DownloadButtonView: View {
 					Text(.localized("Get"))
 						.lineLimit(0)
 						.font(.headline.bold())
-						.foregroundStyle(Color.accentColor)
-						.padding(.horizontal, 24)
-						.padding(.vertical, 6)
-						.background(Color(uiColor: .quaternarySystemFill))
+						.foregroundStyle(.white)
+						.padding(.horizontal, 28)
+						.padding(.vertical, 8)
+						.background(
+							LinearGradient(
+								colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
 						.clipShape(Capsule())
+						.shadow(color: Color.accentColor.opacity(0.3), radius: 6, x: 0, y: 3)
 				}
 				.buttonStyle(.borderless)
 				.compatTransition()
@@ -58,7 +78,7 @@ struct DownloadButtonView: View {
 		.onChange(of: downloadManager.downloads.description) { _ in
 			setupObserver()
 		}
-		.animation(.easeInOut(duration: 0.3), value: downloadManager.getDownload(by: app.currentUniqueId) != nil)
+		.animation(.spring(response: 0.4, dampingFraction: 0.8), value: downloadManager.getDownload(by: app.currentUniqueId) != nil)
 	}
 
 	private func setupObserver() {

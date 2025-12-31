@@ -19,14 +19,42 @@ struct SigningDylibView: View {
 						options: $options,
 						arrayKeyPath: \.disInjectionFiles
 					)
+					.padding(.vertical, 2)
 				}
+			} header: {
+				HStack {
+					Image(systemName: "puzzlepiece.fill")
+						.foregroundStyle(
+							LinearGradient(
+								colors: [Color.accentColor, Color.accentColor.opacity(0.6)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+					Text(.localized("Dynamic Libraries"))
+						.font(.subheadline)
+						.fontWeight(.semibold)
+				}
+				.textCase(.none)
+				.foregroundStyle(.primary)
 			}
 			.disabled(options == nil)
 			
-			NBSection(.localized("Hidden")) {
-				Text(verbatim: .localized("%lld required system dylibs not shown.", arguments: _hiddenDylibCount))
-					.font(.footnote)
-					.foregroundColor(.disabled())
+			NBSection {
+				HStack {
+					Image(systemName: "eye.slash.fill")
+						.foregroundStyle(.secondary)
+					
+					Text(verbatim: .localized("%lld required system dylibs not shown.", arguments: _hiddenDylibCount))
+						.font(.footnote)
+						.foregroundColor(.secondary)
+				}
+			} header: {
+				Text(.localized("Hidden"))
+					.font(.subheadline)
+					.fontWeight(.semibold)
+					.textCase(.none)
+					.foregroundStyle(.primary)
 			}
 		}
 		.onAppear(perform: _loadDylibs)
