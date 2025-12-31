@@ -17,12 +17,13 @@ struct SourceDetailsView: View {
 	@State private var repository: ASRepository?
 	
 	private var filteredApps: [ASRepository.App] {
-		guard let repo = repository, let apps = repo.apps else { return [] }
+		guard let repo = repository else { return [] }
+		let apps = repo.apps
 		if _searchText.isEmpty {
 			return apps
 		}
 		return apps.filter { app in
-			(app.name.localizedCaseInsensitiveContains(_searchText)) ||
+			(app.name?.localizedCaseInsensitiveContains(_searchText) ?? false) ||
 			(app.localizedDescription?.localizedCaseInsensitiveContains(_searchText) ?? false)
 		}
 	}
@@ -34,7 +35,7 @@ struct SourceDetailsView: View {
 		}
 		return news.filter { newsItem in
 			newsItem.title.localizedCaseInsensitiveContains(_searchText) ||
-			(newsItem.caption?.localizedCaseInsensitiveContains(_searchText) ?? false)
+			newsItem.caption.localizedCaseInsensitiveContains(_searchText)
 		}
 	}
 	
@@ -271,12 +272,10 @@ struct SourceDetailsView: View {
 					.foregroundStyle(.primary)
 					.lineLimit(2)
 				
-				if let caption = newsItem.caption {
-					Text(caption)
-						.font(.caption)
-						.foregroundStyle(.secondary)
-						.lineLimit(2)
-				}
+				Text(newsItem.caption)
+					.font(.caption)
+					.foregroundStyle(.secondary)
+					.lineLimit(2)
 			}
 			.padding(12)
 			.frame(width: 280, alignment: .leading)
@@ -402,14 +401,21 @@ struct SourceDetailsView: View {
 			filter?.setValue(ciImage, forKey: kCIInputImageKey)
 			filter?.setValue(CIVector(cgRect: ciImage.extent), forKey: kCIInputExtentKey)
 			
-			guard let outputImage = filter?.outputImage,
-				  let pixelData = CIContext().render(outputImage, toBitmap: Data(count: 4), rowBytes: 4, bounds: CGRect(x: 0, y: 0, width: 1, height: 1), format: .RGBA8, colorSpace: nil) else {
-				return
-			}
+			guard let outputImage = filter?.outputImage else { return }
 			
-			let r = Double(pixelData[0]) / 255.0
-			let g = Double(pixelData[1]) / 255.0
-			let b = Double(pixelData[2]) / 255.0
+			var pixel = [UInt8](repeating: 0, count: 4)
+			CIContext().render(
+				outputImage,
+				toBitmap: &pixel,
+				rowBytes: 4,
+				bounds: CGRect(x: 0, y: 0, width: 1, height: 1),
+				format: .RGBA8,
+				colorSpace: nil
+			)
+			
+			let r = Double(pixel[0]) / 255.0
+			let g = Double(pixel[1]) / 255.0
+			let b = Double(pixel[2]) / 255.0
 			
 			await MainActor.run {
 				dominantColor = Color(red: r, green: g, blue: b)
