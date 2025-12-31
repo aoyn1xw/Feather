@@ -57,6 +57,10 @@ struct SettingsView: View {
                 }
                 
                 NBSection("About") {
+                    NavigationLink(destination: CreditsView()) {
+                        Label(.localized("Credits"), systemImage: "person.3.fill")
+                    }
+                    
                     HStack {
                         Label("CoreSign", systemImage: "app.badge")
                             .font(.body)
