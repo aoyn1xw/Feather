@@ -37,7 +37,14 @@ struct FeatherApp: App {
 					UIApplication.topViewController()?.view.window?.overrideUserInterfaceStyle = style
 				}
 				
-				UIApplication.topViewController()?.view.window?.tintColor = UIColor(Color(hex: UserDefaults.standard.string(forKey: "Feather.userTintColor") ?? "#B496DC"))
+				let colorType = UserDefaults.standard.string(forKey: "Feather.userTintColorType") ?? "solid"
+				if colorType == "gradient" {
+					// For gradient, use the start color as the tint
+					let gradientStartHex = UserDefaults.standard.string(forKey: "Feather.userTintGradientStart") ?? "#B496DC"
+					UIApplication.topViewController()?.view.window?.tintColor = UIColor(Color(hex: gradientStartHex))
+				} else {
+					UIApplication.topViewController()?.view.window?.tintColor = UIColor(Color(hex: UserDefaults.standard.string(forKey: "Feather.userTintColor") ?? "#B496DC"))
+				}
 			}
 		}
 	}

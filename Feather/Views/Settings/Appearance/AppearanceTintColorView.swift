@@ -102,6 +102,27 @@ struct AppearanceTintColorView: View {
 				UIApplication.topViewController()?.view.window?.tintColor = UIColor(Color(hex: value))
 			}
 		}
+		.onChange(of: colorType) { _ in
+			if colorType == "gradient" {
+				// For gradients, we need to update the tint color to a middle ground color
+				let startColor = Color(hex: gradientStartHex)
+				let endColor = Color(hex: gradientEndHex)
+				// Use start color as the tint for system elements
+				UIApplication.topViewController()?.view.window?.tintColor = UIColor(startColor)
+			}
+		}
+		.onChange(of: gradientStartHex) { _ in
+			if colorType == "gradient" {
+				let startColor = Color(hex: gradientStartHex)
+				UIApplication.topViewController()?.view.window?.tintColor = UIColor(startColor)
+			}
+		}
+		.onChange(of: gradientEndHex) { _ in
+			if colorType == "gradient" {
+				let startColor = Color(hex: gradientStartHex)
+				UIApplication.topViewController()?.view.window?.tintColor = UIColor(startColor)
+			}
+		}
 		.sheet(isPresented: $isCustomSheetPresented) {
 			CustomColorPickerView(
 				colorType: $colorType,
