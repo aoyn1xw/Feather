@@ -36,6 +36,9 @@ struct SettingsView: View {
                     NavigationLink(destination: InstallationView()) {
                         Label(.localized("Installation"), systemImage: "arrow.down.circle")
                     }
+                    NavigationLink(destination: BackupRestoreView()) {
+                        Label(.localized("Backup & Restore"), systemImage: "externaldrive")
+                    }
                 } footer: {
                     Text(.localized("Configure the apps way of installing, its zip compression levels, and custom modifications to apps."))
                 }

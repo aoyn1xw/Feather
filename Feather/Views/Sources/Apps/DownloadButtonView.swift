@@ -35,11 +35,25 @@ struct DownloadButtonView: View {
 						.frame(width: 34, height: 34)
 						.animation(.smooth, value: downloadProgress)
 
-					Image(systemName: downloadProgress >= 0.75 ? "checkmark" : "stop.fill")
-						.foregroundStyle(.tint)
-						.font(.system(size: 12, weight: .bold))
-						.scaleEffect(downloadProgress >= 0.75 ? 1.1 : 0.9)
-						.animation(.spring(response: 0.3, dampingFraction: 0.7), value: downloadProgress >= 0.75)
+					if downloadProgress >= 0.75 {
+						Image(systemName: "checkmark")
+							.foregroundStyle(.tint)
+							.font(.system(size: 12, weight: .bold))
+							.scaleEffect(1.1)
+							.animation(.spring(response: 0.3, dampingFraction: 0.7), value: downloadProgress >= 0.75)
+					} else {
+						VStack(spacing: 2) {
+							Text("\(Int(downloadProgress * 100))%")
+								.font(.system(size: 9, weight: .bold))
+								.foregroundStyle(.tint)
+								.minimumScaleFactor(0.5)
+							
+							Image(systemName: "stop.fill")
+								.foregroundStyle(.tint)
+								.font(.system(size: 8, weight: .bold))
+						}
+						.scaleEffect(0.9)
+					}
 				}
 				.onTapGesture {
 					if downloadProgress <= 0.75 {
