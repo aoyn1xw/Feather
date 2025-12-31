@@ -367,7 +367,7 @@ struct SourceDetailsView: View {
 			}
 			
 			VStack(alignment: .leading, spacing: 4) {
-				Text(app.name)
+				Text(app.name ?? "Unknown")
 					.font(.body)
 					.fontWeight(.medium)
 					.foregroundStyle(.primary)
@@ -463,17 +463,18 @@ struct SourceNewsListView: View {
 								.font(.headline)
 								.foregroundStyle(.primary)
 							
-						Text(newsItem.caption)
+							Text(newsItem.caption)
+								.font(.caption)
+								.foregroundStyle(.secondary)
+								.lineLimit(2)
+						}
+						
+						Spacer()
+						
+						Image(systemName: "chevron.right")
 							.font(.caption)
-							.foregroundStyle(.secondary)
-							.lineLimit(2)
+							.foregroundStyle(.tertiary)
 					}
-					
-					Spacer()
-					
-					Image(systemName: "chevron.right")
-						.font(.caption)
-						.foregroundStyle(.tertiary)
 				}
 				.buttonStyle(.plain)
 			}
@@ -513,7 +514,7 @@ struct SourceAppsListView: View {
 						}
 						
 						VStack(alignment: .leading, spacing: 4) {
-							Text(app.name)
+							Text(app.name ?? "Unknown")
 								.font(.body)
 								.fontWeight(.medium)
 								.foregroundStyle(.primary)
