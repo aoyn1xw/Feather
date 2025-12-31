@@ -110,22 +110,17 @@ struct BackupRestoreView: View {
 				self.exportURL = nil
 			}
 		}
-		.fileImporter(
-			isPresented: $isImporting,
-			allowedContentTypes: [.zip],
-			allowsMultipleSelection: false
-		) { result in
-			switch result {
-			case .success(let urls):
-				guard let url = urls.first else { return }
-				pendingRestoreURL = url
-				showRestoreDialog = true
-			case .failure(let error):
-				UIAlertController.showAlertWithOk(
-					title: .localized("Error"),
-					message: .localized("Failed to import backup: \(error.localizedDescription)")
-				)
-			}
+		.sheet(isPresented: $isImporting) {
+			FileImporterRepresentableView(
+				allowedContentTypes: [.zip],
+				allowsMultipleSelection: false,
+				onDocumentsPicked: { urls in
+					guard let url = urls.first else { return }
+					pendingRestoreURL = url
+					showRestoreDialog = true
+				}
+			)
+			.ignoresSafeArea()
 		}
 		.alert(.localized("Restart Required"), isPresented: $showRestoreDialog) {
 			Button(.localized("No"), role: .cancel) {

@@ -59,6 +59,29 @@ enum FR {
 			}
 		}
 	}
+    
+    static func remoteSignPackageFile(
+        _ app: AppInfoPresentable,
+        using options: Options,
+        certificate: CertificatePair,
+        completion: @escaping (Result<String, Error>) -> Void
+    ) {
+        Task.detached {
+            let handler = RemoteSigningHandler(app: app, certificate: certificate, options: options)
+            
+            do {
+                let installLink = try await handler.sign()
+                await MainActor.run {
+                    completion(.success(installLink))
+                }
+            } catch {
+                await MainActor.run {
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+
 	
 	static func handleCertificateFiles(
 		p12URL: URL,

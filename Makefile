@@ -52,3 +52,4 @@ $(SCHEMES): deps
 	
 	mkdir -p packages
 	zip -r9 "packages/$@.ipa" Payload
+
