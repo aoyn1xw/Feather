@@ -1,10 +1,3 @@
-//
-//  SourceAppsView.swift
-//  Feather
-//
-//  Created by samara on 1.05.2025.
-//
-
 import SwiftUI
 import AltSourceKit
 import NimbleViews

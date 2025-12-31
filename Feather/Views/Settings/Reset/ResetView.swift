@@ -1,10 +1,3 @@
-//
-//  ResetView.swift
-//  Feather
-//
-//  Created by samara on 19.06.2025.
-//
-
 import SwiftUI
 import NimbleViews
 import Nuke

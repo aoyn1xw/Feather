@@ -1,7 +1,3 @@
-//
-//  BackgroundAudioManager.swift
-//  Feather
-//
 //  Created by Nagata Asami on 12/10/25.
 //
 

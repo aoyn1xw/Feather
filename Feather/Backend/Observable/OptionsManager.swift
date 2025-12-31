@@ -1,10 +1,3 @@
-//
-//  OptionsManager.swift
-//  Feather
-//
-//  Created by samara on 15.04.2025.
-//
-
 import Foundation
 import UIKit
 

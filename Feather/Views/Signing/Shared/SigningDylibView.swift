@@ -1,10 +1,3 @@
-//
-//  SigningOptionsDylibSharedView.swift
-//  Feather
-//
-//  Created by samara on 19.04.2025.
-//
-
 import SwiftUI
 import NimbleViews
 import ZsignSwift

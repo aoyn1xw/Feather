@@ -1,10 +1,3 @@
-//
-//  NBSheetButton.swift
-//  NimbleKit
-//
-//  Created by samara on 8.05.2025.
-//
-
 import SwiftUI
 
 public struct NBSheetButton: View {

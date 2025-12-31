@@ -1,8 +1,4 @@
-//
-//  DylibHandler.swift
 //  feather
-//
-//  Created by samara on 8/17/24.
 //  Copyright (c) 2024 Samara M (khcrysalis)
 //
 

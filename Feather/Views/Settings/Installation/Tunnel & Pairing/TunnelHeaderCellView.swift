@@ -1,10 +1,3 @@
-//
-//  TunnelHeaderView.swift
-//  Feather
-//
-//  Created by samara on 29.04.2025.
-//
-
 import SwiftUI
 
 struct TunnelHeaderView: View {

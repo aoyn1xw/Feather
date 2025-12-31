@@ -1,10 +1,3 @@
-//
-//  Storage+Sources.swift
-//  Feather
-//
-//  Created by samara on 12.04.2025.
-//
-
 import CoreData
 import AltSourceKit
 import OSLog

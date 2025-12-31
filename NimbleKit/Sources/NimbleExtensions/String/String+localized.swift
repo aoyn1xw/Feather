@@ -1,10 +1,3 @@
-//
-//  String+localized.swift
-//  NimbleKit
-//
-//  Created by samara on 20.03.2025.
-//
-
 import Foundation.NSString
 import SwiftUI
 

@@ -1,10 +1,3 @@
-//
-//  UIColor+expiration.swift
-//  Feather
-//
-//  Created by samara on 16.04.2025.
-//
-
 import SwiftUI
 
 extension Color {

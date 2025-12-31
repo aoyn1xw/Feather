@@ -1,10 +1,4 @@
-//
-//  UIApplication+topController.swift
 //  Loader
-//
-//  Created by samara on 18.03.2025.
-//
-
 import UIKit.UIApplication
 
 extension UIApplication {

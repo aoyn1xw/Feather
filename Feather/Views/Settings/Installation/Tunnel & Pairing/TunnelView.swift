@@ -1,10 +1,3 @@
-//
-//  SettingsTunnelView.swift
-//  Feather (idevice)
-//
-//  Created by samara on 29.04.2025.
-//
-
 import SwiftUI
 import NimbleViews
 import IDeviceSwift

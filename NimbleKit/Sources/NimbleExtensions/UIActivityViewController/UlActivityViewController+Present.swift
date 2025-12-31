@@ -1,10 +1,3 @@
-//
-//  UlActivityViewController+Present.swift
-//  NimbleKit
-//
-//  Created by samara on 30.04.2025.
-//
-
 import UIKit.UIActivityViewController
 
 extension UIActivityViewController {

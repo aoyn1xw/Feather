@@ -1,10 +1,3 @@
-//
-//  View+platformDrawerPlacement.swift
-//  NimbleKit
-//
-//  Created by samara on 5.05.2025.
-//
-
 import SwiftUI
 
 extension SearchFieldPlacement {

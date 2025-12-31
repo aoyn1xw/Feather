@@ -1,10 +1,4 @@
-//
-//  ToolbarMenuWrapper.swift
 //  Stars
-//
-//  Created by samara on 7.04.2025.
-//
-
 import SwiftUI
 
 public struct NBToolbarMenu<Content>: ToolbarContent where Content: View {

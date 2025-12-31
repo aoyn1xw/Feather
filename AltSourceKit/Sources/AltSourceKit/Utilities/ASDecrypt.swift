@@ -1,10 +1,4 @@
-//
-//  ESignKey.swift
 //  feather
-//
-//  Created by samara on 20.01.2025.
-//
-
 import Foundation
 
 public class ASDecrypt {

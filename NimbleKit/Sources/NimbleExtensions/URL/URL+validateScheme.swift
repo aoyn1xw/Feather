@@ -1,10 +1,3 @@
-//
-//  URL+scheme.swift
-//  Feather
-//
-//  Created by samara on 8.05.2025.
-//
-
 import Foundation.NSURL
 
 extension URL {

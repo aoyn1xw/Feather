@@ -1,10 +1,3 @@
-//
-//  SigningAppAlternativeIconView.swift
-//  Feather
-//
-//  Created by samara on 18.04.2025.
-//
-
 import SwiftUI
 import NimbleViews
 

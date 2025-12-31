@@ -1,10 +1,3 @@
-//
-//  ServerView.swift
-//  Feather
-//
-//  Created by samara on 6.05.2025.
-//
-
 import SwiftUI
 import NimbleJSON
 import NimbleViews

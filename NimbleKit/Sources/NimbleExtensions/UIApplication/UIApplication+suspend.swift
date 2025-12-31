@@ -1,10 +1,4 @@
-//
-//  UIApplication+exitAndSuspend.swift
 //  Loader
-//
-//  Created by samara on 13.03.2025.
-//
-
 import UIKit.UIApplication
 
 extension UIApplication {

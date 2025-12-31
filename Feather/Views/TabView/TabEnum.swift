@@ -1,10 +1,4 @@
-//
-//  TabEnum.swift
 //  feather
-//
-//  Created by samara on 22.03.2025.
-//
-
 import SwiftUI
 import NimbleViews
 

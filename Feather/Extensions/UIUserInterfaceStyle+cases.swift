@@ -1,10 +1,3 @@
-//
-//  UIUserInterfaceStyle+cases.swift
-//  Feather
-//
-//  Created by samara on 14.06.2025.
-//
-
 import UIKit
 
 extension UIUserInterfaceStyle: @retroactive CaseIterable {

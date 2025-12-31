@@ -1,10 +1,4 @@
-//
-//  NavigationViewWrapper.swift
 //  Stars
-//
-//  Created by samara on 7.04.2025.
-//
-
 import SwiftUI
 
 public struct NBNavigationView<Content>: View where Content: View {

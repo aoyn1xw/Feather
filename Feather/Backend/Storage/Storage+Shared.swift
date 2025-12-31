@@ -1,10 +1,3 @@
-//
-//  Storage+Shared.swift
-//  Feather
-//
-//  Created by samara on 17.04.2025.
-//
-
 import CoreData
 
 // MARK: - Class extension: Apps (Shared)

@@ -1,10 +1,3 @@
-//
-//  MachOUtils.m
-//  Feather
-//
-//  Created by samara on 12.06.2025.
-//
-
 #import "MachOUtils.h"
 
 #define SDK_VERSION_26_0_0 0x1A0000

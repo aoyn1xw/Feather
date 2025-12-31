@@ -1,10 +1,3 @@
-//
-//  UIAlertController+Alerts.swift
-//  NimbleKit
-//
-//  Created by samara on 28.04.2025.
-//
-
 import UIKit.UIAlertController
 
 extension UIAlertController {

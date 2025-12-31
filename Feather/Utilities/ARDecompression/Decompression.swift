@@ -1,8 +1,4 @@
-//
-//  Decompression.swift
 //  feather
-//
-//  Created by samara on 21.08.2024.
 //  Copyright (c) 2024 Samara M (khcrysalis)
 //
 

@@ -1,10 +1,3 @@
-//
-//  NBList.swift
-//  NimbleKit
-//
-//  Created by samara on 7.05.2025.
-//
-
 import SwiftUI
 
 public struct NBList<Content>: View where Content: View {

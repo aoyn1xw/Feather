@@ -1,10 +1,3 @@
-//
-//  DownloadHeaderView.swift
-//  Feather
-//
-//  Created by samara on 16.05.2025.
-//
-
 import SwiftUI
 import Combine
 import NimbleExtensions

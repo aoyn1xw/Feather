@@ -1,7 +1,3 @@
-//
-//  SourceAppsDetailView.swift
-//  Feather
-//
 //  Created by samsam on 7/25/25.
 //
 

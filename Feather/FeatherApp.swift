@@ -1,10 +1,3 @@
-//
-//  FeatherApp.swift
-//  Feather
-//
-//  Created by samara on 10.04.2025.
-//
-
 import SwiftUI
 import Nuke
 import IDeviceSwift

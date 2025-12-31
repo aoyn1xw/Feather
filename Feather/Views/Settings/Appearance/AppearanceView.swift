@@ -1,10 +1,3 @@
-//
-//  AppearanceView.swift
-//  Feather
-//
-//  Created by samara on 7.05.2025.
-//
-
 import SwiftUI
 import NimbleViews
 import UIKit

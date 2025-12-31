@@ -1,7 +1,3 @@
-//
-//  View+compatScrollTargets.swift
-//  NimbleKit
-//
 //  Created by samsam on 7/30/25.
 //
 

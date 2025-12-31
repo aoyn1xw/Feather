@@ -1,7 +1,3 @@
-//
-//  ScreenshotPreviewView.swift
-//  Feather
-//
 //  Created by Nagata Asami on 2/8/25.
 //
 

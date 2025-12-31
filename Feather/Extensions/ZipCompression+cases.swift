@@ -1,10 +1,3 @@
-//
-//  ZipCompression+cases.swift
-//  Feather
-//
-//  Created by samara on 22.04.2025.
-//
-
 import Zip
 
 extension ZipCompression {

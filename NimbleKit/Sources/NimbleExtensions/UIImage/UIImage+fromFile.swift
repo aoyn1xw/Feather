@@ -1,10 +1,3 @@
-//
-//  UIImage+url.swift
-//  Feather
-//
-//  Created by samara on 18.04.2025.
-//
-
 import UIKit.UIImage
 
 extension UIImage {

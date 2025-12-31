@@ -1,10 +1,3 @@
-//
-//  SafariWebView.swift
-//  NimbleKit
-//
-//  Created by samara on 30.04.2025.
-//
-
 import SwiftUI
 import SafariServices
 

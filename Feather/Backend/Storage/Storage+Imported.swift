@@ -1,10 +1,3 @@
-//
-//  Storage+Imported.swift
-//  Feather
-//
-//  Created by samara on 11.04.2025.
-//
-
 import CoreData
 import UIKit.UIImpactFeedbackGenerator
 

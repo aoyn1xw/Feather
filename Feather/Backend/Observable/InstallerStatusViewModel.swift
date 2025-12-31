@@ -1,10 +1,3 @@
-//
-//  StatusViewModel.swift
-//  Feather
-//
-//  Created by samara on 24.04.2025.
-//
-
 import Foundation
 import Combine
 import IDeviceSwift

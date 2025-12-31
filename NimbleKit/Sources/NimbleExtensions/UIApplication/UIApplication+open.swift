@@ -1,10 +1,3 @@
-//
-//  UIApplication+open.swift
-//  NimbleKit
-//
-//  Created by samara on 30.04.2025.
-//
-
 import UIKit.UIApplication
 
 extension UIApplication {

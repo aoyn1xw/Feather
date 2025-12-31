@@ -1,10 +1,3 @@
-//
-//  Storage+Signed.swift
-//  Feather
-//
-//  Created by samara on 17.04.2025.
-//
-
 import CoreData
 import UIKit.UIImpactFeedbackGenerator
 

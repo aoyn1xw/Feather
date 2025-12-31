@@ -1,10 +1,4 @@
-//
-//  TabbarView.swift
 //  feather
-//
-//  Created by samara on 23.03.2025.
-//
-
 import SwiftUI
 
 struct TabbarView: View {

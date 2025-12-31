@@ -1,10 +1,4 @@
-//
-//  Import.swift
 //  Esign
-//
-//  Created by samara on 30.04.2025.
-//
-
 import Foundation
 
 final public class ASDeobfuscator {

@@ -1,10 +1,3 @@
-//
-//  SectionProminentHeaderWrapper.swift
-//  Feather
-//
-//  Created by samara on 11.04.2025.
-//
-
 import SwiftUI
 
 public struct NBSection<Content, Footer>: View

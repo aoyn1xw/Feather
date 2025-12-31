@@ -1,7 +1,3 @@
-//
-//  VersionHistoryView.swift
-//  Feather
-//
 //  Created by Nagata Asami on 27/7/25.
 //
 

@@ -1,10 +1,3 @@
-//
-//  Date+timeLeft.swift
-//  Feather
-//
-//  Created by samara on 16.04.2025.
-//
-
 import Foundation
 import SwiftUI
 

@@ -1,10 +1,4 @@
-//
-//  UIImage+resize.swift
 //  feather
-//
-//  Created by samara on 8/13/24.
-//
-
 import UIKit.UIImage
 import AVFoundation
 

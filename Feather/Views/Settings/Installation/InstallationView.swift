@@ -1,10 +1,3 @@
-//
-//  InstallationView.swift
-//  Feather
-//
-//  Created by samara on 3.06.2025.
-//
-
 import SwiftUI
 import NimbleViews
 

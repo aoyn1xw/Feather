@@ -1,10 +1,3 @@
-//
-//  ZsignHandler.swift
-//  Feather
-//
-//  Created by samara on 17.04.2025.
-//
-
 import Foundation
 import ZsignSwift
 import UIKit

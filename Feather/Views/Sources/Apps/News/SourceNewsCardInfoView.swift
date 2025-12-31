@@ -1,10 +1,3 @@
-//
-//  SourceNewsCardInfoView.swift
-//  Feather
-//
-//  Created by samara on 8.06.2025.
-//
-
 import SwiftUI
 import AltSourceKit
 import NukeUI

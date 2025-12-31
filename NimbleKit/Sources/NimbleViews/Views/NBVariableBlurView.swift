@@ -1,7 +1,3 @@
-//
-//  VariableBlurView.swift
-//  VariableBlurView
-//
 //  Created by A. Zheng (github.com/aheze) on 5/29/23.
 //  Copyright © 2023 A. Zheng. All rights reserved.
 //

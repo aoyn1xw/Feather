@@ -1,10 +1,4 @@
-//
-//  Bundle+versions.swift
 //  Loader
-//
-//  Created by samara on 18.03.2025.
-//
-
 import Foundation.NSBundle
 
 extension Bundle {

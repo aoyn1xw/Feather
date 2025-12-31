@@ -1,7 +1,3 @@
-//
-//  SwiftAR.swift
-//  SwiftAR
-//
 //  Created by nekohaxx on 8/18/24.
 //
 
