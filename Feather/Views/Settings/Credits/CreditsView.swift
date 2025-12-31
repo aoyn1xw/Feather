@@ -175,15 +175,16 @@ struct GitHubCreditCard: View {
 								.frame(width: 56, height: 56)
 								.shadow(color: credit.gradientColors[0].opacity(0.3), radius: 8, x: 0, y: 4)
 							
-							Image(systemName: credit.icon)
-								.font(.system(size: 24, weight: .semibold))
-								.foregroundStyle(.white)
-						}
-						
-						// Loading indicator
-						if viewModel.isLoading {
-							ProgressView()
-								.tint(.white)
+							if viewModel.isLoading {
+								// Loading indicator
+								ProgressView()
+									.tint(.white)
+							} else {
+								// Icon when not loading and no avatar
+								Image(systemName: credit.icon)
+									.font(.system(size: 24, weight: .semibold))
+									.foregroundStyle(.white)
+							}
 						}
 					}
 					
