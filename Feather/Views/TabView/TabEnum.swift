@@ -7,7 +7,6 @@ enum TabEnum: String, CaseIterable, Hashable {
 	case library
 	case settings
 	case certificates
-	case developer
 	
 	var title: String {
 		switch self {
@@ -15,7 +14,6 @@ enum TabEnum: String, CaseIterable, Hashable {
 		case .library: 		return .localized("Library")
 		case .settings: 	return .localized("Settings")
 		case .certificates:	return .localized("Certificates")
-		case .developer:    return .localized("Developer")
 		}
 	}
 	
@@ -25,7 +23,6 @@ enum TabEnum: String, CaseIterable, Hashable {
 		case .library: 		return "square.grid.2x2"
 		case .settings: 	return "gearshape.2"
 		case .certificates: return "person.text.rectangle"
-		case .developer:    return "hammer.fill"
 		}
 	}
 	
@@ -36,20 +33,15 @@ enum TabEnum: String, CaseIterable, Hashable {
 		case .library: LibraryView()
 		case .settings: SettingsView()
 		case .certificates: NBNavigationView(.localized("Certificates")) { CertificatesView() }
-		case .developer: DeveloperView()
 		}
 	}
 	
 	static var defaultTabs: [TabEnum] {
-		var tabs: [TabEnum] = [
+		return [
 			.home,
 			.library,
 			.settings
 		]
-        if UserDefaults.standard.bool(forKey: "isDeveloperModeEnabled") {
-            tabs.append(.developer)
-        }
-        return tabs
 	}
 	
 	static var customizableTabs: [TabEnum] {

@@ -19,6 +19,7 @@ struct SigningView: View {
 	@State private var _isNameDialogPresenting = false
 	@State private var _isIdentifierDialogPresenting = false
 	@State private var _isVersionDialogPresenting = false
+    @State private var _isSigningProcessPresented = false
 	
 	// MARK: Fetch
 	@FetchRequest(
@@ -109,6 +110,9 @@ struct SigningView: View {
 			}
 			.disabled(_isSigning)
 			.animation(.smooth, value: _isSigning)
+            .fullScreenCover(isPresented: $_isSigningProcessPresented) {
+                SigningProcessView(appName: _temporaryOptions.appName ?? app.name ?? "App")
+            }
 		}
 		.alert(.localized("Name"), isPresented: $_isNameDialogPresenting) {
 			TextField(_temporaryOptions.appName ?? (app.name ?? ""), text: Binding(
@@ -183,13 +187,13 @@ extension SigningView {
 				}
 			}
 			
-			_infoCell(.localized("Name"), desc: _temporaryOptions.appName ?? app.name) {
+			_infoCell(.localized("Name"), desc: _temporaryOptions.appName ?? app.name, icon: "pencil") {
 				_isNameDialogPresenting = true
 			}
-			_infoCell(.localized("Identifier"), desc: _temporaryOptions.appIdentifier ?? app.identifier) {
+			_infoCell(.localized("Identifier"), desc: _temporaryOptions.appIdentifier ?? app.identifier, icon: "barcode") {
 				_isIdentifierDialogPresenting = true
 			}
-			_infoCell(.localized("Version"), desc: _temporaryOptions.appVersion ?? app.version) {
+			_infoCell(.localized("Version"), desc: _temporaryOptions.appVersion ?? app.version, icon: "tag") {
 				_isVersionDialogPresenting = true
 			}
 		}
@@ -217,50 +221,67 @@ extension SigningView {
 	@ViewBuilder
 	private func _customizationProperties(for app: AppInfoPresentable) -> some View {
 		NBSection(.localized("Advanced")) {
-			DisclosureGroup(.localized("Modify")) {
-				NavigationLink(.localized("Existing Dylibs")) {
-					SigningDylibView(
-						app: app,
-						options: $_temporaryOptions.optional()
-					)
-				}
-				
-				NavigationLink(.localized("Frameworks & PlugIns")) {
-					SigningFrameworksView(
-						app: app,
-						options: $_temporaryOptions.optional()
-					)
-				}
-				#if NIGHTLY || DEBUG
-				NavigationLink(.localized("Entitlements") + " (BETA)") {
-					SigningEntitlementsView(
-						bindingValue: $_temporaryOptions.appEntitlementsFile
-					)
-				}
-				#endif
-				NavigationLink(.localized("Tweaks")) {
-					SigningTweaksView(
-						options: $_temporaryOptions
-					)
-				}
-			}
+			DisclosureGroup(
+                content: {
+                    NavigationLink {
+                        SigningDylibView(
+                            app: app,
+                            options: $_temporaryOptions.optional()
+                        )
+                    } label: {
+                        Label(.localized("Existing Dylibs"), systemImage: "puzzlepiece")
+                    }
+                    
+                    NavigationLink {
+                        SigningFrameworksView(
+                            app: app,
+                            options: $_temporaryOptions.optional()
+                        )
+                    } label: {
+                        Label(.localized("Frameworks & PlugIns"), systemImage: "cube.box")
+                    }
+                    #if NIGHTLY || DEBUG
+                    NavigationLink {
+                        SigningEntitlementsView(
+                            bindingValue: $_temporaryOptions.appEntitlementsFile
+                        )
+                    } label: {
+                        Label(.localized("Entitlements") + " (BETA)", systemImage: "lock.shield")
+                    }
+                    #endif
+                    NavigationLink {
+                        SigningTweaksView(
+                            options: $_temporaryOptions
+                        )
+                    } label: {
+                        Label(.localized("Tweaks"), systemImage: "wrench.and.screwdriver")
+                    }
+                },
+                label: {
+                    Label(.localized("Modify"), systemImage: "hammer")
+                }
+            )
 			
-			NavigationLink(.localized("Properties")) {
+			NavigationLink {
 				Form { SigningOptionsView(
 					options: $_temporaryOptions,
 					temporaryOptions: _optionsManager.options
 				)}
 				.navigationTitle(.localized("Properties"))
-			}
+			} label: {
+                Label(.localized("Properties"), systemImage: "slider.horizontal.3")
+            }
 		}
 	}
 	
 	@ViewBuilder
-	private func _infoCell(_ title: String, desc: String?, action: @escaping () -> Void) -> some View {
+	private func _infoCell(_ title: String, desc: String?, icon: String, action: @escaping () -> Void) -> some View {
 		Button(action: action) {
-			LabeledContent(title) {
+			LabeledContent {
 				Text(desc ?? .localized("Unknown"))
-			}
+			} label: {
+                Label(title, systemImage: icon)
+            }
 		}
 		.buttonStyle(.plain)
 	}
@@ -283,6 +304,7 @@ extension SigningView {
 		let generator = UIImpactFeedbackGenerator(style: .light)
 		generator.impactOccurred()
 		_isSigning = true
+        _isSigningProcessPresented = true
 		
 		FR.signPackageFile(
 			app,
@@ -291,6 +313,7 @@ extension SigningView {
 			certificate: _selectedCert()
 		) { error in
 			if let error {
+                _isSigningProcessPresented = false
 				let ok = UIAlertAction(title: .localized("Dismiss"), style: .cancel) { _ in
 					dismiss()
 				}

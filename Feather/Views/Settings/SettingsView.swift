@@ -48,6 +48,14 @@ struct SettingsView: View {
                     Text(.localized("Reset the applications sources, certificates, apps, and general contents."))
                 }
                 
+                if isDeveloperModeEnabled {
+                    NBSection("Developer") {
+                        NavigationLink(destination: DeveloperView()) {
+                            Label("Developer Tools", systemImage: "hammer.fill")
+                        }
+                    }
+                }
+                
                 NBSection("About") {
                     HStack {
                         Label("CoreSign", systemImage: "app.badge")

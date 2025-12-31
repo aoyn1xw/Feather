@@ -7,6 +7,7 @@ struct DeveloperView: View {
     @AppStorage("debugModeEnabled") private var debugModeEnabled = false
     @AppStorage("showLayoutBoundaries") private var showLayoutBoundaries = false
     @AppStorage("slowAnimations") private var slowAnimations = false
+    @State private var showResetConfirmation = false
     
     var body: some View {
         NBNavigationView("Developer") {
@@ -14,6 +15,9 @@ struct DeveloperView: View {
                 Section {
                     NavigationLink(destination: AppLogsView()) {
                         Label("App Logs", systemImage: "terminal")
+                    }
+                    NavigationLink(destination: NetworkInspectorView()) {
+                        Label("Network Inspector", systemImage: "network")
                     }
                     Toggle("Debug Mode", isOn: $debugModeEnabled)
                         .onChange(of: debugModeEnabled) { newValue in
@@ -30,6 +34,9 @@ struct DeveloperView: View {
                     NavigationLink(destination: IPAIntegrityCheckerView()) {
                         Label("Integrity Checker", systemImage: "checkmark.shield")
                     }
+                    NavigationLink(destination: FileSystemBrowserView()) {
+                        Label("File System", systemImage: "folder")
+                    }
                 } header: {
                     Text("Analysis")
                 }
@@ -40,6 +47,9 @@ struct DeveloperView: View {
                     }
                     NavigationLink(destination: AppStateView()) {
                         Label("App State & Storage", systemImage: "memorychip")
+                    }
+                    NavigationLink(destination: UserDefaultsEditorView()) {
+                        Label("UserDefaults Editor", systemImage: "list.bullet.rectangle")
                     }
                 } header: {
                     Text("Data")
@@ -79,6 +89,12 @@ struct DeveloperView: View {
                     } label: {
                         Label("Reset Settings", systemImage: "gear.badge.xmark")
                     }
+                    
+                    Button(role: .destructive) {
+                        showResetConfirmation = true
+                    } label: {
+                        Label("Reset All Data", systemImage: "exclamationmark.triangle.fill")
+                    }
                 } header: {
                     Text("Danger Zone")
                 }
@@ -91,6 +107,14 @@ struct DeveloperView: View {
                 }
             }
         }
+        .alert("Reset All Data", isPresented: $showResetConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Reset", role: .destructive) {
+                resetAllData()
+            }
+        } message: {
+            Text("This will delete all sources, apps, settings, and certificates. This action cannot be undone.")
+        }
     }
     
     private func resetAppState() {
@@ -102,9 +126,60 @@ struct DeveloperView: View {
             UserDefaults.standard.removePersistentDomain(forName: bundleID)
         }
     }
+    
+    private func resetAllData() {
+        resetAppState()
+        resetSettings()
+        // Add more reset logic here (e.g. delete CoreData store)
+    }
 }
 
 // MARK: - Subviews
+
+struct NetworkInspectorView: View {
+    var body: some View {
+        List {
+            Text("No active requests")
+                .foregroundStyle(.secondary)
+        }
+        .navigationTitle("Network Inspector")
+    }
+}
+
+struct FileSystemBrowserView: View {
+    var body: some View {
+        List {
+            if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+                Text(documentsPath.path)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Text("Documents")
+            Text("Library")
+            Text("tmp")
+        }
+        .navigationTitle("File System")
+    }
+}
+
+struct UserDefaultsEditorView: View {
+    var body: some View {
+        List {
+            ForEach(Array(UserDefaults.standard.dictionaryRepresentation().keys.sorted()), id: \.self) { key in
+                HStack {
+                    Text(key)
+                        .font(.caption.monospaced())
+                    Spacer()
+                    Text("\(String(describing: UserDefaults.standard.object(forKey: key) ?? "nil"))")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+        }
+        .navigationTitle("UserDefaults")
+    }
+}
 
 struct AppLogsView: View {
     @State private var logs: [String] = ["Log system initialized..."]

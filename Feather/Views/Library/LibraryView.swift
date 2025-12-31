@@ -167,9 +167,10 @@ struct LibraryView: View {
 					.presentationDragIndicator(.visible)
 					.compatPresentationRadius(21)
 			}
-			.fullScreenCover(item: $_selectedSigningAppPresenting) { app in
+			.sheet(item: $_selectedSigningAppPresenting) { app in
 				SigningView(app: app.base)
-					.compatNavigationTransition(id: app.base.uuid ?? "", ns: _namespace)
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
 			}
 			.sheet(isPresented: $_isImportingPresenting) {
 				FileImporterRepresentableView(

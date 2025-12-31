@@ -173,7 +173,7 @@ struct SourceDetailsView: View {
 				.foregroundStyle(dominantColor)
 				.font(.body)
 			
-			TextField("Search apps and updates", text: $_searchText)
+			TextField("Search \(repository?.apps?.count ?? 0) Apps", text: $_searchText)
 				.textFieldStyle(.plain)
 			
 			if !_searchText.isEmpty {
