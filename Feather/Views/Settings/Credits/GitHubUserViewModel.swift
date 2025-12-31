@@ -37,8 +37,11 @@ class GitHubUserViewModel: ObservableObject {
 	private func fetchAvatar(from urlString: String) {
 		guard let url = URL(string: urlString) else { return }
 		
-		DispatchQueue.global(qos: .userInitiated).async {
-			guard let data = try? Data(contentsOf: url),
+		// Use URLSession for async network request
+		let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+			guard let self = self,
+				  let data = data,
+				  error == nil,
 				  let image = UIImage(data: data) else {
 				return
 			}
@@ -47,5 +50,6 @@ class GitHubUserViewModel: ObservableObject {
 				self.avatarImage = image
 			}
 		}
+		task.resume()
 	}
 }

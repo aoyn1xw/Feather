@@ -4,6 +4,7 @@ import NimbleViews
 // MARK: - Credits Item Model
 struct CreditItem {
 	let username: String
+	let githubUsername: String // Username to fetch from GitHub API
 	let role: String
 	let githubUrl: String
 	let gradientColors: [Color]
@@ -20,6 +21,7 @@ struct CreditsView: View {
 	private let credits: [CreditItem] = [
 		CreditItem(
 			username: "aoyn1xw",
+			githubUsername: "aoyn1xw",
 			role: .localized("Developer"),
 			githubUrl: "https://github.com/aoyn1xw",
 			gradientColors: [Color(hex: "#B496DC"), Color(hex: "#848ef9")],
@@ -27,13 +29,15 @@ struct CreditsView: View {
 		),
 		CreditItem(
 			username: "dylans2010",
+			githubUsername: "dylans2010",
 			role: .localized("Designer"),
 			githubUrl: "https://github.com/dylans2010",
 			gradientColors: [Color(hex: "#ff7a83"), Color(hex: "#FF2D55")],
 			icon: "paintbrush.fill"
 		),
 		CreditItem(
-			username: "khcrysalis",
+			username: "Feather",
+			githubUsername: "khcrysalis",
 			role: .localized("Original Developer Team"),
 			githubUrl: "https://github.com/khcrysalis/Feather",
 			gradientColors: [Color(hex: "#4CD964"), Color(hex: "#4860e8")],
@@ -109,7 +113,8 @@ struct GitHubCreditCard: View {
 	
 	var body: some View {
 		Button {
-			UIApplication.open(credit.githubUrl)
+			guard let url = URL(string: credit.githubUrl) else { return }
+			UIApplication.open(url)
 		} label: {
 			ZStack {
 				// Gradient background with enhanced effects
@@ -238,9 +243,8 @@ struct GitHubCreditCard: View {
 		}
 		.buttonStyle(ScaleButtonStyle())
 		.onAppear {
-			// Fetch GitHub user data
-			let usernameToFetch = credit.username == "Feather" ? "khcrysalis" : credit.username
-			viewModel.fetchUser(username: usernameToFetch)
+			// Fetch GitHub user data using the explicit GitHub username
+			viewModel.fetchUser(username: credit.githubUsername)
 			
 			// Stagger card animations
 			withAnimation(.spring(response: 0.8, dampingFraction: 0.6).delay(delay)) {
