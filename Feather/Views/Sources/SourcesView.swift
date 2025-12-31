@@ -40,110 +40,12 @@ struct SourcesView: View {
 						NavigationLink {
 							SourceAppsView(object: Array(_sources), viewModel: viewModel)
 						} label: {
-							let isRegular = horizontalSizeClass != .compact
-							let totalApps = _sources.reduce(0) { count, source in
-								count + (viewModel.sources[source]?.apps.count ?? 0)
-							}
-							
-							VStack(spacing: 0) {
-								// Top gradient banner
-								ZStack(alignment: .topTrailing) {
-									LinearGradient(
-										colors: [
-											Color.accentColor.opacity(0.9),
-											Color.accentColor.opacity(0.7),
-											Color.accentColor.opacity(0.5)
-										],
-										startPoint: .topLeading,
-										endPoint: .bottomTrailing
-									)
-									.frame(height: 120)
-									
-									// Decorative circles
-									Circle()
-										.fill(Color.white.opacity(0.1))
-										.frame(width: 100, height: 100)
-										.offset(x: 30, y: -30)
-									
-									Circle()
-										.fill(Color.white.opacity(0.05))
-										.frame(width: 150, height: 150)
-										.offset(x: -50, y: 60)
+							AllAppsCardView(
+								horizontalSizeClass: horizontalSizeClass,
+								totalApps: _sources.reduce(0) { count, source in
+									count + (viewModel.sources[source]?.apps.count ?? 0)
 								}
-								.clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-								
-								// Content
-								HStack(spacing: 18) {
-									ZStack {
-										Circle()
-											.fill(Color.white)
-											.frame(width: 70, height: 70)
-											.shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)
-										
-										Image(systemName: "app.badge.fill")
-											.font(.system(size: 32))
-											.foregroundStyle(
-												LinearGradient(
-													colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
-													startPoint: .topLeading,
-													endPoint: .bottomTrailing
-												)
-											)
-									}
-									.offset(y: -35)
-									
-									VStack(alignment: .leading, spacing: 6) {
-										Text(.localized("All Apps"))
-											.font(.title2.bold())
-											.foregroundStyle(.primary)
-										Text(.localized("Browse your complete app collection"))
-											.font(.subheadline)
-											.foregroundStyle(.secondary)
-										
-										HStack(spacing: 4) {
-											Image(systemName: "square.stack.3d.up.fill")
-												.font(.caption)
-											Text("\(totalApps) Apps Available")
-												.font(.caption.bold())
-										}
-										.foregroundStyle(.accentColor)
-										.padding(.horizontal, 10)
-										.padding(.vertical, 4)
-										.background(
-											Capsule()
-												.fill(Color.accentColor.opacity(0.1))
-										)
-									}
-									.padding(.top, 8)
-									
-									Spacer()
-									
-									Image(systemName: "chevron.right")
-										.font(.title3.bold())
-										.foregroundStyle(.secondary)
-										.padding(.top, 8)
-								}
-								.padding(.horizontal, isRegular ? 20 : 16)
-								.padding(.bottom, isRegular ? 20 : 16)
-								.padding(.top, 8)
-							}
-							.background(
-								RoundedRectangle(cornerRadius: 20, style: .continuous)
-									.fill(Color(uiColor: .secondarySystemGroupedBackground))
 							)
-							.overlay(
-								RoundedRectangle(cornerRadius: 20, style: .continuous)
-									.stroke(
-										LinearGradient(
-											colors: [Color.white.opacity(0.5), Color.clear],
-											startPoint: .top,
-											endPoint: .bottom
-										),
-										lineWidth: 1
-									)
-							)
-							.shadow(color: Color.accentColor.opacity(0.15), radius: 20, x: 0, y: 8)
-							.shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 4)
 						}
 						.buttonStyle(.plain)
 					}
@@ -223,5 +125,143 @@ struct SourcesView: View {
 			)
 		}
 		#endif
+	}
+}
+
+// MARK: - AllAppsCardView
+private struct AllAppsCardView: View {
+	let horizontalSizeClass: UserInterfaceSizeClass?
+	let totalApps: Int
+	
+	var body: some View {
+		let isRegular = horizontalSizeClass != .compact
+		
+		VStack(spacing: 0) {
+			// Top gradient banner
+			gradientBanner
+			
+			// Content
+			contentSection(isRegular: isRegular)
+		}
+		.background(cardBackground)
+		.overlay(cardStroke)
+		.shadow(color: Color.accentColor.opacity(0.15), radius: 20, x: 0, y: 8)
+		.shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 4)
+	}
+	
+	private var gradientBanner: some View {
+		ZStack(alignment: .topTrailing) {
+			LinearGradient(
+				colors: [
+					Color.accentColor.opacity(0.9),
+					Color.accentColor.opacity(0.7),
+					Color.accentColor.opacity(0.5)
+				],
+				startPoint: .topLeading,
+				endPoint: .bottomTrailing
+			)
+			.frame(height: 120)
+			
+			// Decorative circles
+			Circle()
+				.fill(Color.white.opacity(0.1))
+				.frame(width: 100, height: 100)
+				.offset(x: 30, y: -30)
+			
+			Circle()
+				.fill(Color.white.opacity(0.05))
+				.frame(width: 150, height: 150)
+				.offset(x: -50, y: 60)
+		}
+		.clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+	}
+	
+	private func contentSection(isRegular: Bool) -> some View {
+		HStack(spacing: 18) {
+			iconView
+			
+			textContent
+			
+			Spacer()
+			
+			chevronIcon
+		}
+		.padding(.horizontal, isRegular ? 20 : 16)
+		.padding(.bottom, isRegular ? 20 : 16)
+		.padding(.top, 8)
+	}
+	
+	private var iconView: some View {
+		ZStack {
+			Circle()
+				.fill(Color.white)
+				.frame(width: 70, height: 70)
+				.shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)
+			
+			Image(systemName: "app.badge.fill")
+				.font(.system(size: 32))
+				.foregroundStyle(
+					LinearGradient(
+						colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+				)
+		}
+		.offset(y: -35)
+	}
+	
+	private var textContent: some View {
+		VStack(alignment: .leading, spacing: 6) {
+			Text(.localized("All Apps"))
+				.font(.title2.bold())
+				.foregroundStyle(.primary)
+			Text(.localized("Browse your complete app collection"))
+				.font(.subheadline)
+				.foregroundStyle(.secondary)
+			
+			appsBadge
+		}
+		.padding(.top, 8)
+	}
+	
+	private var appsBadge: some View {
+		HStack(spacing: 4) {
+			Image(systemName: "square.stack.3d.up.fill")
+				.font(.caption)
+			Text("\(totalApps) Apps Available")
+				.font(.caption.bold())
+		}
+		.foregroundStyle(.accentColor)
+		.padding(.horizontal, 10)
+		.padding(.vertical, 4)
+		.background(
+			Capsule()
+				.fill(Color.accentColor.opacity(0.1))
+		)
+	}
+	
+	private var chevronIcon: some View {
+		Image(systemName: "chevron.right")
+			.font(.title3.bold())
+			.foregroundStyle(.secondary)
+			.padding(.top, 8)
+	}
+	
+	private var cardBackground: some View {
+		RoundedRectangle(cornerRadius: 20, style: .continuous)
+			.fill(Color(uiColor: .secondarySystemGroupedBackground))
+	}
+	
+	private var cardStroke: some View {
+		RoundedRectangle(cornerRadius: 20, style: .continuous)
+			.stroke(
+				LinearGradient(
+					colors: [Color.white.opacity(0.5), Color.clear],
+					startPoint: .top,
+					endPoint: .bottom
+				),
+				lineWidth: 1
+			)
 	}
 }

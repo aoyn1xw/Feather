@@ -29,10 +29,10 @@ struct AppearanceTintColorView: View {
 	// MARK: Helper Methods
 	private func updateTintColor() {
 		if colorType == "gradient" {
-			let startColor = Color(hex: gradientStartHex)
+			let startColor: SwiftUI.Color = SwiftUI.Color(hex: gradientStartHex)
 			UIApplication.topViewController()?.view.window?.tintColor = UIColor(startColor)
 		} else {
-			UIApplication.topViewController()?.view.window?.tintColor = UIColor(Color(hex: selectedColorHex))
+			UIApplication.topViewController()?.view.window?.tintColor = UIColor(SwiftUI.Color(hex: selectedColorHex))
 		}
 	}
 
@@ -46,7 +46,7 @@ struct AppearanceTintColorView: View {
 					ZStack {
 						if colorType == "gradient" {
 							LinearGradient(
-								colors: [Color(hex: gradientStartHex), Color(hex: gradientEndHex)],
+								colors: [SwiftUI.Color(hex: gradientStartHex), SwiftUI.Color(hex: gradientEndHex)],
 								startPoint: .topLeading,
 								endPoint: .bottomTrailing
 							)
@@ -54,7 +54,7 @@ struct AppearanceTintColorView: View {
 							.clipShape(Circle())
 						} else {
 							Circle()
-								.fill(Color(hex: selectedColorHex))
+								.fill(SwiftUI.Color(hex: selectedColorHex))
 								.frame(width: 30, height: 30)
 						}
 						Circle()
@@ -78,7 +78,7 @@ struct AppearanceTintColorView: View {
 				}
 				
 				ForEach(tintOptions, id: \.hex) { option in
-					let color = Color(hex: option.hex)
+					let color: SwiftUI.Color = SwiftUI.Color(hex: option.hex)
 					VStack(spacing: 8) {
 						Circle()
 							.fill(color)
@@ -209,9 +209,9 @@ struct CustomColorPickerView: View {
 		}
 		.presentationDetents([.medium])
 		.onAppear {
-			solidColor = Color(hex: selectedColorHex)
-			gradientStart = Color(hex: gradientStartHex)
-			gradientEnd = Color(hex: gradientEndHex)
+			solidColor = SwiftUI.Color(hex: selectedColorHex)
+			gradientStart = SwiftUI.Color(hex: gradientStartHex)
+			gradientEnd = SwiftUI.Color(hex: gradientEndHex)
 		}
 	}
 }
