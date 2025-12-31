@@ -111,7 +111,18 @@ struct SigningView: View {
 			.disabled(_isSigning)
 			.animation(.smooth, value: _isSigning)
             .fullScreenCover(isPresented: $_isSigningProcessPresented) {
-                SigningProcessView(appName: _temporaryOptions.appName ?? app.name ?? "App")
+                if #available(iOS 17.0, *) {
+                    SigningProcessView(appName: _temporaryOptions.appName ?? app.name ?? "App")
+                } else {
+                    VStack(spacing: 20) {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                        Text("Signing \( _temporaryOptions.appName ?? app.name ?? "App")...")
+                            .font(.headline)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(UIColor.systemBackground))
+                }
             }
 		}
 		.alert(.localized("Name"), isPresented: $_isNameDialogPresenting) {
