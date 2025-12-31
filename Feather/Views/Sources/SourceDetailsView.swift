@@ -347,7 +347,7 @@ struct SourceDetailsView: View {
 	private func _appRow(_ app: ASRepository.App) -> some View {
 		HStack(spacing: 12) {
 			// App Icon
-			if let iconURL = app.currentIconURL {
+			if let iconURL = app.iconURL {
 				LazyImage(url: iconURL) { state in
 					if let image = state.image {
 						image
@@ -463,20 +463,17 @@ struct SourceNewsListView: View {
 								.font(.headline)
 								.foregroundStyle(.primary)
 							
-							if let caption = newsItem.caption {
-								Text(caption)
-									.font(.caption)
-									.foregroundStyle(.secondary)
-									.lineLimit(2)
-							}
-						}
-						
-						Spacer()
-						
-						Image(systemName: "chevron.right")
+						Text(newsItem.caption)
 							.font(.caption)
-							.foregroundStyle(.tertiary)
+							.foregroundStyle(.secondary)
+							.lineLimit(2)
 					}
+					
+					Spacer()
+					
+					Image(systemName: "chevron.right")
+						.font(.caption)
+						.foregroundStyle(.tertiary)
 				}
 				.buttonStyle(.plain)
 			}
@@ -500,7 +497,7 @@ struct SourceAppsListView: View {
 					_selectedRoute = SourceAppRoute(source: repository, app: app)
 				} label: {
 					HStack(spacing: 12) {
-						if let iconURL = app.currentIconURL {
+						if let iconURL = app.iconURL {
 							LazyImage(url: iconURL) { state in
 								if let image = state.image {
 									image
