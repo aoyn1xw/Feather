@@ -8,10 +8,10 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-14
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: 'true'
       
@@ -26,13 +26,10 @@ jobs:
       - name: Clean Build Environment
         run: |
           make clean || true
-          rm -rf ~/Library/Developer/Xcode/DerivedData/Feather-* || true
+          rm -rf ~/Library/Developer/Xcode/DerivedData
+          rm -rf ~/Library/Caches/com.apple.dt.Xcode
 
       - name: Compile Feather
-        env:
-          # Skip asset catalog validation for simulator runtimes
-          ASSETCATALOG_COMPILER_SKIP_APP_STORE_DEPLOYMENT: "NO"
-          ASSETCATALOG_COMPILER_OPTIMIZATION: "time"
         run: |
           agvtool new-version -all $(git rev-parse HEAD)
           make

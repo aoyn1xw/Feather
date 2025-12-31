@@ -31,6 +31,7 @@ $(SCHEMES): deps
 	    -configuration Release \
 	    -arch arm64 \
 	    -sdk $(PLATFORM) \
+	    -destination 'generic/platform=iOS' \
 	    -derivedDataPath $(TMP) \
 	    -skipPackagePluginValidation \
 	    CODE_SIGNING_ALLOWED=NO \
