@@ -199,8 +199,8 @@ extension LibraryCellView {
 							.font(.caption)
 							.foregroundStyle(.white)
 					}
-					.lineLimit(1)
 					.font(.headline.bold())
+					.lineLimit(1)
 					.foregroundStyle(.white)
 					.padding(.horizontal, 12)
 					.padding(.vertical, 6)
