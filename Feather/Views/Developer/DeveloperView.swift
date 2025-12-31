@@ -1,6 +1,7 @@
 import SwiftUI
 import NimbleViews
 import AltSourceKit
+import Darwin
 
 // MARK: - Developer View
 struct DeveloperView: View {
