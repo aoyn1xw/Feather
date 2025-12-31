@@ -7,6 +7,8 @@ import IDeviceSwift
 // MARK: - View
 struct SettingsView: View {
     @State private var _currentIcon: String? = UIApplication.shared.alternateIconName
+    @State private var developerTapCount = 0
+    @AppStorage("isDeveloperModeEnabled") private var isDeveloperModeEnabled = false
     
     // MARK: Body
     var body: some View {
@@ -55,6 +57,15 @@ struct SettingsView: View {
                         Text("Version 1.0")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
+                            .onTapGesture {
+                                developerTapCount += 1
+                                if developerTapCount >= 7 {
+                                    isDeveloperModeEnabled = true
+                                    developerTapCount = 0
+                                    let generator = UINotificationFeedbackGenerator()
+                                    generator.notificationOccurred(.success)
+                                }
+                            }
                     }
                     .padding(.vertical, 4)
                 }
