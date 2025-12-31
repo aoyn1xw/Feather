@@ -64,7 +64,7 @@ struct SourcesView: View {
 					) {
 						ForEach(_filteredSources) { source in
 							NavigationLink {
-								SourceAppsView(object: [source], viewModel: viewModel)
+								SourceDetailsView(source: source, viewModel: viewModel)
 							} label: {
 								SourcesCellView(source: source)
 							}

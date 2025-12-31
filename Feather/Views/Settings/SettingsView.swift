@@ -45,6 +45,19 @@ struct SettingsView: View {
                 } footer: {
                     Text(.localized("Reset the applications sources, certificates, apps, and general contents."))
                 }
+                
+                NBSection("About") {
+                    HStack {
+                        Label("CoreSign", systemImage: "app.badge")
+                            .font(.body)
+                            .fontWeight(.medium)
+                        Spacer()
+                        Text("Version 1.0")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                }
             }
         }
     }
