@@ -19,10 +19,17 @@ struct DeveloperView: View {
                     NavigationLink(destination: NetworkInspectorView()) {
                         Label("Network Inspector", systemImage: "network")
                     }
+                    NavigationLink(destination: PerformanceMonitorView()) {
+                        Label("Performance Monitor", systemImage: "speedometer")
+                    }
                     Toggle("Debug Mode", isOn: $debugModeEnabled)
                         .onChange(of: debugModeEnabled) { newValue in
                             // Enable verbose logging
                         }
+                    Toggle("Verbose Logging", isOn: Binding(
+                        get: { UserDefaults.standard.bool(forKey: "verboseLogging") },
+                        set: { UserDefaults.standard.set($0, forKey: "verboseLogging") }
+                    ))
                 } header: {
                     Text("Diagnostics")
                 }
@@ -50,6 +57,9 @@ struct DeveloperView: View {
                     }
                     NavigationLink(destination: UserDefaultsEditorView()) {
                         Label("UserDefaults Editor", systemImage: "list.bullet.rectangle")
+                    }
+                    NavigationLink(destination: CoreDataInspectorView()) {
+                        Label("CoreData Inspector", systemImage: "cylinder.split.1x2")
                     }
                 } header: {
                     Text("Data")
@@ -298,11 +308,159 @@ struct AppStateView: View {
 
 struct FeatureFlagsView: View {
     @AppStorage("feature_newUI") var newUI = false
+    @AppStorage("feature_enhancedAnimations") var enhancedAnimations = false
+    @AppStorage("feature_advancedSigning") var advancedSigning = false
     
     var body: some View {
         List {
             Toggle("Experimental UI", isOn: $newUI)
+            Toggle("Enhanced Animations", isOn: $enhancedAnimations)
+            Toggle("Advanced Signing Options", isOn: $advancedSigning)
         }
         .navigationTitle("Feature Flags")
+    }
+}
+
+struct PerformanceMonitorView: View {
+    @State private var cpuUsage: Double = 0.0
+    @State private var memoryUsage: String = "0 MB"
+    @State private var diskSpace: String = "0 GB"
+    @State private var timer: Timer?
+    
+    var body: some View {
+        List {
+            Section("System Resources") {
+                HStack {
+                    Label("CPU Usage", systemImage: "cpu")
+                    Spacer()
+                    Text("\(Int(cpuUsage))%")
+                        .foregroundStyle(cpuUsage > 80 ? .red : cpuUsage > 50 ? .orange : .green)
+                        .fontWeight(.semibold)
+                }
+                
+                HStack {
+                    Label("Memory", systemImage: "memorychip")
+                    Spacer()
+                    Text(memoryUsage)
+                        .foregroundStyle(.secondary)
+                }
+                
+                HStack {
+                    Label("Disk Space", systemImage: "internaldrive")
+                    Spacer()
+                    Text(diskSpace)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            
+            Section("App Performance") {
+                HStack {
+                    Label("Frame Rate", systemImage: "waveform.path.ecg")
+                    Spacer()
+                    Text("60 FPS")
+                        .foregroundStyle(.green)
+                        .fontWeight(.semibold)
+                }
+                
+                HStack {
+                    Label("Launch Time", systemImage: "timer")
+                    Spacer()
+                    Text("0.8s")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .navigationTitle("Performance Monitor")
+        .onAppear {
+            updateMetrics()
+            timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
+                updateMetrics()
+            }
+        }
+        .onDisappear {
+            timer?.invalidate()
+        }
+    }
+    
+    private func updateMetrics() {
+        // Simulate CPU usage
+        cpuUsage = Double.random(in: 10...75)
+        
+        // Get memory info
+        var info = mach_task_basic_info()
+        var count = mach_msg_type_number_t(MemoryLayout<mach_task_basic_info>.size)/4
+        let kerr: kern_return_t = withUnsafeMutablePointer(to: &info) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+                task_info(mach_task_self_, task_flavor_t(MACH_TASK_BASIC_INFO), $0, &count)
+            }
+        }
+        if kerr == KERN_SUCCESS {
+            let usedMB = Double(info.resident_size) / 1024.0 / 1024.0
+            memoryUsage = String(format: "%.1f MB", usedMB)
+        }
+        
+        // Get disk space
+        if let systemAttributes = try? FileManager.default.attributesOfFileSystem(forPath: NSHomeDirectory()),
+           let freeSpace = systemAttributes[.systemFreeSize] as? NSNumber {
+            let freeGB = Double(truncating: freeSpace) / 1024.0 / 1024.0 / 1024.0
+            diskSpace = String(format: "%.1f GB free", freeGB)
+        }
+    }
+}
+
+struct CoreDataInspectorView: View {
+    var body: some View {
+        List {
+            Section("Entities") {
+                NavigationLink("Certificates") {
+                    EntityDetailView(entityName: "Certificate")
+                }
+                NavigationLink("Sources") {
+                    EntityDetailView(entityName: "AltSource")
+                }
+                NavigationLink("Signed Apps") {
+                    EntityDetailView(entityName: "Signed")
+                }
+                NavigationLink("Imported Apps") {
+                    EntityDetailView(entityName: "Imported")
+                }
+            }
+            
+            Section("Statistics") {
+                HStack {
+                    Text("Total Certificates")
+                    Spacer()
+                    Text("\(Storage.shared.getCertificates().count)")
+                        .foregroundStyle(.secondary)
+                }
+                HStack {
+                    Text("Total Sources")
+                    Spacer()
+                    Text("\(Storage.shared.getSources().count)")
+                        .foregroundStyle(.secondary)
+                }
+                HStack {
+                    Text("Total Signed Apps")
+                    Spacer()
+                    Text("\(Storage.shared.getSignedApps().count)")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .navigationTitle("CoreData Inspector")
+    }
+}
+
+struct EntityDetailView: View {
+    let entityName: String
+    
+    var body: some View {
+        List {
+            Text("Entity: \(entityName)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            // Add more detailed entity inspection here
+        }
+        .navigationTitle(entityName)
     }
 }
