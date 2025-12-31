@@ -159,6 +159,7 @@
 			name = Feather;
 			packageProductDependencies = (
 				3371F7312DA9ECDD00281AC6 /* Zip */,
+				3371F79F2DA9EDB100281AC6 /* ZIPFoundation */,
 				33CF13382DB5ACFB0021D4C5 /* SWCompression */,
 				3305BBAB2DB8944200660D45 /* Vapor */,
 				330F68FB2DBF7C8600D8C35D /* NimbleExtensions */,
