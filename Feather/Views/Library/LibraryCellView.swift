@@ -196,11 +196,14 @@ extension LibraryCellView {
 								.foregroundStyle(certRevoked ? .red : info.color)
 						}
 						Image(systemName: "arrow.down.circle.fill")
-							.font(.title3)
+							.font(.caption)
 							.foregroundStyle(.white)
 					}
+					.font(.headline.bold())
+					.lineLimit(1)
+					.foregroundStyle(.white)
 					.padding(.horizontal, 12)
-					.padding(.vertical, 8)
+					.padding(.vertical, 6)
 					.background(
 						Capsule()
 							.fill(certRevoked ? Color.red : (certInfo?.color ?? .green))
