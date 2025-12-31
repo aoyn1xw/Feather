@@ -349,6 +349,15 @@ extension SigningView {
 // MARK: - Extension: View (import)
 extension SigningView {
 	private func _start() {
+		// CRITICAL: Check for .dylib files before signing
+		if DylibDetector.shared.hasDylibs() {
+			UIAlertController.showAlertWithOk(
+				title: .localized("Dynamic Libraries Detected"),
+				message: .localized("Sorry but you may not add any .dylib files to this app. Please resign the app without any additional frameworks to proceed.")
+			)
+			return
+		}
+
 		guard
 			let cert = _selectedCert()
 		else {

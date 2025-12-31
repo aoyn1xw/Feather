@@ -6,17 +6,25 @@ import OSLog
 @main
 struct FeatherApp: App {
 	@UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-	
+
 	let heartbeat = HeartbeatManager.shared
-	
+
 	@StateObject var downloadManager = DownloadManager.shared
 	let storage = Storage.shared
-    
+
     @AppStorage("hasCompletedOnboarding") var hasCompletedOnboarding: Bool = false
-	
+    @State private var hasDylibsDetected: Bool = false
+
 	var body: some Scene {
 		WindowGroup(content: {
-            if !hasCompletedOnboarding {
+            // CRITICAL: Check for .dylib files first - blocks all navigation if found
+            if hasDylibsDetected {
+                DylibBlockerView()
+                    .onAppear {
+                        // Prevent any navigation or state changes
+                        UIApplication.shared.isIdleTimerDisabled = false
+                    }
+            } else if !hasCompletedOnboarding {
                 OnboardingView()
                     .onAppear {
                         _setupTheme()
@@ -46,13 +54,34 @@ struct FeatherApp: App {
                 .overlay(StatusBarOverlay())
             }
 		})
+        .onAppear {
+            // Scan for dylibs at launch
+            _checkForDylibs()
+        }
 	}
     
+    private func _checkForDylibs() {
+        // Perform dylib scan on background thread to avoid blocking UI
+        DispatchQueue.global(qos: .userInitiated).async {
+            let detector = DylibDetector.shared
+            let dylibsFound = detector.hasDylibs()
+
+            DispatchQueue.main.async {
+                if dylibsFound {
+                    Logger.misc.error("🚫 .dylib files detected in app bundle - blocking navigation")
+                    hasDylibsDetected = true
+                } else {
+                    Logger.misc.info("✅ No .dylib files detected")
+                }
+            }
+        }
+    }
+
     private func _setupTheme() {
         if let style = UIUserInterfaceStyle(rawValue: UserDefaults.standard.integer(forKey: "Feather.userInterfaceStyle")) {
             UIApplication.topViewController()?.view.window?.overrideUserInterfaceStyle = style
         }
-        
+
         let colorType = UserDefaults.standard.string(forKey: "Feather.userTintColorType") ?? "solid"
         if colorType == "gradient" {
             // For gradient, use the start color as the tint

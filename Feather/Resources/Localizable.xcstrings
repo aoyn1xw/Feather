@@ -14929,6 +14929,28 @@
           }
         }
       }
+    },
+    "Dynamic Libraries Detected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dynamic Libraries Detected"
+          }
+        }
+      }
+    },
+    "Sorry but you may not add any .dylib files to this app. Please resign the app without any additional frameworks to proceed." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorry but you may not add any .dylib files to this app. Please resign the app without any additional frameworks to proceed."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
