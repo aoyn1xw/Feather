@@ -127,7 +127,7 @@ extension SigningTweaksView {
 		Button(role: .destructive) {
 			FileManager.default.deleteStored(tweak) { url in
 				if let index = options.injectionFiles.firstIndex(where: { $0 == url }) {
-					withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+					_ = withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
 						options.injectionFiles.remove(at: index)
 					}
 				}

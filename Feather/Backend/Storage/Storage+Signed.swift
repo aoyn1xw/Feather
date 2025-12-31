@@ -34,4 +34,10 @@ extension Storage {
 		generator.impactOccurred()
 		completion(nil)
 	}
+	
+	func getSignedApps() -> [Signed] {
+		let request: NSFetchRequest<Signed> = Signed.fetchRequest()
+		request.sortDescriptors = [NSSortDescriptor(keyPath: \Signed.date, ascending: false)]
+		return (try? context.fetch(request)) ?? []
+	}
 }
