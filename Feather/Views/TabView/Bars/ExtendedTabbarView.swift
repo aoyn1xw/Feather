@@ -71,7 +71,8 @@ struct ExtendedTabbarView: View {
 		.tabViewCustomization($customization)
 		.sheet(isPresented: $_isAddingPresenting) {
 			SourcesAddView()
-				.presentationDetents([.medium])
+				.presentationDetents([.medium, .large])
+				.presentationDragIndicator(.visible)
 		}
 	}
 	

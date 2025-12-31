@@ -18,7 +18,7 @@ struct CertificatesInfoEntitlementView: View {
 			} header: {
 				HStack {
 					Image(systemName: "key.fill")
-						.foregroundStyle(.accent)
+						.foregroundStyle(Color.accentColor)
 					Text("\(entitlements.count) Entitlements")
 						.font(.subheadline)
 						.fontWeight(.semibold)

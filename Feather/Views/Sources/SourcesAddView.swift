@@ -44,6 +44,7 @@ struct SourcesAddView: View {
 	
 	@State private var _isImporting = false
 	@State private var _sourceURL = ""
+	@State private var _isFetchingRecommended = true
 	
 	// MARK: Body
 	var body: some View {
@@ -89,7 +90,22 @@ struct SourcesAddView: View {
 					Text(.localized("Supports importing from KravaSign/MapleSign and ESign."))
 				}
 				
-				if !_filteredRecommendedSourcesData.isEmpty {
+				if _isFetchingRecommended {
+					NBSection(.localized("Featured")) {
+						HStack {
+							Spacer()
+							VStack(spacing: 12) {
+								ProgressView()
+									.scaleEffect(1.2)
+								Text(.localized("Loading featured sources..."))
+									.font(.subheadline)
+									.foregroundStyle(.secondary)
+							}
+							.padding(.vertical, 20)
+							Spacer()
+						}
+					}
+				} else if !_filteredRecommendedSourcesData.isEmpty {
 					NBSection(.localized("Featured")) {
 						ForEach(_filteredRecommendedSourcesData, id: \.url) { (url, source) in
 							HStack(spacing: 2) {
@@ -140,10 +156,14 @@ struct SourcesAddView: View {
 	}
 	
 	private func _fetchRecommendedRepositories() async {
+		await MainActor.run { _isFetchingRecommended = true }
 		let fetched = await _concurrentFetchRepositories(from: recommendedSources)
 		await MainActor.run {
-			recommendedSourcesData = fetched
-			_refreshFilteredRecommendedSourcesData()
+			withAnimation {
+				recommendedSourcesData = fetched
+				_refreshFilteredRecommendedSourcesData()
+				_isFetchingRecommended = false
+			}
 		}
 	}
 	

@@ -53,7 +53,7 @@ struct CertificatesInfoEntitlementCellView: View {
 			HStack {
 				Image(systemName: "folder.fill")
 					.font(.caption)
-					.foregroundStyle(.accent)
+					.foregroundStyle(Color.accentColor)
 				Text(key)
 					.fontWeight(.medium)
 			}

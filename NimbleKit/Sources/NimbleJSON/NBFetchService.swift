@@ -2,7 +2,7 @@
 import Foundation
 
 // MARK: - Class
-public class NBFetchService {
+public class NBFetchService: @unchecked Sendable {
 	
 	public enum NBFetchServiceError: Error, LocalizedError {
 		case invalidURL

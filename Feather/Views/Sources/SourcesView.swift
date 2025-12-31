@@ -26,7 +26,7 @@ struct SourcesView: View {
 	
 	// MARK: Body
 	var body: some View {
-		NBNavigationView(.localized("Sources")) {
+		NBNavigationView(.localized("Home")) {
 			NBListAdaptable {
 				if !_filteredSources.isEmpty {
 					Section {
@@ -106,6 +106,8 @@ struct SourcesView: View {
 			}
 			.sheet(isPresented: $_isAddingPresenting) {
 				SourcesAddView()
+					.presentationDetents([.medium, .large])
+					.presentationDragIndicator(.visible)
 			}
 		}
 		.task(id: Array(_sources)) {

@@ -154,10 +154,21 @@ extension LibraryCellView {
 				Button {
 					selectedInstallAppPresenting = AnyApp(base: app)
 				} label: {
-					FRExpirationPillView(
-						title: .localized("Install"),
-						revoked: certRevoked,
-						expiration: certInfo
+					HStack(spacing: 6) {
+						if let info = certInfo {
+							Image(systemName: info.icon)
+								.font(.caption)
+								.foregroundStyle(certRevoked ? .red : info.color)
+						}
+						Image(systemName: "arrow.down.circle.fill")
+							.font(.title3)
+							.foregroundStyle(.white)
+					}
+					.padding(.horizontal, 12)
+					.padding(.vertical, 8)
+					.background(
+						Capsule()
+							.fill(certRevoked ? Color.red : (certInfo?.color ?? .green))
 					)
 				}
 			} else {
