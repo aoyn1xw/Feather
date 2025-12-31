@@ -87,6 +87,7 @@ struct OnboardingPage {
     let isSystemImage: Bool
 }
 
+@available(iOS 17.0, *)
 struct OnboardingPageView: View {
     let page: OnboardingPage
     
