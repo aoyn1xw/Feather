@@ -14,51 +14,87 @@ struct SourcesCellView: View {
 	var body: some View {
 		let isPinned = viewModel.isPinned(source)
 		
-		HStack {
-			FRIconCellView(
-				title: source.name ?? .localized("Unknown"),
-				subtitle: source.sourceURL?.absoluteString ?? "",
-				iconUrl: source.iconURL,
-				onColorExtracted: { color in
-					dominantColor = color
-				}
-			)
+		HStack(spacing: 16) {
+			// Centered layout with enhanced gradients
+			Spacer()
 			
-			if isPinned {
-				Image(systemName: "pin.fill")
-					.font(.caption)
-					.foregroundStyle(.secondary)
-					.rotationEffect(.degrees(45))
-					.padding(.trailing, 8)
-			}
-		}
-		.padding(12)
-		.background(
-			RoundedRectangle(cornerRadius: 18, style: .continuous)
-				.fill(
-					LinearGradient(
-						colors: [
-							dominantColor.opacity(0.15),
-							dominantColor.opacity(0.05)
-						],
-						startPoint: .topLeading,
-						endPoint: .bottomTrailing
+			VStack(spacing: 12) {
+				FRIconCellView(
+					title: source.name ?? .localized("Unknown"),
+					subtitle: source.sourceURL?.absoluteString ?? "",
+					iconUrl: source.iconURL,
+					onColorExtracted: { color in
+						dominantColor = color
+					}
+				)
+				
+				if isPinned {
+					HStack(spacing: 6) {
+						Image(systemName: "pin.fill")
+							.font(.caption2)
+							.foregroundStyle(.white)
+						Text("Pinned")
+							.font(.caption2)
+							.fontWeight(.semibold)
+							.foregroundStyle(.white)
+					}
+					.padding(.horizontal, 12)
+					.padding(.vertical, 4)
+					.background(
+						Capsule()
+							.fill(
+								LinearGradient(
+									colors: [Color.orange, Color.orange.opacity(0.8)],
+									startPoint: .leading,
+									endPoint: .trailing
+								)
+							)
 					)
-				)
-		)
-		.overlay(
-			RoundedRectangle(cornerRadius: 18, style: .continuous)
-				.stroke(
-					LinearGradient(
-						colors: [
-							dominantColor.opacity(0.3),
-							Color.clear
-						],
-						startPoint: .topLeading,
-						endPoint: .bottomTrailing
-					),
-					lineWidth: 1
-				)
+					.shadow(color: Color.orange.opacity(0.3), radius: 4, x: 0, y: 2)
+				}
+			}
+			
+			Spacer()
+		}
+		.padding(16)
+		.background(
+			ZStack {
+				// Stronger gradient background
+				RoundedRectangle(cornerRadius: 20, style: .continuous)
+					.fill(
+						LinearGradient(
+							colors: [
+								dominantColor.opacity(0.3),
+								dominantColor.opacity(0.15),
+								dominantColor.opacity(0.05)
+							],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						)
+					)
+				
+				// Glass morphism effect
+				RoundedRectangle(cornerRadius: 20, style: .continuous)
+					.fill(.ultraThinMaterial)
+					.opacity(0.3)
+				
+				// Enhanced border
+				RoundedRectangle(cornerRadius: 20, style: .continuous)
+					.stroke(
+						LinearGradient(
+							colors: [
+								dominantColor.opacity(0.5),
+								dominantColor.opacity(0.2),
+								Color.clear
+							],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						),
+						lineWidth: 1.5
+					)
+			}
+			.shadow(color: dominantColor.opacity(0.3), radius: 12, x: 0, y: 6)
+			.shadow(color: dominantColor.opacity(0.15), radius: 4, x: 0, y: 2)
 		)
 		.swipeActions(edge: .leading) {
 			Button {

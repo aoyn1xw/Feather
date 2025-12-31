@@ -120,23 +120,40 @@ struct SourcesAddView: View {
 						dismiss()
 					}
 				} label: {
-					HStack {
-						Image(systemName: "doc.on.doc")
-							.font(.title3)
-							.foregroundStyle(
-								LinearGradient(
-									colors: [Color.green, Color.green.opacity(0.7)],
-									startPoint: .topLeading,
-									endPoint: .bottomTrailing
+					HStack(spacing: 16) {
+						// Enhanced icon with glass effect
+						ZStack {
+							Circle()
+								.fill(Color.green.opacity(0.15))
+								.frame(width: 44, height: 44)
+								.blur(radius: 2)
+								.offset(y: 2)
+							
+							Circle()
+								.fill(
+									LinearGradient(
+										colors: [Color.green, Color.green.opacity(0.7)],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
 								)
-							)
+								.frame(width: 44, height: 44)
+							
+							Image(systemName: "doc.on.doc")
+								.font(.title3)
+								.foregroundStyle(.white)
+						}
+						.shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
+						
 						Text(.localized("Export"))
-							.fontWeight(.medium)
+							.fontWeight(.semibold)
+							.foregroundStyle(.primary)
 						Spacer()
 						Image(systemName: "chevron.right")
 							.font(.caption)
-							.foregroundStyle(.secondary)
+							.foregroundStyle(.tertiary)
 					}
+					.padding(.vertical, 4)
 				}
 				} footer: {
 					Text(.localized("Supports importing from KravaShit/MapleSign and ESign."))
@@ -160,7 +177,7 @@ struct SourcesAddView: View {
 				} else if !_filteredRecommendedSourcesData.isEmpty {
 					NBSection(.localized("Featured")) {
 						ForEach(_filteredRecommendedSourcesData, id: \.url) { (url, source) in
-							HStack(spacing: 12) {
+							HStack(spacing: 16) {
 								FRIconCellView(
 									title: source.name ?? .localized("Unknown"),
 									subtitle: url.absoluteString,
@@ -177,20 +194,32 @@ struct SourcesAddView: View {
 									Text(.localized("Add"))
 										.font(.subheadline.bold())
 										.foregroundStyle(.white)
-										.padding(.horizontal, 20)
-										.padding(.vertical, 8)
+										.padding(.horizontal, 24)
+										.padding(.vertical, 10)
 										.background(
-											LinearGradient(
-												colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
-												startPoint: .topLeading,
-												endPoint: .bottomTrailing
-											)
+											ZStack {
+												// Shadow layer
+												Capsule()
+													.fill(Color.accentColor.opacity(0.3))
+													.blur(radius: 4)
+													.offset(y: 3)
+												
+												// Main gradient
+												Capsule()
+													.fill(
+														LinearGradient(
+															colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+															startPoint: .topLeading,
+															endPoint: .bottomTrailing
+														)
+													)
+											}
 										)
-										.clipShape(Capsule())
-										.shadow(color: Color.accentColor.opacity(0.3), radius: 4, x: 0, y: 2)
+										.shadow(color: Color.accentColor.opacity(0.4), radius: 8, x: 0, y: 4)
 								}
 								.buttonStyle(.borderless)
 							}
+							.padding(.vertical, 4)
 						}
 					} footer: {
 						Text(.localized("Open an [issue](https://github.com/khcrysalis/Feather/issues) on GitHub if you want your source to be featured."))

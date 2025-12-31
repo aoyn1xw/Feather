@@ -13,67 +13,169 @@ struct SigningProcessView: View {
     
     var body: some View {
         ZStack {
-            Color(UIColor.systemBackground)
-                .ignoresSafeArea()
+            // Animated gradient background
+            LinearGradient(
+                colors: [
+                    Color(UIColor.systemBackground),
+                    Color.accentColor.opacity(0.05),
+                    Color(UIColor.systemBackground)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
             
             VStack(spacing: 30) {
-                // Header
-                VStack(spacing: 10) {
-                    Image(systemName: "signature")
-                        .font(.system(size: 60))
-                        .foregroundStyle(.tint)
-                        .symbolEffect(.bounce, value: progress)
+                // Header with enhanced icon
+                VStack(spacing: 16) {
+                    ZStack {
+                        // Animated glow effect
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color.accentColor.opacity(0.3),
+                                        Color.accentColor.opacity(0.1),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 30,
+                                    endRadius: 80
+                                )
+                            )
+                            .frame(width: 120, height: 120)
+                            .scaleEffect(isFinished ? 1.2 : 1.0)
+                            .opacity(isFinished ? 0.8 : 1.0)
+                            .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isFinished)
+                        
+                        // Main icon with depth
+                        ZStack {
+                            Circle()
+                                .fill(Color.black.opacity(0.1))
+                                .frame(width: 70, height: 70)
+                                .blur(radius: 5)
+                                .offset(y: 5)
+                            
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 70, height: 70)
+                            
+                            Image(systemName: isFinished ? "checkmark.seal.fill" : "signature")
+                                .font(.system(size: 36))
+                                .foregroundStyle(.white)
+                                .symbolEffect(.bounce, value: progress)
+                        }
+                        .shadow(color: Color.accentColor.opacity(0.4), radius: 12, x: 0, y: 6)
+                    }
                     
-                    Text("Signing \(appName)")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.center)
-                        .minimumScaleFactor(0.7)
-                    
-                    Text(currentStep)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    VStack(spacing: 8) {
+                        Text(isFinished ? "Signing Complete!" : "Signing \(appName)")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.center)
+                            .foregroundStyle(.primary)
+                        
+                        Text(currentStep)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
                 }
                 .padding(.top, 60)
                 
-                // Progress
-                VStack(spacing: 8) {
-                    ProgressView(value: progress, total: 1.0)
-                        .progressViewStyle(.linear)
-                        .tint(.accentColor)
+                // Enhanced Progress with glass effect
+                VStack(spacing: 12) {
+                    ZStack(alignment: .leading) {
+                        // Background track with depth
+                        Capsule()
+                            .fill(Color(UIColor.secondarySystemFill))
+                            .frame(height: 8)
+                        
+                        // Progress fill with gradient and glow
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.accentColor.opacity(0.9),
+                                        Color.accentColor,
+                                        Color.accentColor.opacity(0.8)
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: UIScreen.main.bounds.width * 0.8 * progress, height: 8)
+                            .shadow(color: Color.accentColor.opacity(0.5), radius: 6, x: 0, y: 2)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.8), value: progress)
+                    }
+                    .frame(width: UIScreen.main.bounds.width * 0.8)
                     
                     HStack {
                         Text("\(Int(progress * 100))%")
                             .font(.caption)
+                            .fontWeight(.semibold)
                             .monospacedDigit()
+                            .foregroundStyle(.primary)
                         Spacer()
+                        if !isFinished {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                                .tint(.accentColor)
+                        }
                     }
+                    .frame(width: UIScreen.main.bounds.width * 0.8)
                 }
                 .padding(.horizontal, 40)
                 
-                // Logs
-                VStack(alignment: .leading) {
-                    Text("Logs")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
+                // Enhanced Logs with glass morphism
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Image(systemName: "terminal.fill")
+                            .font(.caption)
+                            .foregroundStyle(.accentColor)
+                        Text("Logs")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 20)
                     
                     ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 4) {
+                        LazyVStack(alignment: .leading, spacing: 6) {
                             ForEach(logs, id: \.self) { log in
-                                Text(log)
-                                    .font(.caption2.monospaced())
-                                    .foregroundStyle(.secondary)
-                                    .padding(.horizontal)
+                                HStack(spacing: 8) {
+                                    Circle()
+                                        .fill(Color.accentColor)
+                                        .frame(width: 4, height: 4)
+                                    
+                                    Text(log)
+                                        .font(.caption2.monospaced())
+                                        .foregroundStyle(.secondary)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 2)
                             }
                         }
+                        .padding(.vertical, 8)
                     }
-                    .background(Color(UIColor.secondarySystemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .frame(maxHeight: 200)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(Color(UIColor.secondarySystemBackground))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .stroke(Color.accentColor.opacity(0.2), lineWidth: 1)
+                            )
+                    )
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 20)
                 
                 Spacer()
                 
@@ -81,16 +183,44 @@ struct SigningProcessView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Text("Done")
-                            .font(.headline)
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.accentColor)
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                        HStack(spacing: 12) {
+                            Text("Done")
+                                .font(.headline)
+                                .fontWeight(.bold)
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.title3)
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(
+                            ZStack {
+                                // Shadow layer
+                                Capsule()
+                                    .fill(Color.accentColor.opacity(0.3))
+                                    .blur(radius: 4)
+                                    .offset(y: 3)
+                                
+                                // Main gradient
+                                Capsule()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                Color.accentColor,
+                                                Color.accentColor.opacity(0.8)
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                            }
+                        )
+                        .clipShape(Capsule())
+                        .shadow(color: Color.accentColor.opacity(0.4), radius: 12, x: 0, y: 6)
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, 20)
                     .padding(.bottom, 40)
+                    .transition(.scale.combined(with: .opacity))
                 }
             }
         }

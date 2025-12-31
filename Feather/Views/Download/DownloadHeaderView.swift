@@ -8,28 +8,61 @@ struct DownloadHeaderView: View {
 	var body: some View {
 		ZStack {
 			if !downloadManager.manualDownloads.isEmpty {
-				VStack {
-					VStack(spacing: 12) {
+				VStack(spacing: 0) {
+					VStack(spacing: 16) {
 						if let firstDownload = downloadManager.manualDownloads.first {
 							DownloadItemView(download: firstDownload)
 							
 							if downloadManager.manualDownloads.count > 1 {
 								HStack {
 									Spacer()
-									Text(verbatim: "+\(downloadManager.manualDownloads.count - 1)")
-										.font(.caption)
-										.foregroundColor(.secondary)
-										.padding(.vertical, 4)
+									HStack(spacing: 6) {
+										Image(systemName: "arrow.down.circle.fill")
+											.font(.caption2)
+											.foregroundStyle(.accentColor)
+										Text(verbatim: "+\(downloadManager.manualDownloads.count - 1) more")
+											.font(.caption)
+											.fontWeight(.medium)
+											.foregroundColor(.secondary)
+									}
+									.padding(.horizontal, 12)
+									.padding(.vertical, 6)
+									.background(
+										Capsule()
+											.fill(Color.accentColor.opacity(0.1))
+									)
 								}
 							}
 						}
 					}
-					.padding(.horizontal)
+					.padding(20)
+					.background(
+						RoundedRectangle(cornerRadius: 20, style: .continuous)
+							.fill(
+								LinearGradient(
+									colors: [
+										Color(UIColor.secondarySystemBackground),
+										Color(UIColor.tertiarySystemBackground)
+									],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+							.overlay(
+								RoundedRectangle(cornerRadius: 20, style: .continuous)
+									.stroke(Color.accentColor.opacity(0.2), lineWidth: 1)
+							)
+							.shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 6)
+					)
+					.padding(.horizontal, 16)
 				}
-				.transition(.move(edge: .top).combined(with: .opacity))
+				.transition(.asymmetric(
+					insertion: .move(edge: .top).combined(with: .opacity),
+					removal: .move(edge: .top).combined(with: .opacity)
+				))
 			}
 		}
-		.animation(.spring(), value: downloadManager.manualDownloads.count)
+		.animation(.spring(response: 0.5, dampingFraction: 0.8), value: downloadManager.manualDownloads.count)
 	}
 }
 
@@ -41,27 +74,85 @@ struct DownloadItemView: View {
 	@State private var unpackageProgress: Double = 0
 	
 	var body: some View {
-		VStack(alignment: .leading, spacing: 4) {
-			Text(download.fileName)
-				.font(.subheadline)
-				.lineLimit(1)
-			
-			ProgressView(value: overallProgress)
-				.progressViewStyle(.linear)
-			
-			HStack {
-				Text(verbatim: "\(Int(overallProgress * 100))%")
-					.contentTransition(.numericText())
-				Spacer()
-				if totalBytes > 0 {
-					Text(verbatim: "\($bytesDownloaded.wrappedValue.formattedByteCount) / \(totalBytes.formattedByteCount)")
-						.contentTransition(.numericText())
+		VStack(alignment: .leading, spacing: 12) {
+			HStack(spacing: 12) {
+				// Animated download icon
+				ZStack {
+					Circle()
+						.fill(
+							LinearGradient(
+								colors: [Color.accentColor.opacity(0.2), Color.accentColor.opacity(0.1)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+						.frame(width: 44, height: 44)
+					
+					Image(systemName: overallProgress >= 1.0 ? "checkmark.circle.fill" : "arrow.down.circle.fill")
+						.font(.title2)
+						.foregroundStyle(
+							LinearGradient(
+								colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+						.symbolEffect(.bounce, value: overallProgress >= 1.0)
+				}
+				.shadow(color: Color.accentColor.opacity(0.3), radius: 6, x: 0, y: 3)
+				
+				VStack(alignment: .leading, spacing: 4) {
+					Text(download.fileName)
+						.font(.subheadline)
+						.fontWeight(.semibold)
+						.lineLimit(1)
+						.foregroundStyle(.primary)
+					
+					HStack(spacing: 8) {
+						Text(verbatim: "\(Int(overallProgress * 100))%")
+							.font(.caption)
+							.fontWeight(.medium)
+							.foregroundColor(.accentColor)
+							.contentTransition(.numericText())
+						
+						if totalBytes > 0 {
+							Text("•")
+								.font(.caption2)
+								.foregroundColor(.secondary)
+							Text(verbatim: "\($bytesDownloaded.wrappedValue.formattedByteCount) / \(totalBytes.formattedByteCount)")
+								.font(.caption)
+								.foregroundColor(.secondary)
+								.contentTransition(.numericText())
+						}
+					}
 				}
 			}
-			.font(.caption)
-			.foregroundColor(.secondary)
+			
+			// Enhanced progress bar with gradient
+			ZStack(alignment: .leading) {
+				// Background track
+				Capsule()
+					.fill(Color(UIColor.tertiarySystemFill))
+					.frame(height: 6)
+				
+				// Progress fill with animated gradient
+				Capsule()
+					.fill(
+						LinearGradient(
+							colors: [
+								Color.accentColor.opacity(0.9),
+								Color.accentColor,
+								Color.accentColor.opacity(0.8)
+							],
+							startPoint: .leading,
+							endPoint: .trailing
+						)
+					)
+					.frame(width: max(6, CGFloat(overallProgress) * UIScreen.main.bounds.width * 0.85), height: 6)
+					.shadow(color: Color.accentColor.opacity(0.5), radius: 4, x: 0, y: 2)
+					.animation(.spring(response: 0.5, dampingFraction: 0.8), value: overallProgress)
+			}
 		}
-		.padding(.vertical, 4)
 		.onReceive(download.$progress) { self.progress = $0 }
 		.onReceive(download.$bytesDownloaded) { self.bytesDownloaded = $0 }
 		.onReceive(download.$totalBytes) { self.totalBytes = $0 }
