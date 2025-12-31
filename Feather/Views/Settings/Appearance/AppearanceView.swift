@@ -52,6 +52,14 @@ struct AppearanceView: View {
 				.pickerStyle(.inline)
 			}
 			
+			NBSection(.localized("Status Bar")) {
+				NavigationLink(destination: StatusBarCustomizationView()) {
+					Label(.localized("Status Bar Customization"), systemImage: "rectangle.inset.topright.filled")
+				}
+			} footer: {
+				Text(.localized("Customize status bar with SF Symbols, text, colors, and more"))
+			}
+			
 			if #available(iOS 19.0, *) {
 				NBSection(.localized("Experiments")) {
 					Toggle(.localized("Enable Liquid Glass"), isOn: $_ignoreSolariumLinkedOnCheck)

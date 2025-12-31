@@ -1,0 +1,323 @@
+import SwiftUI
+import NimbleViews
+import ZIPFoundation
+import UniformTypeIdentifiers
+
+// MARK: - View
+struct BackupRestoreView: View {
+	@Environment(\.dismiss) var dismiss
+	@State private var isExporting = false
+	@State private var isImporting = false
+	@State private var exportURL: URL?
+	@State private var showRestoreDialog = false
+	@State private var pendingRestoreURL: URL?
+	
+	// MARK: Body
+	var body: some View {
+		NBList(.localized("Backup & Restore")) {
+			NBSection(.localized("Backup")) {
+				Button {
+					createBackup()
+				} label: {
+					HStack {
+						Image(systemName: "square.and.arrow.up")
+							.font(.title3)
+							.foregroundStyle(
+								LinearGradient(
+									colors: [Color.blue, Color.blue.opacity(0.7)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+						
+						VStack(alignment: .leading, spacing: 4) {
+							Text(.localized("Create Backup"))
+								.fontWeight(.medium)
+							Text(.localized("Export certificates, sources, signed apps, and settings"))
+								.font(.caption)
+								.foregroundStyle(.secondary)
+						}
+						
+						Spacer()
+						
+						Image(systemName: "chevron.right")
+							.font(.caption)
+							.foregroundStyle(.secondary)
+					}
+					.padding(.vertical, 6)
+				}
+			} footer: {
+				Text(.localized("Creates a .zip file containing all your data, settings, and configurations."))
+			}
+			
+			NBSection(.localized("Restore")) {
+				Button {
+					isImporting = true
+				} label: {
+					HStack {
+						Image(systemName: "square.and.arrow.down")
+							.font(.title3)
+							.foregroundStyle(
+								LinearGradient(
+									colors: [Color.green, Color.green.opacity(0.7)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+						
+						VStack(alignment: .leading, spacing: 4) {
+							Text(.localized("Restore Backup"))
+								.fontWeight(.medium)
+							Text(.localized("Import a previously created backup file"))
+								.font(.caption)
+								.foregroundStyle(.secondary)
+						}
+						
+						Spacer()
+						
+						Image(systemName: "chevron.right")
+							.font(.caption)
+							.foregroundStyle(.secondary)
+					}
+					.padding(.vertical, 6)
+				}
+			} footer: {
+				Text(.localized("Restores your data from a backup file. CoreSign will restart to apply the changes."))
+			}
+		}
+		.fileExporter(
+			isPresented: $isExporting,
+			document: exportURL != nil ? BackupDocument(url: exportURL!) : nil,
+			contentType: .zip,
+			defaultFilename: "CoreSign_Backup_\(Date().formatted(date: .numeric, time: .omitted).replacingOccurrences(of: "/", with: "-")).zip"
+		) { result in
+			switch result {
+			case .success(let url):
+				UIAlertController.showAlertWithOk(
+					title: .localized("Success"),
+					message: .localized("Backup saved successfully to \(url.lastPathComponent)")
+				)
+			case .failure(let error):
+				UIAlertController.showAlertWithOk(
+					title: .localized("Error"),
+					message: .localized("Failed to save backup: \(error.localizedDescription)")
+				)
+			}
+			// Clean up temp file
+			if let exportURL = exportURL {
+				try? FileManager.default.removeItem(at: exportURL)
+				self.exportURL = nil
+			}
+		}
+		.fileImporter(
+			isPresented: $isImporting,
+			allowedContentTypes: [.zip],
+			allowsMultipleSelection: false
+		) { result in
+			switch result {
+			case .success(let urls):
+				guard let url = urls.first else { return }
+				pendingRestoreURL = url
+				showRestoreDialog = true
+			case .failure(let error):
+				UIAlertController.showAlertWithOk(
+					title: .localized("Error"),
+					message: .localized("Failed to import backup: \(error.localizedDescription)")
+				)
+			}
+		}
+		.alert(.localized("Restart Required"), isPresented: $showRestoreDialog) {
+			Button(.localized("No"), role: .cancel) {
+				if let url = pendingRestoreURL {
+					// Mark for deferred restore
+					UserDefaults.standard.set(url.path, forKey: "pendingRestorePath")
+					pendingRestoreURL = nil
+				}
+			}
+			Button(.localized("Yes")) {
+				if let url = pendingRestoreURL {
+					performRestore(from: url, restart: true)
+				}
+			}
+		} message: {
+			Text(.localized("CoreSign has to restart in order to apply this backup, do you want to proceed?"))
+		}
+	}
+	
+	// MARK: - Backup Functions
+	private func createBackup() {
+		// Create temporary directory for backup
+		let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+		
+		do {
+			try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+			
+			// 1. Backup certificates
+			let certificatesDir = tempDir.appendingPathComponent("certificates")
+			try? FileManager.default.createDirectory(at: certificatesDir, withIntermediateDirectories: true)
+			let certificates = Storage.shared.getCertificates()
+			for cert in certificates {
+				if let certData = cert.file, let uuid = cert.uuid {
+					let certURL = certificatesDir.appendingPathComponent("\(uuid).p12")
+					try certData.write(to: certURL)
+				}
+			}
+			
+			// 2. Backup sources
+			let sourcesFile = tempDir.appendingPathComponent("sources.json")
+			let sources = Storage.shared.getSources()
+			let sourcesData = sources.compactMap { source -> [String: String]? in
+				guard let urlString = source.sourceURL?.absoluteString,
+					  let name = source.name else { return nil }
+				return ["url": urlString, "name": name]
+			}
+			if let jsonData = try? JSONSerialization.data(withJSONObject: sourcesData) {
+				try jsonData.write(to: sourcesFile)
+			}
+			
+			// 3. Backup signed apps
+			let signedAppsDir = tempDir.appendingPathComponent("signed")
+			try? FileManager.default.createDirectory(at: signedAppsDir, withIntermediateDirectories: true)
+			let signedApps = Storage.shared.getSignedApps()
+			for app in signedApps {
+				if let url = app.url, let uuid = app.uuid {
+					let destURL = signedAppsDir.appendingPathComponent(uuid)
+					try? FileManager.default.copyItem(at: url, to: destURL)
+				}
+			}
+			
+			// 4. Backup settings
+			let settingsFile = tempDir.appendingPathComponent("settings.plist")
+			if let bundleID = Bundle.main.bundleIdentifier {
+				let defaults = UserDefaults.standard.dictionaryRepresentation()
+				let filtered = defaults.filter { $0.key.hasPrefix(bundleID) || $0.key.hasPrefix("Feather.") }
+				try (filtered as NSDictionary).write(to: settingsFile)
+			}
+			
+			// 5. Create zip file
+			let zipURL = FileManager.default.temporaryDirectory.appendingPathComponent("CoreSign_Backup.zip")
+			try? FileManager.default.removeItem(at: zipURL)
+			
+			try FileManager.default.zipItem(at: tempDir, to: zipURL, shouldKeepParent: false)
+			
+			// Clean up temp directory
+			try? FileManager.default.removeItem(at: tempDir)
+			
+			// Trigger export
+			exportURL = zipURL
+			isExporting = true
+			
+		} catch {
+			UIAlertController.showAlertWithOk(
+				title: .localized("Error"),
+				message: .localized("Failed to create backup: \(error.localizedDescription)")
+			)
+		}
+	}
+	
+	private func performRestore(from url: URL, restart: Bool) {
+		let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+		
+		do {
+			_ = url.startAccessingSecurityScopedResource()
+			defer { url.stopAccessingSecurityScopedResource() }
+			
+			try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+			
+			// Unzip backup
+			try FileManager.default.unzipItem(at: url, to: tempDir)
+			
+			// 1. Restore certificates
+			let certificatesDir = tempDir.appendingPathComponent("certificates")
+			if FileManager.default.fileExists(atPath: certificatesDir.path) {
+				let certFiles = try FileManager.default.contentsOfDirectory(at: certificatesDir, includingPropertiesForKeys: nil)
+				for certFile in certFiles where certFile.pathExtension == "p12" {
+					let certData = try Data(contentsOf: certFile)
+					// Import certificate through Storage
+					Storage.shared.importCertificate(data: certData)
+				}
+			}
+			
+			// 2. Restore sources
+			let sourcesFile = tempDir.appendingPathComponent("sources.json")
+			if FileManager.default.fileExists(atPath: sourcesFile.path) {
+				let jsonData = try Data(contentsOf: sourcesFile)
+				if let sources = try JSONSerialization.jsonObject(with: jsonData) as? [[String: String]] {
+					for source in sources {
+						if let urlString = source["url"], let url = URL(string: urlString) {
+							// Add source through Storage
+							Storage.shared.addSource(url, repository: nil, completion: { _ in })
+						}
+					}
+				}
+			}
+			
+			// 3. Restore signed apps
+			let signedAppsDir = tempDir.appendingPathComponent("signed")
+			if FileManager.default.fileExists(atPath: signedAppsDir.path) {
+				let appFiles = try FileManager.default.contentsOfDirectory(at: signedAppsDir, includingPropertiesForKeys: nil)
+				for appFile in appFiles {
+					// Import app through Storage
+					Storage.shared.importSignedApp(from: appFile)
+				}
+			}
+			
+			// 4. Restore settings
+			let settingsFile = tempDir.appendingPathComponent("settings.plist")
+			if FileManager.default.fileExists(atPath: settingsFile.path) {
+				if let settings = NSDictionary(contentsOf: settingsFile) as? [String: Any] {
+					for (key, value) in settings {
+						UserDefaults.standard.set(value, forKey: key)
+					}
+				}
+			}
+			
+			// Clean up
+			try? FileManager.default.removeItem(at: tempDir)
+			
+			if restart {
+				// Restart the app
+				UIAlertController.showAlertWithOk(
+					title: .localized("Restore Complete"),
+					message: .localized("The app will now restart to apply changes.")
+				) {
+					UIApplication.shared.suspendAndReopen()
+				}
+			} else {
+				UIAlertController.showAlertWithOk(
+					title: .localized("Success"),
+					message: .localized("Backup restored successfully. Changes will be applied on next restart.")
+				)
+			}
+			
+		} catch {
+			UIAlertController.showAlertWithOk(
+				title: .localized("Error"),
+				message: .localized("Failed to restore backup: \(error.localizedDescription)")
+			)
+		}
+	}
+}
+
+// MARK: - BackupDocument
+struct BackupDocument: FileDocument {
+	static var readableContentTypes: [UTType] { [.zip] }
+	
+	var url: URL
+	
+	init(url: URL) {
+		self.url = url
+	}
+	
+	init(configuration: ReadConfiguration) throws {
+		guard let url = configuration.file.regularFileContents else {
+			throw CocoaError(.fileReadCorruptFile)
+		}
+		// This is a workaround for exporting
+		self.url = URL(fileURLWithPath: "")
+	}
+	
+	func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+		return try FileWrapper(url: url)
+	}
+}

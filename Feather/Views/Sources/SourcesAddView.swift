@@ -51,23 +51,57 @@ struct SourcesAddView: View {
 		NBNavigationView(.localized("Add Source"), displayMode: .inline) {
 			Form {
 				NBSection(.localized("Source URL")) {
-					TextField(.localized("Enter Source URL"), text: $_sourceURL)
-						.keyboardType(.URL)
-						.textInputAutocapitalization(.never)
+					HStack(spacing: 12) {
+						Image(systemName: "link.circle.fill")
+							.font(.title2)
+							.foregroundStyle(
+								LinearGradient(
+									colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+						
+						TextField(.localized("Enter Source URL"), text: $_sourceURL)
+							.keyboardType(.URL)
+							.textInputAutocapitalization(.never)
+							.font(.body)
+					}
+					.padding(.vertical, 6)
 				} footer: {
-					Text(.localized("The only supported repositories are AltStore repositories."))
-					Text(verbatim: "[\(String.localized("Learn more about how to setup a repository..."))](https://faq.altstore.io/developers/make-a-source)")
+					VStack(alignment: .leading, spacing: 8) {
+						Text(.localized("The only supported repositories are AltStore repositories."))
+						Text(verbatim: "[\(String.localized("Learn more about how to setup a repository..."))](https://faq.altstore.io/developers/make-a-source)")
+					}
 				}
 				
 				Section {
-					Button(.localized("Import"), systemImage: "square.and.arrow.down") {
+					Button {
 						_isImporting = true
 						_fetchImportedRepositories(UIPasteboard.general.string) {
 							dismiss()
 						}
+					} label: {
+						HStack {
+							Image(systemName: "square.and.arrow.down")
+								.font(.title3)
+								.foregroundStyle(
+									LinearGradient(
+										colors: [Color.blue, Color.blue.opacity(0.7)],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
+							Text(.localized("Import"))
+								.fontWeight(.medium)
+							Spacer()
+							Image(systemName: "chevron.right")
+								.font(.caption)
+								.foregroundStyle(.secondary)
+						}
 					}
 					
-				Button(.localized("Export"), systemImage: "doc.on.doc") {
+				Button {
 					let sources = Storage.shared.getSources()
 					guard !sources.isEmpty else {
 						UIAlertController.showAlertWithOk(
@@ -85,9 +119,27 @@ struct SourcesAddView: View {
 					) {
 						dismiss()
 					}
+				} label: {
+					HStack {
+						Image(systemName: "doc.on.doc")
+							.font(.title3)
+							.foregroundStyle(
+								LinearGradient(
+									colors: [Color.green, Color.green.opacity(0.7)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+						Text(.localized("Export"))
+							.fontWeight(.medium)
+						Spacer()
+						Image(systemName: "chevron.right")
+							.font(.caption)
+							.foregroundStyle(.secondary)
+					}
 				}
 				} footer: {
-					Text(.localized("Supports importing from KravaSign/MapleSign and ESign."))
+					Text(.localized("Supports importing from KravaShit/MapleSign and ESign."))
 				}
 				
 				if _isFetchingRecommended {
@@ -108,19 +160,36 @@ struct SourcesAddView: View {
 				} else if !_filteredRecommendedSourcesData.isEmpty {
 					NBSection(.localized("Featured")) {
 						ForEach(_filteredRecommendedSourcesData, id: \.url) { (url, source) in
-							HStack(spacing: 2) {
+							HStack(spacing: 12) {
 								FRIconCellView(
 									title: source.name ?? .localized("Unknown"),
 									subtitle: url.absoluteString,
 									iconUrl: source.currentIconURL
 								)
+								
+								Spacer()
+								
 								Button {
 									Storage.shared.addSource(url, repository: source) { _ in
 										_refreshFilteredRecommendedSourcesData()
 									}
 								} label: {
-									NBButton(.localized("Add"), systemImage: "arrow.down", style: .text)
+									Text(.localized("Add"))
+										.font(.subheadline.bold())
+										.foregroundStyle(.white)
+										.padding(.horizontal, 20)
+										.padding(.vertical, 8)
+										.background(
+											LinearGradient(
+												colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+												startPoint: .topLeading,
+												endPoint: .bottomTrailing
+											)
+										)
+										.clipShape(Capsule())
+										.shadow(color: Color.accentColor.opacity(0.3), radius: 4, x: 0, y: 2)
 								}
+								.buttonStyle(.borderless)
 							}
 						}
 					} footer: {
