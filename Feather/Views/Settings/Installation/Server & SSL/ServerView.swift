@@ -48,6 +48,8 @@ struct ServerView: View {
 	private let _dataService = NBFetchService()
 	private let _serverPackUrl = "https://backloop.dev/pack.json"
 	
+	@State private var _showSuccessAnimation = false
+	
 	// MARK: Body
 	var body: some View {
 		Group {
@@ -64,14 +66,47 @@ struct ServerView: View {
 			Section {
 				Button(.localized("Update SSL Certificates"), systemImage: "arrow.down.doc") {
 					FR.downloadSSLCertificates(from: _serverPackUrl) { success in
-						if !success {
-							DispatchQueue.main.async {
+						DispatchQueue.main.async {
+							if success {
+								withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+									_showSuccessAnimation = true
+								}
+								DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+									withAnimation(.easeOut(duration: 0.3)) {
+										_showSuccessAnimation = false
+									}
+								}
+							} else {
 								UIAlertController.showAlertWithOk(
 									title: .localized("SSL Certificates"),
 									message: .localized("Failed to download, check your internet connection and try again.")
 								)
 							}
 						}
+					}
+				}
+			}
+			
+			if _showSuccessAnimation {
+				Section {
+					HStack {
+						Spacer()
+						VStack(spacing: 8) {
+							Image(systemName: "checkmark.circle.fill")
+								.font(.system(size: 50))
+								.foregroundStyle(.green)
+								.scaleEffect(_showSuccessAnimation ? 1.0 : 0.5)
+								.opacity(_showSuccessAnimation ? 1.0 : 0.0)
+								.animation(.spring(response: 0.6, dampingFraction: 0.7), value: _showSuccessAnimation)
+							
+							Text(.localized("SSL certificates updated successfully!"))
+								.font(.headline)
+								.foregroundStyle(.green)
+								.opacity(_showSuccessAnimation ? 1.0 : 0.0)
+								.animation(.easeIn(duration: 0.3).delay(0.2), value: _showSuccessAnimation)
+						}
+						.padding(.vertical, 20)
+						Spacer()
 					}
 				}
 			}

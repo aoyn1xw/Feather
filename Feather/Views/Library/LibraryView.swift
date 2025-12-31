@@ -12,6 +12,8 @@ struct LibraryView: View {
 	@State private var _isImportingPresenting = false
 	@State private var _isDownloadingPresenting = false
 	@State private var _alertDownloadString: String = "" // for _isDownloadingPresenting
+	@State private var _showImportSuccessAnimation = false
+	@State private var _importedAppName: String = ""
 	
 	// MARK: Selection State
 	@State private var _selectedAppUUIDs: Set<String> = []
@@ -183,6 +185,19 @@ struct LibraryView: View {
 							let id = "FeatherManualDownload_\(UUID().uuidString)"
 							let dl = downloadManager.startArchive(from: url, id: id)
 							try? downloadManager.handlePachageFile(url: url, dl: dl)
+							
+							// Show success animation
+							_importedAppName = url.deletingPathExtension().lastPathComponent
+							withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+								_showImportSuccessAnimation = true
+							}
+							
+							// Auto-dismiss after 2 seconds
+							DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+								withAnimation(.easeOut(duration: 0.3)) {
+									_showImportSuccessAnimation = false
+								}
+							}
 						}
 					}
 				)
@@ -208,6 +223,62 @@ struct LibraryView: View {
 			.onChange(of: _editMode) { mode in
 				if mode == .inactive {
 					_selectedAppUUIDs.removeAll()
+				}
+			}
+			.overlay {
+				if _showImportSuccessAnimation {
+					ZStack {
+						Color.black.opacity(0.4)
+							.ignoresSafeArea()
+							.transition(.opacity)
+						
+						VStack(spacing: 20) {
+							ZStack {
+								Circle()
+									.fill(
+										LinearGradient(
+											colors: [Color.green.opacity(0.8), Color.green.opacity(0.4)],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
+									.frame(width: 100, height: 100)
+									.scaleEffect(_showImportSuccessAnimation ? 1.0 : 0.5)
+									.animation(.spring(response: 0.6, dampingFraction: 0.6), value: _showImportSuccessAnimation)
+								
+								Image(systemName: "checkmark")
+									.font(.system(size: 50, weight: .bold))
+									.foregroundStyle(.white)
+									.scaleEffect(_showImportSuccessAnimation ? 1.0 : 0.3)
+									.animation(.spring(response: 0.6, dampingFraction: 0.6).delay(0.1), value: _showImportSuccessAnimation)
+							}
+							
+							VStack(spacing: 8) {
+								Text(.localized("Import Successful!"))
+									.font(.title2)
+									.fontWeight(.bold)
+									.foregroundStyle(.white)
+								
+								Text(_importedAppName)
+									.font(.subheadline)
+									.foregroundStyle(.white.opacity(0.8))
+									.lineLimit(2)
+									.multilineTextAlignment(.center)
+									.padding(.horizontal, 40)
+							}
+							.opacity(_showImportSuccessAnimation ? 1.0 : 0.0)
+							.offset(y: _showImportSuccessAnimation ? 0 : 20)
+							.animation(.easeOut(duration: 0.4).delay(0.2), value: _showImportSuccessAnimation)
+						}
+						.padding(40)
+						.background(
+							RoundedRectangle(cornerRadius: 30, style: .continuous)
+								.fill(Color(uiColor: .systemBackground))
+								.shadow(color: .black.opacity(0.3), radius: 30, x: 0, y: 10)
+						)
+						.scaleEffect(_showImportSuccessAnimation ? 1.0 : 0.8)
+						.animation(.spring(response: 0.6, dampingFraction: 0.7), value: _showImportSuccessAnimation)
+					}
 				}
 			}
 		}

@@ -62,7 +62,13 @@ extension ResetView {
 					Self.clearWorkCache()
 				}
 			}
-			
+		} footer: {
+			Text(.localized("Clears temporary files and work cache. This will free up space but won't affect your apps or settings."))
+				.font(.footnote)
+				.foregroundStyle(.secondary)
+		}
+		
+		Section {
 			Button(.localized("Reset Network Cache"), systemImage: "xmark.rectangle.portrait") {
 				Self.resetAlert(
 					title: .localized("Reset Network Cache"),
@@ -71,6 +77,10 @@ extension ResetView {
 					Self.clearNetworkCache()
 				}
 			}
+		} footer: {
+			Text(.localized("Clears downloaded images and cached network data. Your apps and sources will remain intact."))
+				.font(.footnote)
+				.foregroundStyle(.secondary)
 		}
 	}
 	
@@ -79,13 +89,19 @@ extension ResetView {
 		Section {
 			Button(.localized("Reset Sources"), systemImage: "xmark.circle") {
 				Self.resetAlert(
-					title: .localized("Reset Signed Apps"),
+					title: .localized("Reset Sources"),
 					message: Storage.shared.countContent(for: AltSource.self)
 				) {
 					Self.resetSources()
 				}
 			}
-			
+		} footer: {
+			Text(.localized("Removes all added sources and their apps. Signed apps in your library will remain."))
+				.font(.footnote)
+				.foregroundStyle(.secondary)
+		}
+		
+		Section {
 			Button(.localized("Reset Signed Apps"), systemImage: "xmark.circle") {
 				Self.resetAlert(
 					title: .localized("Reset Signed Apps"),
@@ -94,7 +110,13 @@ extension ResetView {
 					Self.deleteSignedApps()
 				}
 			}
-			
+		} footer: {
+			Text(.localized("Deletes all signed IPA files from your library. This cannot be undone."))
+				.font(.footnote)
+				.foregroundStyle(.secondary)
+		}
+		
+		Section {
 			Button(.localized("Reset Imported Apps"), systemImage: "xmark.circle") {
 				Self.resetAlert(
 					title: .localized("Reset Imported Apps"),
@@ -103,7 +125,13 @@ extension ResetView {
 					Self.deleteImportedApps()
 				}
 			}
-			
+		} footer: {
+			Text(.localized("Removes all imported (unsigned) apps from your library. Signed apps will remain."))
+				.font(.footnote)
+				.foregroundStyle(.secondary)
+		}
+		
+		Section {
 			Button(.localized("Reset Certificates"), systemImage: "xmark.circle") {
 				Self.resetAlert(
 					title: .localized("Reset Certificates"),
@@ -112,6 +140,10 @@ extension ResetView {
 					Self.resetCertificates()
 				}
 			}
+		} footer: {
+			Text(.localized("Removes all imported certificates. You'll need to re-import certificates to sign apps."))
+				.font(.footnote)
+				.foregroundStyle(.secondary)
 		}
 	}
 	
@@ -123,12 +155,23 @@ extension ResetView {
 					Self.resetUserDefaults()
 				}
 			}
-			
+		} footer: {
+			Text(.localized("Resets all app preferences and settings to defaults. Your apps and certificates will remain."))
+				.font(.footnote)
+				.foregroundStyle(.secondary)
+		}
+		.foregroundStyle(.red)
+		
+		Section {
 			Button(.localized("Reset All"), systemImage: "xmark.octagon") {
 				Self.resetAlert(title: .localized("Reset All")) {
 					Self.resetAll()
 				}
 			}
+		} footer: {
+			Text(.localized("Removes everything: all apps, sources, certificates, caches, and settings. This returns the app to its initial state."))
+				.font(.footnote)
+				.foregroundStyle(.secondary)
 		}
 		.foregroundStyle(.red)
 	}

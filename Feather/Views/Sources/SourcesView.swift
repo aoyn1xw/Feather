@@ -41,29 +41,90 @@ struct SourcesView: View {
 							SourceAppsView(object: Array(_sources), viewModel: viewModel)
 						} label: {
 							let isRegular = horizontalSizeClass != .compact
-							HStack(spacing: 18) {
-								Image("Repositories").appIconStyle()
-								NBTitleWithSubtitleView(
-									title: .localized("All Repositories"),
-									subtitle: .localized("See all apps from your sources")
-								)
+							let totalApps = _sources.reduce(0) { count, source in
+								count + (viewModel.sources[source]?.apps.count ?? 0)
 							}
-							.padding(isRegular ? 12 : 0)
+							
+							HStack(spacing: 18) {
+								ZStack {
+									Circle()
+										.fill(
+											LinearGradient(
+												colors: [Color.accentColor.opacity(0.8), Color.accentColor.opacity(0.4)],
+												startPoint: .topLeading,
+												endPoint: .bottomTrailing
+											)
+										)
+										.frame(width: 60, height: 60)
+									
+									Image(systemName: "app.badge.fill")
+										.font(.system(size: 28))
+										.foregroundStyle(.white)
+								}
+								
+								VStack(alignment: .leading, spacing: 4) {
+									Text(.localized("All Apps"))
+										.font(.headline)
+										.foregroundStyle(.primary)
+									Text(.localized("See all apps from your sources"))
+										.font(.subheadline)
+										.foregroundStyle(.secondary)
+								}
+								
+								Spacer()
+								
+								Text("\(totalApps) Apps")
+									.font(.subheadline)
+									.fontWeight(.semibold)
+									.foregroundStyle(.white)
+									.padding(.horizontal, 12)
+									.padding(.vertical, 6)
+									.background(
+										Capsule()
+											.fill(
+												LinearGradient(
+													colors: [Color.accentColor.opacity(0.9), Color.accentColor.opacity(0.6)],
+													startPoint: .leading,
+													endPoint: .trailing
+												)
+											)
+									)
+							}
+							.padding(isRegular ? 16 : 12)
 							.background(
-								isRegular
-								? RoundedRectangle(cornerRadius: 18, style: .continuous)
+								RoundedRectangle(cornerRadius: 20, style: .continuous)
 									.fill(
+										Color(uiColor: .secondarySystemGroupedBackground).opacity(0.8)
+									)
+									.background(
+										RoundedRectangle(cornerRadius: 20, style: .continuous)
+											.fill(
+												LinearGradient(
+													colors: [Color.accentColor.opacity(0.15), Color.accentColor.opacity(0.05)],
+													startPoint: .topLeading,
+													endPoint: .bottomTrailing
+												)
+											)
+											.blur(radius: 10)
+									)
+							)
+							.overlay(
+								RoundedRectangle(cornerRadius: 20, style: .continuous)
+									.stroke(
 										LinearGradient(
-											colors: [Color.accentColor.opacity(0.3), Color.accentColor.opacity(0.1)],
+											colors: [Color.white.opacity(0.3), Color.clear],
 											startPoint: .topLeading,
 											endPoint: .bottomTrailing
-										)
+										),
+										lineWidth: 1
 									)
-								: nil
 							)
+							.shadow(color: Color.accentColor.opacity(0.2), radius: 15, x: 0, y: 5)
 						}
 						.buttonStyle(.plain)
 					}
+					.listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+					.listRowBackground(Color.clear)
 					
 					NBSection(
 						.localized("Repositories"),
