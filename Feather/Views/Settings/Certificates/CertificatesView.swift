@@ -155,15 +155,20 @@ extension CertificatesView {
 			}
 		}
 		
-		// Create temporary file
+		// Create temporary file with sanitized filename
 		let tempDir = FileManager.default.temporaryDirectory
-		let fileName = "\(cert.nickname ?? "certificate")_entitlements.txt"
+		let sanitizedName = (cert.nickname ?? "certificate")
+			.replacingOccurrences(of: "/", with: "-")
+			.replacingOccurrences(of: "\\", with: "-")
+			.replacingOccurrences(of: ":", with: "-")
+		let fileName = "\(sanitizedName)_entitlements.txt"
 		let fileURL = tempDir.appendingPathComponent(fileName)
 		
 		do {
 			try text.write(to: fileURL, atomically: true, encoding: .utf8)
 			UIActivityViewController.show(activityItems: [fileURL])
 		} catch {
+			// Note: Consider showing an alert to user in production
 			print("Error writing entitlements file: \(error)")
 		}
 	}
@@ -175,7 +180,9 @@ extension CertificatesView {
 			var result = "{\n"
 			let sortedKeys = dict.keys.sorted()
 			for key in sortedKeys {
-				result += "\(indentStr)\(key): \(_formatValue(dict[key]!, indent: indent + 1))\n"
+				if let dictValue = dict[key] {
+					result += "\(indentStr)\(key): \(_formatValue(dictValue, indent: indent + 1))\n"
+				}
 			}
 			result += String(repeating: "  ", count: indent - 1) + "}"
 			return result
