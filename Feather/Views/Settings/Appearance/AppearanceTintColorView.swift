@@ -26,6 +26,16 @@ struct AppearanceTintColorView: View {
 	@AppStorage("com.apple.SwiftUI.IgnoreSolariumLinkedOnCheck")
 	private var _ignoreSolariumLinkedOnCheck: Bool = false
 
+	// MARK: Helper Methods
+	private func updateTintColor() {
+		if colorType == "gradient" {
+			let startColor = Color(hex: gradientStartHex)
+			UIApplication.topViewController()?.view.window?.tintColor = UIColor(startColor)
+		} else {
+			UIApplication.topViewController()?.view.window?.tintColor = UIColor(Color(hex: selectedColorHex))
+		}
+	}
+
 	// MARK: Body
 	var body: some View {
 		ScrollView(.horizontal, showsIndicators: false) {
@@ -97,31 +107,17 @@ struct AppearanceTintColorView: View {
 				}
 			}
 		}
-		.onChange(of: selectedColorHex) { value in
-			if colorType == "solid" {
-				UIApplication.topViewController()?.view.window?.tintColor = UIColor(Color(hex: value))
-			}
+		.onChange(of: selectedColorHex) { _ in
+			updateTintColor()
 		}
 		.onChange(of: colorType) { _ in
-			if colorType == "gradient" {
-				// For gradients, we need to update the tint color to a middle ground color
-				let startColor = Color(hex: gradientStartHex)
-				let endColor = Color(hex: gradientEndHex)
-				// Use start color as the tint for system elements
-				UIApplication.topViewController()?.view.window?.tintColor = UIColor(startColor)
-			}
+			updateTintColor()
 		}
 		.onChange(of: gradientStartHex) { _ in
-			if colorType == "gradient" {
-				let startColor = Color(hex: gradientStartHex)
-				UIApplication.topViewController()?.view.window?.tintColor = UIColor(startColor)
-			}
+			updateTintColor()
 		}
 		.onChange(of: gradientEndHex) { _ in
-			if colorType == "gradient" {
-				let startColor = Color(hex: gradientStartHex)
-				UIApplication.topViewController()?.view.window?.tintColor = UIColor(startColor)
-			}
+			updateTintColor()
 		}
 		.sheet(isPresented: $isCustomSheetPresented) {
 			CustomColorPickerView(
