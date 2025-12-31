@@ -253,30 +253,12 @@ struct LibraryView: View {
 						let downloadId = "FeatherManualDownload_\(UUID().uuidString)"
 						let download = downloadManager.startDownload(from: url, id: downloadId)
 						
-						// Monitor download completion
-						if download != nil {
-							// Success case will be handled by download manager
-							DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-								withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-									_importStatus = .success
-								}
-								DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-									withAnimation(.easeOut(duration: 0.3)) {
-										_showImportAnimation = false
-									}
-								}
-							}
-						} else {
-							// Failed case
-							DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-								withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-									_importStatus = .failed
-								}
-								DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-									withAnimation(.easeOut(duration: 0.3)) {
-										_showImportAnimation = false
-									}
-								}
+						// Monitor download completion - dismiss loading after showing it
+						// The actual success/failure will be handled by the download manager
+						// For now, just show the loading state briefly and dismiss
+						DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+							withAnimation(.easeOut(duration: 0.3)) {
+								_showImportAnimation = false
 							}
 						}
 					}
