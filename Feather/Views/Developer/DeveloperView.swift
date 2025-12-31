@@ -384,8 +384,40 @@ struct PerformanceMonitorView: View {
     }
     
     private func updateMetrics() {
-        // Simulate CPU usage
-        cpuUsage = Double.random(in: 10...75)
+        // Get CPU usage - using host_processor_info
+        var numCPUs: natural_t = 0
+        var cpuInfo: processor_info_array_t?
+        var numCpuInfo: mach_msg_type_number_t = 0
+        var usage: Double = 0.0
+        
+        let result = host_processor_info(mach_host_self(), PROCESSOR_CPU_LOAD_INFO, &numCPUs, &cpuInfo, &numCpuInfo)
+        
+        if result == KERN_SUCCESS, let cpuInfo = cpuInfo {
+            let cpuLoadInfo = cpuInfo.withMemoryRebound(to: processor_cpu_load_info_t.self, capacity: Int(numCPUs)) { $0 }
+            
+            var totalUser: UInt32 = 0
+            var totalSystem: UInt32 = 0
+            var totalIdle: UInt32 = 0
+            var totalNice: UInt32 = 0
+            
+            for i in 0..<Int(numCPUs) {
+                let cpuLoad = cpuLoadInfo[i]
+                totalUser += cpuLoad.cpu_ticks.0
+                totalSystem += cpuLoad.cpu_ticks.1
+                totalIdle += cpuLoad.cpu_ticks.2
+                totalNice += cpuLoad.cpu_ticks.3
+            }
+            
+            let totalTicks = totalUser + totalSystem + totalIdle + totalNice
+            if totalTicks > 0 {
+                let usedTicks = totalUser + totalSystem + totalNice
+                usage = Double(usedTicks) / Double(totalTicks) * 100.0
+            }
+            
+            vm_deallocate(mach_task_self_, vm_address_t(bitPattern: cpuInfo), vm_size_t(Int(numCpuInfo) * MemoryLayout<integer_t>.stride))
+        }
+        
+        cpuUsage = min(usage, 100.0)
         
         // Get memory info
         var info = mach_task_basic_info()

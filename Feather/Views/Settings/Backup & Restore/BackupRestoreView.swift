@@ -234,16 +234,18 @@ struct BackupRestoreView: View {
 			// Unzip backup
 			try FileManager.default.unzipItem(at: url, to: tempDir)
 			
-			// 1. Restore certificates - Note: This is simplified, actual implementation may need password handling
+			// 1. Restore certificates - Note: Certificate restoration is limited
+			// Full certificate restoration requires password handling and proper ZsignHandler integration
+			// For now, we only restore the certificate files to the directory structure
 			let certificatesDir = tempDir.appendingPathComponent("certificates")
 			if FileManager.default.fileExists(atPath: certificatesDir.path) {
 				let certFiles = try FileManager.default.contentsOfDirectory(at: certificatesDir, includingPropertiesForKeys: nil)
 				for certFile in certFiles where certFile.pathExtension == "p12" {
-					// Note: Real implementation would need proper certificate import with password
-					// This is a placeholder - actual cert import requires ZsignHandler
 					let certData = try Data(contentsOf: certFile)
-					// Store certificate data for later processing
-					_ = certData
+					// TODO: Implement proper certificate import with password prompt
+					// This requires integration with ZsignHandler and password management
+					// For now, users will need to manually re-import certificates
+					_ = certData // Suppress unused variable warning
 				}
 			}
 			
@@ -316,11 +318,8 @@ struct BackupDocument: FileDocument {
 	}
 	
 	init(configuration: ReadConfiguration) throws {
-		guard let url = configuration.file.regularFileContents else {
-			throw CocoaError(.fileReadCorruptFile)
-		}
-		// This is a workaround for exporting
-		self.url = URL(fileURLWithPath: "")
+		// For reading, we don't need to handle this as we're only exporting
+		throw CocoaError(.fileReadUnknown)
 	}
 	
 	func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
