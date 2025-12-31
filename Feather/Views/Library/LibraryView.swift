@@ -12,8 +12,15 @@ struct LibraryView: View {
 	@State private var _isImportingPresenting = false
 	@State private var _isDownloadingPresenting = false
 	@State private var _alertDownloadString: String = "" // for _isDownloadingPresenting
-	@State private var _showImportSuccessAnimation = false
+	@State private var _showImportAnimation = false
+	@State private var _importStatus: ImportStatus = .loading
 	@State private var _importedAppName: String = ""
+	
+	enum ImportStatus {
+		case loading
+		case success
+		case failed
+	}
 	
 	// MARK: Selection State
 	@State private var _selectedAppUUIDs: Set<String> = []
@@ -184,18 +191,43 @@ struct LibraryView: View {
 						for url in urls {
 							let id = "FeatherManualDownload_\(UUID().uuidString)"
 							let dl = downloadManager.startArchive(from: url, id: id)
-							try? downloadManager.handlePachageFile(url: url, dl: dl)
 							
-							// Show success animation
+							// Show loading animation
 							_importedAppName = url.deletingPathExtension().lastPathComponent
-							withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-								_showImportSuccessAnimation = true
+							_importStatus = .loading
+							withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+								_showImportAnimation = true
 							}
 							
-							// Auto-dismiss after 2 seconds
-							DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-								withAnimation(.easeOut(duration: 0.3)) {
-									_showImportSuccessAnimation = false
+							do {
+								try downloadManager.handlePachageFile(url: url, dl: dl)
+								
+								// Show success after short delay
+								DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+									withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+										_importStatus = .success
+									}
+									
+									// Auto-dismiss after 1.5 seconds
+									DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+										withAnimation(.easeOut(duration: 0.3)) {
+											_showImportAnimation = false
+										}
+									}
+								}
+							} catch {
+								// Show failed state
+								DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+									withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+										_importStatus = .failed
+									}
+									
+									// Auto-dismiss after 2 seconds
+									DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+										withAnimation(.easeOut(duration: 0.3)) {
+											_showImportAnimation = false
+										}
+									}
 								}
 							}
 						}
@@ -211,7 +243,42 @@ struct LibraryView: View {
 				}
 				Button(.localized("OK")) {
 					if let url = URL(string: _alertDownloadString) {
-						_ = downloadManager.startDownload(from: url, id: "FeatherManualDownload_\(UUID().uuidString)")
+						// Show loading animation for URL import
+						_importedAppName = url.lastPathComponent
+						_importStatus = .loading
+						withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+							_showImportAnimation = true
+						}
+						
+						let downloadId = "FeatherManualDownload_\(UUID().uuidString)"
+						let download = downloadManager.startDownload(from: url, id: downloadId)
+						
+						// Monitor download completion
+						if download != nil {
+							// Success case will be handled by download manager
+							DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+								withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+									_importStatus = .success
+								}
+								DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+									withAnimation(.easeOut(duration: 0.3)) {
+										_showImportAnimation = false
+									}
+								}
+							}
+						} else {
+							// Failed case
+							DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+								withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+									_importStatus = .failed
+								}
+								DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+									withAnimation(.easeOut(duration: 0.3)) {
+										_showImportAnimation = false
+									}
+								}
+							}
+						}
 					}
 				}
 			}
@@ -226,9 +293,9 @@ struct LibraryView: View {
 				}
 			}
 			.overlay {
-				if _showImportSuccessAnimation {
+				if _showImportAnimation {
 					ZStack {
-						Color.black.opacity(0.4)
+						Color.black.opacity(0.5)
 							.ignoresSafeArea()
 							.transition(.opacity)
 						
@@ -237,27 +304,49 @@ struct LibraryView: View {
 								Circle()
 									.fill(
 										LinearGradient(
-											colors: [Color.green.opacity(0.8), Color.green.opacity(0.4)],
+											colors: _importStatus == .success 
+												? [Color.green.opacity(0.8), Color.green.opacity(0.4)]
+												: _importStatus == .failed
+												? [Color.red.opacity(0.8), Color.red.opacity(0.4)]
+												: [Color.blue.opacity(0.8), Color.blue.opacity(0.4)],
 											startPoint: .topLeading,
 											endPoint: .bottomTrailing
 										)
 									)
 									.frame(width: 100, height: 100)
-									.scaleEffect(_showImportSuccessAnimation ? 1.0 : 0.5)
-									.animation(.spring(response: 0.6, dampingFraction: 0.6), value: _showImportSuccessAnimation)
+									.scaleEffect(_showImportAnimation ? 1.0 : 0.5)
+									.animation(.spring(response: 0.6, dampingFraction: 0.6), value: _showImportAnimation)
 								
-								Image(systemName: "checkmark")
-									.font(.system(size: 50, weight: .bold))
-									.foregroundStyle(.white)
-									.scaleEffect(_showImportSuccessAnimation ? 1.0 : 0.3)
-									.animation(.spring(response: 0.6, dampingFraction: 0.6).delay(0.1), value: _showImportSuccessAnimation)
+								Group {
+									if _importStatus == .loading {
+										ProgressView()
+											.progressViewStyle(CircularProgressViewStyle(tint: .white))
+											.scaleEffect(1.5)
+									} else if _importStatus == .success {
+										Image(systemName: "checkmark")
+											.font(.system(size: 50, weight: .bold))
+											.foregroundStyle(.white)
+									} else {
+										Image(systemName: "xmark")
+											.font(.system(size: 50, weight: .bold))
+											.foregroundStyle(.white)
+									}
+								}
+								.scaleEffect(_showImportAnimation && _importStatus != .loading ? 1.0 : 0.3)
+								.animation(.spring(response: 0.6, dampingFraction: 0.6).delay(_importStatus == .loading ? 0 : 0.1), value: _importStatus)
 							}
 							
 							VStack(spacing: 8) {
-								Text(.localized("Import Successful!"))
-									.font(.title2)
-									.fontWeight(.bold)
-									.foregroundStyle(.white)
+								Text(
+									_importStatus == .success 
+										? .localized("Import Successful!")
+										: _importStatus == .failed
+										? .localized("Import Failed")
+										: .localized("Importing...")
+								)
+								.font(.title2)
+								.fontWeight(.bold)
+								.foregroundStyle(.white)
 								
 								Text(_importedAppName)
 									.font(.subheadline)
@@ -266,18 +355,27 @@ struct LibraryView: View {
 									.multilineTextAlignment(.center)
 									.padding(.horizontal, 40)
 							}
-							.opacity(_showImportSuccessAnimation ? 1.0 : 0.0)
-							.offset(y: _showImportSuccessAnimation ? 0 : 20)
-							.animation(.easeOut(duration: 0.4).delay(0.2), value: _showImportSuccessAnimation)
+							.opacity(_showImportAnimation ? 1.0 : 0.0)
+							.offset(y: _showImportAnimation ? 0 : 20)
+							.animation(.easeOut(duration: 0.4).delay(0.2), value: _showImportAnimation)
 						}
 						.padding(40)
 						.background(
 							RoundedRectangle(cornerRadius: 30, style: .continuous)
-								.fill(Color(uiColor: .systemBackground))
+								.fill(
+									LinearGradient(
+										colors: [
+											Color(uiColor: .systemBackground),
+											Color(uiColor: .secondarySystemBackground)
+										],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
 								.shadow(color: .black.opacity(0.3), radius: 30, x: 0, y: 10)
 						)
-						.scaleEffect(_showImportSuccessAnimation ? 1.0 : 0.8)
-						.animation(.spring(response: 0.6, dampingFraction: 0.7), value: _showImportSuccessAnimation)
+						.scaleEffect(_showImportAnimation ? 1.0 : 0.8)
+						.animation(.spring(response: 0.6, dampingFraction: 0.7), value: _showImportAnimation)
 					}
 				}
 			}

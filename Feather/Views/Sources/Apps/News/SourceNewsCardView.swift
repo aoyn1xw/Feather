@@ -11,7 +11,14 @@ struct SourceNewsCardView: View {
 	var body: some View {
 		ZStack(alignment: .bottomLeading) {
 			let placeholderView = {
-				Color.gray.opacity(0.2)
+				LinearGradient(
+					colors: [
+						Color.accentColor.opacity(0.3),
+						Color.accentColor.opacity(0.1)
+					],
+					startPoint: .topLeading,
+					endPoint: .bottomTrailing
+				)
 			}()
 			
 			if let iconURL = new.imageURL {
@@ -31,34 +38,59 @@ struct SourceNewsCardView: View {
 			}
 			
 			LinearGradient(
-				gradient: Gradient(colors: [.black.opacity(0.8), .clear]),
+				gradient: Gradient(colors: [
+					.black.opacity(0.9),
+					.black.opacity(0.6),
+					.clear
+				]),
 				startPoint: .bottom,
 				endPoint: .top
 			)
-			.frame(height: 70)
+			.frame(height: 80)
 			.frame(maxWidth: .infinity, alignment: .bottom)
 			.overlay(
 				NBVariableBlurView()
 					.rotationEffect(.degrees(180))
-					.frame(height: 50)
+					.frame(height: 60)
 					.frame(maxHeight: .infinity, alignment: .bottom)
 			)
-			.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+			.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 			
 			Text(new.title)
 				.font(.headline)
+				.fontWeight(.semibold)
 				.foregroundColor(.white)
 				.lineLimit(2)
 				.multilineTextAlignment(.leading)
 				.padding()
 		}
 		.frame(width: 250, height: 150)
-		.background(new.tintColor ?? Color.secondary)
-		.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-		.overlay(
-			RoundedRectangle(cornerRadius: 12, style: .continuous)
-				.strokeBorder(Color.gray.opacity(0.2), lineWidth: 1)
+		.background(
+			LinearGradient(
+				colors: [
+					(new.tintColor ?? Color.accentColor).opacity(0.8),
+					(new.tintColor ?? Color.accentColor).opacity(0.4)
+				],
+				startPoint: .topLeading,
+				endPoint: .bottomTrailing
+			)
 		)
+		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+		.overlay(
+			RoundedRectangle(cornerRadius: 16, style: .continuous)
+				.strokeBorder(
+					LinearGradient(
+						colors: [
+							Color.white.opacity(0.3),
+							Color.clear
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					),
+					lineWidth: 1.5
+				)
+		)
+		.shadow(color: (new.tintColor ?? Color.accentColor).opacity(0.3), radius: 10, x: 0, y: 5)
 	}
 }
 

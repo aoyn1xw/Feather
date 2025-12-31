@@ -21,24 +21,31 @@ struct SourceNewsView: View {
 				!news.isEmpty
 			{
 				ScrollView(.horizontal, showsIndicators: false) {
-					LazyHStack(spacing: 10) {
-						ForEach(news.reversed(), id: \.id) { new in
+					LazyHStack(spacing: 16) {
+						ForEach(news.reversed().enumerated().map { ($0, $1) }, id: \.1.id) { index, new in
 							Button {
 								_selectedNewsPresenting = new
 							} label: {
 								SourceNewsCardView(new: new)
 									.compatMatchedTransitionSource(id: new.id, ns: _namespace)
+									.scaleEffect(isLoading ? 0.8 : 1.0)
+									.opacity(isLoading ? 0 : 1)
+									.offset(y: isLoading ? 20 : 0)
+									.animation(
+										.spring(response: 0.6, dampingFraction: 0.8)
+											.delay(Double(index) * 0.1),
+										value: isLoading
+									)
 							}
 						}
 					}
 					.padding(.horizontal, 16)
 				}
-				.frame(height: 160)
-				.opacity(isLoading ? 0 : 1)
+				.frame(height: 170)
 				.transition(.opacity)
 			}
 		}
-		.frame(height: (news?.isEmpty == false) ? 150 : 0)
+		.frame(height: (news?.isEmpty == false) ? 170 : 0)
 		.onAppear {
 			if !hasLoadedInitialData && news?.isEmpty == false {
 				_load()

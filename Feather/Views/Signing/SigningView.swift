@@ -20,6 +20,7 @@ struct SigningView: View {
 	@State private var _isIdentifierDialogPresenting = false
 	@State private var _isVersionDialogPresenting = false
     @State private var _isSigningProcessPresented = false
+	@State private var _isAddingCertificatePresenting = false
 	
 	// MARK: Fetch
 	@FetchRequest(
@@ -124,6 +125,10 @@ struct SigningView: View {
                     .background(Color(UIColor.systemBackground))
                 }
             }
+			.sheet(isPresented: $_isAddingCertificatePresenting) {
+				CertificatesAddView()
+					.presentationDetents([.medium])
+			}
 		}
 		.alert(.localized("Name"), isPresented: $_isNameDialogPresenting) {
 			TextField(_temporaryOptions.appName ?? (app.name ?? ""), text: Binding(
@@ -222,9 +227,51 @@ extension SigningView {
 					)
 				}
 			} else {
-				Text(.localized("No Certificate"))
-					.font(.footnote)
-					.foregroundColor(.disabled())
+				VStack(spacing: 16) {
+					HStack {
+						Image(systemName: "exclamationmark.triangle.fill")
+							.foregroundStyle(.orange)
+						Text(.localized("No Certificate"))
+							.font(.subheadline)
+							.foregroundColor(.secondary)
+						Spacer()
+					}
+					
+					Button {
+						_isAddingCertificatePresenting = true
+					} label: {
+						HStack {
+							Image(systemName: "plus.circle.fill")
+								.foregroundStyle(
+									LinearGradient(
+										colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
+							Text(.localized("Add Certificate"))
+								.fontWeight(.semibold)
+						}
+						.frame(maxWidth: .infinity)
+						.padding(.vertical, 12)
+						.background(
+							LinearGradient(
+								colors: [
+									Color.accentColor.opacity(0.15),
+									Color.accentColor.opacity(0.08)
+								],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+						.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+						.overlay(
+							RoundedRectangle(cornerRadius: 12, style: .continuous)
+								.stroke(Color.accentColor.opacity(0.3), lineWidth: 1)
+						)
+					}
+					.buttonStyle(.plain)
+				}
 			}
 		}
 	}

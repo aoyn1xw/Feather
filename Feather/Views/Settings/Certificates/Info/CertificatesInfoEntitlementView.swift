@@ -12,13 +12,27 @@ struct CertificatesInfoEntitlementView: View {
 				ForEach(entitlements.keys.sorted(), id: \.self) { key in
 					if let value = entitlements[key]?.value {
 						CertificatesInfoEntitlementCellView(key: key, value: value)
-							.padding(.vertical, 4)
+							.padding(.vertical, 6)
 					}
 				}
 			} header: {
 				HStack {
-					Image(systemName: "key.fill")
-						.foregroundStyle(Color.accentColor)
+					ZStack {
+						Circle()
+							.fill(
+								LinearGradient(
+									colors: [Color.accentColor.opacity(0.2), Color.accentColor.opacity(0.05)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+							.frame(width: 32, height: 32)
+						
+						Image(systemName: "key.fill")
+							.font(.system(size: 14))
+							.foregroundStyle(Color.accentColor)
+					}
+					
 					Text("\(entitlements.count) Entitlements")
 						.font(.subheadline)
 						.fontWeight(.semibold)

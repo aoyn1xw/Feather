@@ -17,26 +17,60 @@ struct SigningFrameworksView: View {
 		NBList(.localized("Frameworks & PlugIns")) {
 			Group {
 				if !_frameworks.isEmpty {
-					NBSection(_frameworksPath) {
+					Section {
 						ForEach(_frameworks, id: \.self) { framework in
 							SigningToggleCellView(
 								title: "\(self._frameworksPath)/\(framework)",
 								options: $options,
 								arrayKeyPath: \.removeFiles
 							)
+							.padding(.vertical, 2)
 						}
+					} header: {
+						HStack {
+							Image(systemName: "cube.box.fill")
+								.foregroundStyle(
+									LinearGradient(
+										colors: [Color.accentColor, Color.accentColor.opacity(0.6)],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
+							Text(_frameworksPath)
+								.font(.subheadline)
+								.fontWeight(.semibold)
+						}
+						.textCase(.none)
+						.foregroundStyle(.primary)
 					}
 				}
 				
 				if !_plugins.isEmpty {
-					NBSection(_pluginsPath) {
+					Section {
 						ForEach(_plugins, id: \.self) { plugin in
 							SigningToggleCellView(
 								title: "\(self._pluginsPath)/\(plugin)",
 								options: $options,
 								arrayKeyPath: \.removeFiles
 							)
+							.padding(.vertical, 2)
 						}
+					} header: {
+						HStack {
+							Image(systemName: "puzzlepiece.extension.fill")
+								.foregroundStyle(
+									LinearGradient(
+										colors: [Color.purple, Color.purple.opacity(0.6)],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
+							Text(_pluginsPath)
+								.font(.subheadline)
+								.fontWeight(.semibold)
+						}
+						.textCase(.none)
+						.foregroundStyle(.primary)
 					}
 				}
 				
@@ -44,9 +78,20 @@ struct SigningFrameworksView: View {
 					_frameworks.isEmpty,
 					_plugins.isEmpty
 				{
-					Text(.localized("No Frameworks or PlugIns Found."))
-						.font(.footnote)
-						.foregroundColor(.disabled())
+					HStack {
+						Spacer()
+						VStack(spacing: 12) {
+							Image(systemName: "cube.transparent")
+								.font(.system(size: 40))
+								.foregroundColor(.secondary.opacity(0.6))
+							
+							Text(.localized("No Frameworks or PlugIns Found."))
+								.font(.subheadline)
+								.foregroundColor(.secondary)
+						}
+						.padding(.vertical, 20)
+						Spacer()
+					}
 				}
 			}
 			.disabled(options == nil)
