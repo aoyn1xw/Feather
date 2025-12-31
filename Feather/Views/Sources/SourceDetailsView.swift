@@ -67,16 +67,32 @@ struct SourceDetailsView: View {
 		.navigationTitle("Source Details")
 		.navigationBarTitleDisplayMode(.inline)
 		.background(
-			LinearGradient(
-				colors: [
-					dominantColor.opacity(0.15),
-					dominantColor.opacity(0.05),
-					Color(UIColor.systemBackground)
-				],
-				startPoint: .top,
-				endPoint: .bottom
-			)
-			.ignoresSafeArea()
+			ZStack {
+				LinearGradient(
+					colors: [
+						dominantColor.opacity(0.3),
+						dominantColor.opacity(0.15),
+						dominantColor.opacity(0.05),
+						Color(UIColor.systemBackground)
+					],
+					startPoint: .top,
+					endPoint: .bottom
+				)
+				.ignoresSafeArea()
+				
+				// Add radial gradient overlay for more depth
+				RadialGradient(
+					colors: [
+						dominantColor.opacity(0.2),
+						dominantColor.opacity(0.05),
+						Color.clear
+					],
+					center: .top,
+					startRadius: 50,
+					endRadius: 400
+				)
+				.ignoresSafeArea()
+			}
 		)
 		.onAppear {
 			if let repo = viewModel.sources[source] {
@@ -136,32 +152,43 @@ struct SourceDetailsView: View {
 		}
 		.padding(20)
 		.background(
-			RoundedRectangle(cornerRadius: 20, style: .continuous)
-				.fill(
-					LinearGradient(
-						colors: [
-							dominantColor.opacity(0.25),
-							dominantColor.opacity(0.1)
-						],
-						startPoint: .topLeading,
-						endPoint: .bottomTrailing
-					)
-				)
-				.overlay(
-					RoundedRectangle(cornerRadius: 20, style: .continuous)
-						.stroke(
-							LinearGradient(
-								colors: [
-									dominantColor.opacity(0.4),
-									Color.clear
-								],
-								startPoint: .topLeading,
-								endPoint: .bottomTrailing
-							),
-							lineWidth: 1.5
+			ZStack {
+				// Base gradient with stronger colors
+				RoundedRectangle(cornerRadius: 20, style: .continuous)
+					.fill(
+						LinearGradient(
+							colors: [
+								dominantColor.opacity(0.4),
+								dominantColor.opacity(0.25),
+								dominantColor.opacity(0.15)
+							],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
 						)
-				)
-				.shadow(color: dominantColor.opacity(0.3), radius: 15, x: 0, y: 8)
+					)
+				
+				// Glass effect overlay
+				RoundedRectangle(cornerRadius: 20, style: .continuous)
+					.fill(.ultraThinMaterial)
+					.opacity(0.5)
+				
+				// Border gradient
+				RoundedRectangle(cornerRadius: 20, style: .continuous)
+					.stroke(
+						LinearGradient(
+							colors: [
+								dominantColor.opacity(0.6),
+								dominantColor.opacity(0.3),
+								Color.clear
+							],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						),
+						lineWidth: 2
+					)
+			}
+			.shadow(color: dominantColor.opacity(0.4), radius: 20, x: 0, y: 10)
+			.shadow(color: dominantColor.opacity(0.2), radius: 5, x: 0, y: 3)
 		)
 	}
 	

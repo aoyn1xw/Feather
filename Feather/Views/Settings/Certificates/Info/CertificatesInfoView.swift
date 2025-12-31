@@ -14,11 +14,57 @@ struct CertificatesInfoView: View {
 		NBNavigationView(cert.nickname ?? "", displayMode: .inline) {
 			Form {
 				Section {} header: {
-					Image("Cert")
-						.resizable()
-						.scaledToFit()
-						.frame(width: 107, height: 107)
+					VStack(spacing: 16) {
+						// Enhanced certificate image with depth
+						ZStack {
+							// Glow effect
+							Circle()
+								.fill(
+									RadialGradient(
+										colors: [
+											Color.accentColor.opacity(0.2),
+											Color.accentColor.opacity(0.05),
+											Color.clear
+										],
+										center: .center,
+										startRadius: 50,
+										endRadius: 100
+									)
+								)
+								.frame(width: 140, height: 140)
+							
+							// Shadow layer
+							Image("Cert")
+								.resizable()
+								.scaledToFit()
+								.frame(width: 107, height: 107)
+								.opacity(0.3)
+								.blur(radius: 5)
+								.offset(y: 5)
+							
+							// Main image
+							Image("Cert")
+								.resizable()
+								.scaledToFit()
+								.frame(width: 107, height: 107)
+								.shadow(color: .black.opacity(0.3), radius: 12, x: 0, y: 6)
+						}
 						.frame(maxWidth: .infinity, alignment: .center)
+						
+						VStack(spacing: 4) {
+							Text(cert.nickname ?? "Certificate")
+								.font(.headline)
+								.fontWeight(.bold)
+								.foregroundStyle(.primary)
+							
+							if let data = data {
+								Text(data.TeamName)
+									.font(.caption)
+									.foregroundStyle(.secondary)
+							}
+						}
+					}
+					.padding(.vertical, 8)
 				}
 				
 				if let data {

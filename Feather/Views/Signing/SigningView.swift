@@ -191,16 +191,28 @@ extension SigningView {
 	@ViewBuilder
 	private func _customizationOptions(for app: AppInfoPresentable) -> some View {
 		NBSection(.localized("Customization")) {
+			// Enhanced icon selection with glass effect
 			Menu {
 				Button(.localized("Select Alternative Icon"), systemImage: "app.dashed") { _isAltPickerPresenting = true }
 				Button(.localized("Choose from Files"), systemImage: "folder") { _isFilePickerPresenting = true }
 				Button(.localized("Choose from Photos"), systemImage: "photo") { _isImagePickerPresenting = true }
 			} label: {
-				if let icon = appIcon {
-					Image(uiImage: icon)
-						.appIconStyle()
-				} else {
-					FRAppIconView(app: app, size: 56)
+				ZStack {
+					// Shadow layer
+					Circle()
+						.fill(Color.black.opacity(0.1))
+						.frame(width: 60, height: 60)
+						.blur(radius: 4)
+						.offset(y: 3)
+					
+					if let icon = appIcon {
+						Image(uiImage: icon)
+							.appIconStyle()
+							.shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
+					} else {
+						FRAppIconView(app: app, size: 56)
+							.shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
+					}
 				}
 			}
 			
@@ -228,47 +240,100 @@ extension SigningView {
 					)
 				}
 			} else {
-				VStack(spacing: 16) {
+				VStack(spacing: 20) {
 					HStack {
-						Image(systemName: "exclamationmark.triangle.fill")
-							.foregroundStyle(.orange)
-						Text(.localized("No Certificate"))
-							.font(.subheadline)
-							.foregroundColor(.secondary)
-						Spacer()
-					}
-					
-					Button {
-						_isAddingCertificatePresenting = true
-					} label: {
-						HStack {
-							Image(systemName: "plus.circle.fill")
-								.foregroundStyle(
+						ZStack {
+							Circle()
+								.fill(
 									LinearGradient(
-										colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+										colors: [Color.orange.opacity(0.3), Color.orange.opacity(0.1)],
 										startPoint: .topLeading,
 										endPoint: .bottomTrailing
 									)
 								)
+								.frame(width: 50, height: 50)
+							
+							Image(systemName: "exclamationmark.triangle.fill")
+								.font(.title2)
+								.foregroundStyle(
+									LinearGradient(
+										colors: [Color.orange, Color.orange.opacity(0.8)],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
+						}
+						.shadow(color: Color.orange.opacity(0.3), radius: 8, x: 0, y: 4)
+						
+						VStack(alignment: .leading, spacing: 4) {
+							Text(.localized("No Certificate"))
+								.font(.headline)
+								.foregroundColor(.primary)
+							Text(.localized("Add a certificate to continue"))
+								.font(.caption)
+								.foregroundColor(.secondary)
+						}
+						Spacer()
+					}
+					.padding(.bottom, 8)
+					
+					Button {
+						_isAddingCertificatePresenting = true
+					} label: {
+						HStack(spacing: 12) {
+							ZStack {
+								Circle()
+									.fill(Color.accentColor.opacity(0.15))
+									.frame(width: 36, height: 36)
+								
+								Image(systemName: "plus.circle.fill")
+									.font(.title3)
+									.foregroundStyle(
+										LinearGradient(
+											colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
+							}
+							
 							Text(.localized("Add Certificate"))
 								.fontWeight(.semibold)
+								.foregroundStyle(.primary)
+							
+							Spacer()
 						}
 						.frame(maxWidth: .infinity)
-						.padding(.vertical, 12)
+						.padding(.vertical, 16)
+						.padding(.horizontal, 16)
 						.background(
-							LinearGradient(
-								colors: [
-									Color.accentColor.opacity(0.15),
-									Color.accentColor.opacity(0.08)
-								],
-								startPoint: .topLeading,
-								endPoint: .bottomTrailing
-							)
-						)
-						.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-						.overlay(
-							RoundedRectangle(cornerRadius: 12, style: .continuous)
-								.stroke(Color.accentColor.opacity(0.3), lineWidth: 1)
+							ZStack {
+								RoundedRectangle(cornerRadius: 16, style: .continuous)
+									.fill(
+										LinearGradient(
+											colors: [
+												Color.accentColor.opacity(0.15),
+												Color.accentColor.opacity(0.08)
+											],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
+								
+								RoundedRectangle(cornerRadius: 16, style: .continuous)
+									.stroke(
+										LinearGradient(
+											colors: [
+												Color.accentColor.opacity(0.4),
+												Color.accentColor.opacity(0.2)
+											],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										),
+										lineWidth: 1.5
+									)
+							}
+							.shadow(color: Color.accentColor.opacity(0.2), radius: 8, x: 0, y: 4)
 						)
 					}
 					.buttonStyle(.plain)
