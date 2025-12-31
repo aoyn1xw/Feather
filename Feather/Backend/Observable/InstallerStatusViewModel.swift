@@ -2,27 +2,52 @@ import Foundation
 import Combine
 import IDeviceSwift
 
+class InstallerStatusViewModel: ObservableObject {
+    enum InstallerStatus: Equatable {
+        case none
+        case ready
+        case sendingManifest
+        case sendingPayload
+        case installing
+        case completed
+        case broken
+    }
+
+    @Published var status: InstallerStatus = .none
+    @Published var overallProgress: Double = 0.0
+    
+    var isCompleted: Bool {
+        status == .completed
+    }
+    
+    private var isIdevice: Bool
+    
+    init(isIdevice: Bool = false) {
+        self.isIdevice = isIdevice
+    }
+}
+
 extension InstallerStatusViewModel {
-	var statusImage: String {
-		switch status {
-		case .none: "archivebox.fill"
-		case .ready: "app.gift"
-		case .sendingManifest, .sendingPayload: "paperplane.fill"
-		case .installing: "square.and.arrow.down"
-		case .completed: "app.badge.checkmark"
-		case .broken: "exclamationmark.triangle.fill"
-		}
-	}
-	
-	var statusLabel: String {
-		switch status {
-		case .none: .localized("Packaging")
-		case .ready: .localized("Ready")
-		case .sendingManifest: .localized("Sending Manifest")
-		case .sendingPayload: .localized("Sending Payload")
-		case .installing: .localized("Installing")
-		case .completed: .localized("Completed")
-		case .broken: .localized("Error")
-		}
-	}
+var statusImage: String {
+switch status {
+case .none: return "archivebox.fill"
+case .ready: return "app.gift"
+case .sendingManifest, .sendingPayload: return "paperplane.fill"
+case .installing: return "square.and.arrow.down"
+case .completed: return "app.badge.checkmark"
+case .broken: return "exclamationmark.triangle.fill"
+}
+}
+
+var statusLabel: String {
+switch status {
+case .none: return .localized("Packaging")
+case .ready: return .localized("Ready")
+case .sendingManifest: return .localized("Sending Manifest")
+case .sendingPayload: return .localized("Sending Payload")
+case .installing: return .localized("Installing")
+case .completed: return .localized("Completed")
+case .broken: return .localized("Error")
+}
+}
 }

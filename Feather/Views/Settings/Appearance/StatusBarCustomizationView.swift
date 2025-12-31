@@ -42,11 +42,11 @@ var body: some View {
 NBList(.localized("Status Bar Customization")) {
 // Custom Text Section
 NBSection(.localized("Custom Text")) {
-Toggle(.localized("Show Custom Text"), isOn: )
+Toggle(String.localized("Show Custom Text"), isOn: $showCustomText)
 
 if showCustomText {
 VStack(alignment: .leading, spacing: 8) {
-TextField(.localized("Enter custom text"), text: )
+TextField(.localized("Enter custom text"), text: $customText)
 .textFieldStyle(.roundedBorder)
 .font(isBold ? .body.bold() : .body)
 
@@ -77,11 +77,11 @@ Text(.localized("Add custom text to the status bar"))
 
 // SF Symbol Section
 NBSection(.localized("SF Symbol")) {
-Toggle(.localized("Show SF Symbol"), isOn: )
+Toggle(String.localized("Show SF Symbol"), isOn: $showSFSymbol)
 
 if showSFSymbol {
 VStack(alignment: .leading, spacing: 12) {
-TextField(.localized("Search symbols..."), text: )
+TextField(.localized("Search symbols..."), text: $searchSymbol)
 .textFieldStyle(.roundedBorder)
 
 Text(.localized("Popular Symbols"))
@@ -89,7 +89,7 @@ Text(.localized("Popular Symbols"))
 .foregroundStyle(.secondary)
 
 LazyVGrid(columns: [GridItem(.adaptive(minimum: 60))], spacing: 12) {
-ForEach(popularSymbols.filter { searchSymbol.isEmpty || /bin/bash.contains(searchSymbol.lowercased()) }, id: \.self) { symbol in
+ForEach(popularSymbols.filter { searchSymbol.isEmpty || $0.lowercased().contains(searchSymbol.lowercased()) }, id: \.self) { symbol in
 Button {
 sfSymbol = symbol
 } label: {
@@ -145,9 +145,9 @@ Text(.localized("Add an SF Symbol to the status bar"))
 
 // Styling Section
 NBSection(.localized("Styling")) {
-Toggle(.localized("Bold"), isOn: )
+Toggle(String.localized("Bold"), isOn: $isBold)
                 
-                Picker(.localized("Font Design"), selection: ) {
+                Picker(String.localized("Font Design"), selection: $fontDesign) {
                     ForEach(fontDesigns, id: \.self) { design in
                         Text(design.capitalized).tag(design)
                     }
@@ -159,7 +159,7 @@ Toggle(.localized("Bold"), isOn: )
                     Text("\(Int(fontSize)) pt")
                         .foregroundStyle(.secondary)
                 }
-                Slider(value: , in: 8...24, step: 1)
+                Slider(value: $fontSize, in: 8...24, step: 1)
 
 Button {
 showColorPicker = true
@@ -182,7 +182,7 @@ Text(.localized("Customize the appearance of status bar elements"))
             
             // Background Section
             NBSection(.localized("Background")) {
-                Toggle(.localized("Show Background"), isOn: )
+                Toggle(String.localized("Show Background"), isOn: $showBackground)
                 
                 if showBackground {
                     Button {
@@ -207,7 +207,7 @@ Text(.localized("Customize the appearance of status bar elements"))
                         Text("\(Int(backgroundOpacity * 100))%")
                             .foregroundStyle(.secondary)
                     }
-                    Slider(value: , in: 0...1, step: 0.1)
+                    Slider(value: $backgroundOpacity, in: 0...1, step: 0.1)
                 }
             }
 
@@ -217,7 +217,7 @@ VStack(alignment: .leading, spacing: 16) {
 HStack {
 Text(.localized("Left"))
 .frame(width: 80, alignment: .leading)
-Slider(value: , in: 0...50, step: 1)
+Slider(value: $leftPadding, in: 0...50, step: 1)
 Text("\(Int(leftPadding))px")
 .frame(width: 50, alignment: .trailing)
 .foregroundStyle(.secondary)
@@ -226,7 +226,7 @@ Text("\(Int(leftPadding))px")
 HStack {
 Text(.localized("Right"))
 .frame(width: 80, alignment: .leading)
-Slider(value: , in: 0...50, step: 1)
+Slider(value: $rightPadding, in: 0...50, step: 1)
 Text("\(Int(rightPadding))px")
 .frame(width: 50, alignment: .trailing)
 .foregroundStyle(.secondary)
@@ -235,7 +235,7 @@ Text("\(Int(rightPadding))px")
 HStack {
 Text(.localized("Top"))
 .frame(width: 80, alignment: .leading)
-Slider(value: , in: 0...50, step: 1)
+Slider(value: $topPadding, in: 0...50, step: 1)
 Text("\(Int(topPadding))px")
 .frame(width: 50, alignment: .trailing)
 .foregroundStyle(.secondary)
@@ -244,7 +244,7 @@ Text("\(Int(topPadding))px")
 HStack {
 Text(.localized("Bottom"))
 .frame(width: 80, alignment: .leading)
-Slider(value: , in: 0...50, step: 1)
+Slider(value: $bottomPadding, in: 0...50, step: 1)
 Text("\(Int(bottomPadding))px")
 .frame(width: 50, alignment: .trailing)
 .foregroundStyle(.secondary)
@@ -268,11 +268,11 @@ Spacer()
 }
 }
 }
-.sheet(isPresented: ) {
-ColorPickerSheet(selectedColor: , colorHex: )
+.sheet(isPresented: $showColorPicker) {
+ColorPickerSheet(selectedColor: $selectedColor, colorHex: $colorHex)
 }
-        .sheet(isPresented: ) {
-            ColorPickerSheet(selectedColor: , colorHex: )
+        .sheet(isPresented: $showBackgroundColorPicker) {
+            ColorPickerSheet(selectedColor: $selectedBackgroundColor, colorHex: $backgroundColorHex)
         }
 .onAppear {
 selectedColor = SwiftUI.Color(hex: colorHex)
@@ -327,7 +327,7 @@ var body: some View {
 NavigationView {
 Form {
 Section {
-ColorPicker(.localized("Select Color"), selection: , supportsOpacity: false)
+ColorPicker(String.localized("Select Color"), selection: $tempColor, supportsOpacity: false)
 }
 
 Section(.localized("Presets")) {

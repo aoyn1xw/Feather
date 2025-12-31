@@ -72,10 +72,10 @@ UIApplication.openApp(with: app.identifier ?? "")
 }
 .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(uiColor: .systemBackground))
-.sheet(isPresented: ) {
+.sheet(isPresented: $_isWebviewPresenting) {
 SafariRepresentableView(url: installer.pageEndpoint).ignoresSafeArea()
 }
-.onReceive(viewModel.) { newStatus in
+.onReceive(viewModel.$status) { newStatus in
 if _installationMethod == 0 {
 if case .ready = newStatus {
 if _serverMethod == 0 {
