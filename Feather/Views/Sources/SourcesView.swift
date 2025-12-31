@@ -232,7 +232,7 @@ private struct AllAppsCardView: View {
 			Text("\(totalApps) Apps Available")
 				.font(.caption.bold())
 		}
-		.foregroundStyle(.accentColor)
+		.foregroundStyle(Color.accentColor)
 		.padding(.horizontal, 10)
 		.padding(.vertical, 4)
 		.background(

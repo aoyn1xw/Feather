@@ -1,6 +1,14 @@
 import SwiftUI
 import NimbleViews
 
+// MARK: - View extension: Model
+extension AppIconView {
+	static func altImage(_ name: String?) -> UIImage {
+		let path = Bundle.main.bundleURL.appendingPathComponent((name ?? "AppIcon60x60") + "@2x.png")
+		return UIImage(contentsOfFile: path.path) ?? UIImage()
+	}
+}
+
 // MARK: - View
 struct AppIconView: View {
 	@Binding var currentIcon: String?

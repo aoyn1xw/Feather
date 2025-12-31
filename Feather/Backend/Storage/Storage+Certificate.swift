@@ -37,6 +37,12 @@ extension Storage {
 		saveContext()
 	}
 	
+	func getCertificates() -> [CertificatePair] {
+		let fetchRequest: NSFetchRequest<CertificatePair> = CertificatePair.fetchRequest()
+		fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \CertificatePair.date, ascending: false)]
+		return (try? context.fetch(fetchRequest)) ?? []
+	}
+
 	func getCertificate(for index: Int) -> CertificatePair? {
 		let fetchRequest: NSFetchRequest<CertificatePair> = CertificatePair.fetchRequest()
 		fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \CertificatePair.date, ascending: false)]
