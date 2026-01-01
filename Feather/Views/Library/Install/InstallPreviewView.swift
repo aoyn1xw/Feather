@@ -44,7 +44,7 @@ init(app: AppInfoPresentable, isSharing: Bool = false) {
 	}
 
 	self.installer = tempInstaller
-	self._initializationError = State(initialValue: error)
+	self._initializationError = State(wrappedValue: error)
 }
 
 // MARK: Body

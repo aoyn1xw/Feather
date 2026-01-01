@@ -341,4 +341,4 @@ struct CustomColorPickerView: View {
 		}
 	}
 }
-
+}
