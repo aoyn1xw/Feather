@@ -147,8 +147,6 @@ enum FR {
 		from urlString: String,
 		completion: @escaping (Bool) -> Void
 	) {
-		let generator = UINotificationFeedbackGenerator()
-		generator.prepare()
 		
 		NBFetchService().fetch(from: urlString) { (result: Result<ServerView.ServerPackModel, Error>) in
 			switch result {
@@ -157,7 +155,7 @@ enum FR {
 					try FileManager.forceWrite(content: pack.key, to: "server.pem")
 					try FileManager.forceWrite(content: pack.cert, to: "server.crt")
 					try FileManager.forceWrite(content: pack.info.domains.commonName, to: "commonName.txt")
-					generator.notificationOccurred(.success)
+					HapticsManager.shared.success()
 					completion(true)
 				} catch {
 					completion(false)

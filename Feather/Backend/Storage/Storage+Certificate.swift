@@ -1,5 +1,4 @@
 import CoreData
-import UIKit.UIImpactFeedbackGenerator
 import ZsignSwift
 
 // MARK: - Class extension: certificate
@@ -13,7 +12,6 @@ extension Storage {
 		isDefault: Bool = false,
 		completion: @escaping (Error?) -> Void
 	) {
-		let generator = UIImpactFeedbackGenerator(style: .light)
 		
 		let new = CertificatePair(context: context)
 		new.uuid = uuid
@@ -25,7 +23,7 @@ extension Storage {
 		new.isDefault = isDefault
 		Storage.shared.revokagedCertificate(for: new)
 		saveContext()
-		generator.impactOccurred()
+		HapticsManager.shared.impact()
 		completion(nil)
 	}
 	

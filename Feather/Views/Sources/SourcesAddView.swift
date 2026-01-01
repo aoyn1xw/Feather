@@ -3,7 +3,6 @@ import NimbleViews
 import AltSourceKit
 import NimbleJSON
 import OSLog
-import UIKit.UIImpactFeedbackGenerator
 
 // MARK: - View
 struct SourcesAddView: View {

@@ -434,8 +434,7 @@ extension SigningView {
 			return
 		}
 
-		let generator = UIImpactFeedbackGenerator(style: .light)
-		generator.impactOccurred()
+		HapticsManager.shared.impact()
 		_isSigning = true
         _isSigningProcessPresented = true
 		
