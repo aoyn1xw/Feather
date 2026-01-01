@@ -237,25 +237,7 @@ struct FolderCustomizationView: View {
                     
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))], spacing: 16) {
                         ForEach(availableIcons, id: \.self) { icon in
-                            Button {
-                                HapticsManager.shared.selection()
-                                selectedIcon = icon
-                            } label: {
-                                VStack(spacing: 8) {
-                                    Image(systemName: icon)
-                                        .font(.system(size: 32))
-                                        .foregroundStyle(selectedIcon == icon ? .accentColor : .secondary)
-                                        .frame(width: 60, height: 60)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(selectedIcon == icon ? Color.accentColor.opacity(0.1) : Color.clear)
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(selectedIcon == icon ? Color.accentColor : Color.clear, lineWidth: 2)
-                                        )
-                                }
-                            }
+                            iconButton(for: icon)
                         }
                     }
                     .padding()
@@ -275,6 +257,33 @@ struct FolderCustomizationView: View {
                         saveCustomization()
                     }
                 }
+            }
+        }
+    }
+    
+    private func iconButton(for icon: String) -> some View {
+        let isSelected = selectedIcon == icon
+        let foregroundColor: Color = isSelected ? .accentColor : .secondary
+        let backgroundColor = isSelected ? Color.accentColor.opacity(0.1) : Color.clear
+        let strokeColor = isSelected ? Color.accentColor : Color.clear
+        
+        return Button {
+            HapticsManager.shared.selection()
+            selectedIcon = icon
+        } label: {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 32))
+                    .foregroundStyle(foregroundColor)
+                    .frame(width: 60, height: 60)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(backgroundColor)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(strokeColor, lineWidth: 2)
+                    )
             }
         }
     }

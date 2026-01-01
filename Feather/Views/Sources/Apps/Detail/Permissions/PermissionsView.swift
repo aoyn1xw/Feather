@@ -4,7 +4,7 @@ import NimbleViews
 
 // MARK: - PermissionsView
 struct PermissionsView: View {
-    var appPermissions: ASRepository.App.AppPermissions
+    var appPermissions: ASRepository.AppPermissions
     
     var body: some View {
         ScrollView {
