@@ -1,0 +1,53 @@
+import SwiftUI
+import NimbleViews
+
+struct CreateFolderView: View {
+    @Environment(\.dismiss) var dismiss
+    let directoryURL: URL
+    
+    @State private var folderName: String = ""
+    
+    var body: some View {
+        NBNavigationView(.localized("Create Folder"), displayMode: .inline) {
+            Form {
+                Section {
+                    TextField(.localized("Folder Name"), text: $folderName)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                } header: {
+                    Text(.localized("Name"))
+                } footer: {
+                    Text(.localized("Enter a name for the new folder."))
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(.localized("Cancel")) {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(.localized("Create")) {
+                        createFolder()
+                    }
+                    .disabled(folderName.isEmpty)
+                }
+            }
+        }
+    }
+    
+    private func createFolder() {
+        let folderURL = directoryURL.appendingPathComponent(folderName)
+        
+        do {
+            try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: true)
+            HapticsManager.shared.success()
+            FileManagerService.shared.loadFiles()
+            dismiss()
+        } catch {
+            HapticsManager.shared.error()
+            AppLogManager.shared.error("Failed to create folder: \(error.localizedDescription)", category: "Files")
+        }
+    }
+}
