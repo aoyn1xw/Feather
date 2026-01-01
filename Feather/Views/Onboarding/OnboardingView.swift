@@ -129,6 +129,7 @@ struct OnboardingPageView: View {
     }
 }
 
+@available(iOS 17.0, *)
 #Preview {
     OnboardingView()
 }

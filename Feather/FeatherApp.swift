@@ -17,55 +17,57 @@ struct FeatherApp: App {
 
 	var body: some Scene {
 		WindowGroup(content: {
-            // CRITICAL: Check for .dylib files first - blocks all navigation if found
-            if hasDylibsDetected {
-                DylibBlockerView()
-                    .onAppear {
-                        // Prevent any navigation or state changes
-                        UIApplication.shared.isIdleTimerDisabled = false
-                    }
-            } else if !hasCompletedOnboarding {
-                if #available(iOS 17.0, *) {
-                    OnboardingView()
-                        .onAppear {
-                            _setupTheme()
-                        }
-                } else {
-                    // Fallback for iOS 16
-                    OnboardingViewLegacy()
-                        .onAppear {
-                            _setupTheme()
-                        }
-                }
-            } else {
-                VStack {
-                    DownloadHeaderView(downloadManager: downloadManager)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                    VariedTabbarView()
-                        .environment(\.managedObjectContext, storage.context)
-                        .onOpenURL(perform: _handleURL)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                }
-                .animation(animationForPlatform(), value: downloadManager.manualDownloads.description)
-                .onReceive(NotificationCenter.default.publisher(for: .heartbeatInvalidHost)) { _ in
-                    DispatchQueue.main.async {
-                        UIAlertController.showAlertWithOk(
-                            title: "InvalidHostID",
-                            message: .localized("Your pairing file is invalid and is incompatible with your device, please import a valid pairing file.")
-                        )
-                    }
-                }
-                // dear god help me
-                .onAppear {
-                    _setupTheme()
-                }
-                .overlay(StatusBarOverlay())
-            }
+			Group {
+				// CRITICAL: Check for .dylib files first - blocks all navigation if found
+				if hasDylibsDetected {
+					DylibBlockerView()
+						.onAppear {
+							// Prevent any navigation or state changes
+							UIApplication.shared.isIdleTimerDisabled = false
+						}
+				} else if !hasCompletedOnboarding {
+					if #available(iOS 17.0, *) {
+						OnboardingView()
+							.onAppear {
+								_setupTheme()
+							}
+					} else {
+						// Fallback for iOS 16
+						OnboardingViewLegacy()
+							.onAppear {
+								_setupTheme()
+							}
+					}
+				} else {
+					VStack {
+						DownloadHeaderView(downloadManager: downloadManager)
+							.transition(.move(edge: .top).combined(with: .opacity))
+						VariedTabbarView()
+							.environment(\.managedObjectContext, storage.context)
+							.onOpenURL(perform: _handleURL)
+							.transition(.move(edge: .top).combined(with: .opacity))
+					}
+					.animation(animationForPlatform(), value: downloadManager.manualDownloads.description)
+					.onReceive(NotificationCenter.default.publisher(for: .heartbeatInvalidHost)) { _ in
+						DispatchQueue.main.async {
+							UIAlertController.showAlertWithOk(
+								title: "InvalidHostID",
+								message: .localized("Your pairing file is invalid and is incompatible with your device, please import a valid pairing file.")
+							)
+						}
+					}
+					// dear god help me
+					.onAppear {
+						_setupTheme()
+					}
+					.overlay(StatusBarOverlay())
+				}
+			}
+			.onAppear {
+				// Scan for dylibs at launch
+				_checkForDylibs()
+			}
 		})
-        .onAppear {
-            // Scan for dylibs at launch
-            _checkForDylibs()
-        }
 	}
     
     private func _checkForDylibs() {
