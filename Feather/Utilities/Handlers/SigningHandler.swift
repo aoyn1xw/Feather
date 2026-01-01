@@ -116,10 +116,6 @@ final class SigningHandler: NSObject {
 		
 		try await self.move()
 		try await self.addToDatabase()
-		
-		if let error = handler.hadError {
-			throw error
-		}
 	}
 	
 	func move() async throws {
