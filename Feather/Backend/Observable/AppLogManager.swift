@@ -198,7 +198,10 @@ final class AppLogManager: ObservableObject {
     
     func clearLogs() {
         logs.removeAll()
+        // Remove from UserDefaults to permanently delete
         UserDefaults.standard.removeObject(forKey: persistenceKey)
+        UserDefaults.standard.synchronize()
+        AppLogManager.shared.info("Logs cleared successfully", category: "AppLogs")
     }
     
     // MARK: - Persistence

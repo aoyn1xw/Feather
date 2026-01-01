@@ -65,6 +65,35 @@ struct SourcesView: View {
 							.buttonStyle(.plain)
 						}
 					}
+					
+					// Files Tab section when enabled
+					if UserDefaults.standard.bool(forKey: "Feather.filesTabEnabled") {
+						NBSection(.localized("Files")) {
+							NavigationLink(destination: FilesView()) {
+								HStack {
+									Image(systemName: "folder.fill")
+										.font(.title3)
+										.foregroundStyle(.blue)
+									
+									VStack(alignment: .leading, spacing: 4) {
+										Text(.localized("File Manager"))
+											.font(.headline)
+										Text(.localized("Manage your files and documents"))
+											.font(.caption)
+											.foregroundStyle(.secondary)
+									}
+									
+									Spacer()
+									
+									Image(systemName: "chevron.right")
+										.font(.body.bold())
+										.foregroundStyle(.secondary)
+								}
+								.padding(.vertical, 4)
+							}
+							.buttonStyle(.plain)
+						}
+					}
 				}
 			}
 			.searchable(text: $_searchText, placement: .platform())

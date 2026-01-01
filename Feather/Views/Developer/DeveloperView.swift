@@ -2,6 +2,7 @@ import SwiftUI
 import NimbleViews
 import AltSourceKit
 import Darwin
+import ZIPFoundation
 
 // MARK: - Developer View
 struct DeveloperView: View {
@@ -527,14 +528,26 @@ struct IPAInspectorView: View {
         let infoPlist: [String: Any]?
         let bundleID: String?
         let version: String?
+        let buildNumber: String?
         let displayName: String?
         let minIOSVersion: String?
         let dylibs: [String]
         let frameworks: [String]
         let plugins: [String]
         let entitlements: [String: Any]?
-        let provisioning: [String: Any]?
+        let provisioning: ProvisioningInfo?
         let fileStructure: [String]
+        let appIconData: Data?
+        let limitations: [String]
+    }
+    
+    struct ProvisioningInfo {
+        let teamName: String?
+        let teamID: String?
+        let expirationDate: Date?
+        let appIDName: String?
+        let provisionedDevices: [String]?
+        let entitlements: [String: Any]?
     }
     
     var body: some View {
@@ -586,6 +599,22 @@ struct IPAInspectorView: View {
             
             // Basic Info Section
             if let info = ipaInfo {
+                // App Icon Section (if available)
+                if let iconData = info.appIconData, let iconImage = UIImage(data: iconData) {
+                    Section {
+                        HStack {
+                            Spacer()
+                            Image(uiImage: iconImage)
+                                .resizable()
+                                .frame(width: 80, height: 80)
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .shadow(radius: 4)
+                            Spacer()
+                        }
+                        .listRowBackground(Color.clear)
+                    }
+                }
+                
                 Section("Basic Information") {
                     InfoRow(label: "File Name", value: info.fileName)
                     InfoRow(label: "File Size", value: info.fileSize)
@@ -598,8 +627,42 @@ struct IPAInspectorView: View {
                     if let version = info.version {
                         InfoRow(label: "Version", value: version)
                     }
+                    if let buildNumber = info.buildNumber {
+                        InfoRow(label: "Build Number", value: buildNumber)
+                    }
                     if let minVersion = info.minIOSVersion {
                         InfoRow(label: "Min iOS", value: minVersion)
+                    }
+                }
+                
+                // Provisioning Profile Section
+                if let provisioning = info.provisioning {
+                    Section("Provisioning Profile") {
+                        if let teamName = provisioning.teamName {
+                            InfoRow(label: "Team Name", value: teamName)
+                        }
+                        if let teamID = provisioning.teamID {
+                            InfoRow(label: "Team ID", value: teamID)
+                        }
+                        if let appIDName = provisioning.appIDName {
+                            InfoRow(label: "App ID Name", value: appIDName)
+                        }
+                        if let expirationDate = provisioning.expirationDate {
+                            let formatter = DateFormatter()
+                            formatter.dateStyle = .medium
+                            formatter.timeStyle = .short
+                            InfoRow(label: "Expires", value: formatter.string(from: expirationDate))
+                        }
+                        if let devices = provisioning.provisionedDevices {
+                            NavigationLink(destination: ListDetailView(items: devices, title: "Provisioned Devices")) {
+                                HStack {
+                                    Image(systemName: "iphone")
+                                        .foregroundStyle(.blue)
+                                    Text("\(devices.count) devices")
+                                        .font(.subheadline)
+                                }
+                            }
+                        }
                     }
                 }
                 
@@ -637,6 +700,8 @@ struct IPAInspectorView: View {
                                     .foregroundStyle(.blue)
                             }
                         }
+                    } footer: {
+                        Text("Detected .dylib files that may be injected into the app.")
                     }
                 }
                 
@@ -681,7 +746,7 @@ struct IPAInspectorView: View {
                 
                 // Entitlements Section
                 if let entitlements = info.entitlements, !entitlements.isEmpty {
-                    Section("Entitlements") {
+                    Section("Entitlements (from Provisioning Profile)") {
                         NavigationLink(destination: PlistViewer(dictionary: entitlements, title: "Entitlements")) {
                             HStack {
                                 Image(systemName: "checkmark.shield")
@@ -690,6 +755,8 @@ struct IPAInspectorView: View {
                                     .font(.subheadline)
                             }
                         }
+                    } footer: {
+                        Text("Entitlements declared in the embedded provisioning profile.")
                     }
                 }
                 
@@ -705,6 +772,44 @@ struct IPAInspectorView: View {
                                     .font(.caption.monospaced())
                                     .lineLimit(1)
                             }
+                        }
+                        if info.fileStructure.count > 15 {
+                            NavigationLink(destination: ListDetailView(items: info.fileStructure, title: "All Files")) {
+                                Text("View all \(info.fileStructure.count) files")
+                                    .font(.caption)
+                                    .foregroundStyle(.blue)
+                            }
+                        }
+                    }
+                }
+                
+                // Limitations Section
+                Section {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "info.circle.fill")
+                                .foregroundStyle(.orange)
+                            Text("iOS On-Device Limitations")
+                                .font(.subheadline.bold())
+                        }
+                        
+                        ForEach(info.limitations, id: \.self) { limitation in
+                            HStack(alignment: .top, spacing: 8) {
+                                Text("•")
+                                    .foregroundStyle(.secondary)
+                                Text(limitation)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .padding(.vertical, 4)
+                } header: {
+                    Text("Limitations")
+                } footer: {
+                    Text("Some advanced analysis features require macOS command-line tools or specialized security frameworks not available in the iOS sandbox.")
+                }
+            }
                         }
                         if info.fileStructure.count > 15 {
                             NavigationLink(destination: ListDetailView(items: info.fileStructure, title: "All Files")) {
@@ -772,19 +877,24 @@ struct IPAInspectorView: View {
             try? fileManager.removeItem(at: tempDir)
         }
         
-        // Unzip IPA (IPA is a zip file)
-        #if os(macOS) || targetEnvironment(macCatalyst)
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
-        process.arguments = ["-q", url.path, "-d", tempDir.path]
-        try process.run()
-        process.waitUntilExit()
-        #else
-        // For iOS, use a different approach or throw an error
-        throw NSError(domain: "IPAInspector", code: -2, userInfo: [NSLocalizedDescriptionKey: "Command-line IPA extraction is only available on macOS"])
-        #endif
+        // IPA is a ZIP archive - use ZIPFoundation to extract
+        // Start accessing security-scoped resource
+        guard url.startAccessingSecurityScopedResource() else {
+            throw NSError(domain: "IPAInspector", code: -3, userInfo: [NSLocalizedDescriptionKey: "Cannot access file. Permission denied."])
+        }
         
-        // Find .app bundle
+        defer {
+            url.stopAccessingSecurityScopedResource()
+        }
+        
+        // Extract IPA using ZIPFoundation
+        do {
+            try fileManager.unzipItem(at: url, to: tempDir)
+        } catch {
+            throw NSError(domain: "IPAInspector", code: -2, userInfo: [NSLocalizedDescriptionKey: "Failed to extract IPA: \(error.localizedDescription)"])
+        }
+        
+        // Find .app bundle in Payload directory
         let payloadDir = tempDir.appendingPathComponent("Payload")
         guard let appBundle = try fileManager.contentsOfDirectory(at: payloadDir, includingPropertiesForKeys: nil).first(where: { $0.pathExtension == "app" }) else {
             throw NSError(domain: "IPAInspector", code: -1, userInfo: [NSLocalizedDescriptionKey: "No .app bundle found in IPA"])
@@ -795,6 +905,7 @@ struct IPAInspectorView: View {
         var infoPlist: [String: Any]?
         var bundleID: String?
         var version: String?
+        var buildNumber: String?
         var displayName: String?
         var minIOSVersion: String?
         
@@ -803,11 +914,12 @@ struct IPAInspectorView: View {
             infoPlist = plist
             bundleID = plist["CFBundleIdentifier"] as? String
             version = plist["CFBundleShortVersionString"] as? String
+            buildNumber = plist["CFBundleVersion"] as? String
             displayName = plist["CFBundleDisplayName"] as? String ?? plist["CFBundleName"] as? String
             minIOSVersion = plist["MinimumOSVersion"] as? String
         }
         
-        // Find dynamic libraries
+        // Find dynamic libraries (.dylib files in main bundle)
         var dylibs: [String] = []
         if let dylibFiles = try? fileManager.contentsOfDirectory(at: appBundle, includingPropertiesForKeys: nil) {
             dylibs = dylibFiles.filter { $0.pathExtension == "dylib" }.map { $0.lastPathComponent }
@@ -822,7 +934,7 @@ struct IPAInspectorView: View {
             }
         }
         
-        // Find plugins
+        // Find plugins/extensions
         var plugins: [String] = []
         let pluginsDir = appBundle.appendingPathComponent("PlugIns")
         if fileManager.fileExists(atPath: pluginsDir.path) {
@@ -831,9 +943,35 @@ struct IPAInspectorView: View {
             }
         }
         
-        // Extract entitlements (if available)
-        let entitlements: [String: Any]?
-        // Note: Entitlements are usually embedded in the binary, which requires more complex parsing
+        // Extract provisioning profile information
+        var provisioningInfo: ProvisioningInfo? = nil
+        let provisioningURL = appBundle.appendingPathComponent("embedded.mobileprovision")
+        if fileManager.fileExists(atPath: provisioningURL.path) {
+            provisioningInfo = parseProvisioningProfile(at: provisioningURL)
+        }
+        
+        // Try to extract app icon
+        var appIconData: Data? = nil
+        if let iconFiles = infoPlist?["CFBundleIcons"] as? [String: Any],
+           let primaryIcon = iconFiles["CFBundlePrimaryIcon"] as? [String: Any],
+           let iconFileNames = primaryIcon["CFBundleIconFiles"] as? [String] {
+            // Try to find the largest icon
+            for iconName in iconFileNames.reversed() {
+                let iconURL = appBundle.appendingPathComponent("\(iconName).png")
+                if fileManager.fileExists(atPath: iconURL.path),
+                   let data = try? Data(contentsOf: iconURL) {
+                    appIconData = data
+                    break
+                }
+                // Also try with @2x and @3x
+                let icon2xURL = appBundle.appendingPathComponent("\(iconName)@2x.png")
+                if fileManager.fileExists(atPath: icon2xURL.path),
+                   let data = try? Data(contentsOf: icon2xURL) {
+                    appIconData = data
+                    break
+                }
+            }
+        }
         
         // Get file structure
         var fileStructure: [String] = []
@@ -846,20 +984,69 @@ struct IPAInspectorView: View {
             }
         }
         
+        // Define limitations for iOS on-device inspection
+        let limitations = [
+            "Code signature validation: Not available on iOS (requires macOS security tools)",
+            "Full entitlements extraction: Limited (only from provisioning profile)",
+            "Binary analysis: Not available (requires specialized tools)",
+            "Deep framework inspection: Limited (file listing only)"
+        ]
+        
         return IPAInfo(
             fileName: url.lastPathComponent,
             fileSize: fileSize,
             infoPlist: infoPlist,
             bundleID: bundleID,
             version: version,
+            buildNumber: buildNumber,
             displayName: displayName,
             minIOSVersion: minIOSVersion,
             dylibs: dylibs,
             frameworks: frameworks,
             plugins: plugins,
-            entitlements: entitlements,
-            provisioning: nil,
-            fileStructure: fileStructure.sorted()
+            entitlements: provisioningInfo?.entitlements,
+            provisioning: provisioningInfo,
+            fileStructure: fileStructure.sorted(),
+            appIconData: appIconData,
+            limitations: limitations
+        )
+    }
+    
+    private func parseProvisioningProfile(at url: URL) -> ProvisioningInfo? {
+        guard let data = try? Data(contentsOf: url) else { return nil }
+        
+        // Provisioning profiles contain XML plist data between <plist> tags
+        // Extract the plist portion
+        guard let dataString = String(data: data, encoding: .ascii) ?? String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        
+        // Find plist content
+        guard let plistStart = dataString.range(of: "<?xml"),
+              let plistEnd = dataString.range(of: "</plist>") else {
+            return nil
+        }
+        
+        let plistString = String(dataString[plistStart.lowerBound...plistEnd.upperBound])
+        guard let plistData = plistString.data(using: .utf8),
+              let plist = try? PropertyListSerialization.propertyList(from: plistData, format: nil) as? [String: Any] else {
+            return nil
+        }
+        
+        let teamName = plist["TeamName"] as? String
+        let teamID = (plist["TeamIdentifier"] as? [String])?.first
+        let expirationDate = plist["ExpirationDate"] as? Date
+        let appIDName = plist["AppIDName"] as? String
+        let provisionedDevices = plist["ProvisionedDevices"] as? [String]
+        let entitlements = plist["Entitlements"] as? [String: Any]
+        
+        return ProvisioningInfo(
+            teamName: teamName,
+            teamID: teamID,
+            expirationDate: expirationDate,
+            appIDName: appIDName,
+            provisionedDevices: provisionedDevices,
+            entitlements: entitlements
         )
     }
     
