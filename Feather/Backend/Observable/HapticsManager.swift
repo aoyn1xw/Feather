@@ -51,12 +51,10 @@ class HapticsManager: ObservableObject {
     }
     
     private init() {
-        self.isEnabled = UserDefaults.standard.bool(forKey: "Feather.hapticsEnabled")
-        if self.isEnabled == false && UserDefaults.standard.object(forKey: "Feather.hapticsEnabled") == nil {
-            // First launch, enable by default
-            self.isEnabled = true
-        }
-        
+        let hasValue = UserDefaults.standard.object(forKey: "Feather.hapticsEnabled") != nil
+        let initialEnabled = hasValue ? UserDefaults.standard.bool(forKey: "Feather.hapticsEnabled") : true
+        self.isEnabled = initialEnabled
+
         let intensityRaw = UserDefaults.standard.string(forKey: "Feather.hapticsIntensity") ?? "Default"
         self.intensity = HapticIntensity(rawValue: intensityRaw) ?? .defaultIntensity
     }
