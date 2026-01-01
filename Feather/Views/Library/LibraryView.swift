@@ -71,7 +71,7 @@ struct LibraryView: View {
 	var body: some View {
 		NavigationView {
 			ZStack {
-				Color.black.ignoresSafeArea()
+				Color(uiColor: .systemBackground).ignoresSafeArea()
 				
 				ScrollView {
 					VStack(alignment: .leading, spacing: 20) {
@@ -81,7 +81,7 @@ struct LibraryView: View {
 								Text("Library")
 									.font(.largeTitle)
 									.fontWeight(.bold)
-									.foregroundStyle(.white)
+									.foregroundStyle(.primary)
 								
 								Spacer()
 								
@@ -95,27 +95,12 @@ struct LibraryView: View {
 									} label: {
 										ZStack {
 											Circle()
-												.fill(Color.white.opacity(0.15))
+												.fill(Color.primary.opacity(0.15))
 												.frame(width: 40, height: 40)
 											
 											Image(systemName: _viewMode == .list ? "square.grid.2x2" : "list.bullet")
 												.font(.system(size: 18, weight: .semibold))
-												.foregroundStyle(.white)
-										}
-									}
-									
-									// Checkmark circle button
-									Button {
-										// Verified status action
-									} label: {
-										ZStack {
-											Circle()
-												.fill(Color.white.opacity(0.15))
-												.frame(width: 40, height: 40)
-											
-											Image(systemName: "checkmark.circle.fill")
-												.font(.system(size: 18, weight: .semibold))
-												.foregroundStyle(.white)
+												.foregroundStyle(.primary)
 										}
 									}
 									
@@ -125,12 +110,12 @@ struct LibraryView: View {
 									} label: {
 										ZStack {
 											Circle()
-												.fill(Color.white.opacity(0.15))
+												.fill(Color.primary.opacity(0.15))
 												.frame(width: 40, height: 40)
 											
 											Image(systemName: "plus.square.on.square")
 												.font(.system(size: 18, weight: .semibold))
-												.foregroundStyle(.white)
+												.foregroundStyle(.primary)
 										}
 									}
 								}
@@ -141,12 +126,11 @@ struct LibraryView: View {
 							// Search Bar
 							HStack(spacing: 12) {
 								Image(systemName: "magnifyingglass")
-									.foregroundStyle(.white.opacity(0.6))
+									.foregroundStyle(.secondary)
 									.font(.system(size: 16))
 								
 								TextField("Search", text: $_searchText)
-									.foregroundStyle(.white)
-									.tint(.white)
+									.foregroundStyle(.primary)
 									.autocorrectionDisabled()
 									.textInputAutocapitalization(.never)
 							}
@@ -154,7 +138,7 @@ struct LibraryView: View {
 							.padding(.vertical, 12)
 							.background(
 								Capsule()
-									.fill(Color.white.opacity(0.15))
+									.fill(Color.secondary.opacity(0.15))
 							)
 							.padding(.horizontal, 20)
 						}
@@ -165,14 +149,14 @@ struct LibraryView: View {
 								Spacer()
 								Image(systemName: "questionmark.app.fill")
 									.font(.system(size: 60))
-									.foregroundStyle(.white.opacity(0.3))
+									.foregroundStyle(.secondary)
 								Text("No Apps")
 									.font(.title2)
 									.fontWeight(.bold)
-									.foregroundStyle(.white)
+									.foregroundStyle(.primary)
 								Text("Get started by importing your first IPA file.")
 									.font(.subheadline)
-									.foregroundStyle(.white.opacity(0.6))
+									.foregroundStyle(.secondary)
 									.multilineTextAlignment(.center)
 								
 								Menu {
@@ -455,43 +439,45 @@ struct LibraryCardView: View {
 				selectedSigningAppPresenting = AnyApp(base: app)
 			}
 		} label: {
-			HStack(spacing: 16) {
-				// Left: App Icon
-				FRAppIconView(app: app, size: 60)
-					.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-					.shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+			HStack(spacing: 12) {
+				// Left: App Icon (smaller)
+				FRAppIconView(app: app, size: 50)
+					.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+					.shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 1)
 				
 				// Middle: Text Stack
-				VStack(alignment: .leading, spacing: 4) {
+				VStack(alignment: .leading, spacing: 3) {
 					Text(app.name ?? .localized("Unknown"))
-						.font(.system(size: 17, weight: .bold))
-						.foregroundStyle(.white)
+						.font(.system(size: 15, weight: .semibold))
+						.foregroundStyle(.primary)
 						.lineLimit(1)
 					
 					if let identifier = app.identifier {
 						Text(identifier)
-							.font(.system(size: 13))
-							.foregroundStyle(.white.opacity(0.6))
+							.font(.system(size: 12))
+							.foregroundStyle(.secondary)
 							.lineLimit(1)
 					}
 					
-					if let version = app.version {
-						Text("Version: \(version)")
-							.font(.system(size: 13))
-							.foregroundStyle(.white.opacity(0.6))
-							.lineLimit(1)
-					}
-					
-					if app.isSigned {
-						Text("Signed")
-							.font(.system(size: 12, weight: .medium))
-							.foregroundStyle(.green)
+					HStack(spacing: 8) {
+						if let version = app.version {
+							Text("v\(version)")
+								.font(.system(size: 11))
+								.foregroundStyle(.secondary)
+								.lineLimit(1)
+						}
+						
+						if app.isSigned {
+							Text("Signed")
+								.font(.system(size: 11, weight: .medium))
+								.foregroundStyle(.green)
+						}
 					}
 				}
 				
 				Spacer()
 				
-				// Right: Action Button
+				// Right: Action Button (smaller)
 				Button {
 					if app.isSigned {
 						selectedInstallAppPresenting = AnyApp(base: app)
@@ -500,10 +486,10 @@ struct LibraryCardView: View {
 					}
 				} label: {
 					Text(app.isSigned ? "Install" : "Sign")
-						.font(.system(size: 15, weight: .semibold))
+						.font(.system(size: 13, weight: .semibold))
 						.foregroundStyle(.white)
-						.padding(.horizontal, 20)
-						.padding(.vertical, 10)
+						.padding(.horizontal, 16)
+						.padding(.vertical, 8)
 						.background(
 							Capsule()
 								.fill(app.isSigned ? Color.green : Color.blue)
@@ -511,10 +497,10 @@ struct LibraryCardView: View {
 				}
 				.buttonStyle(.plain)
 			}
-			.padding(16)
+			.padding(12)
 			.background(
-				RoundedRectangle(cornerRadius: 20, style: .continuous)
-					.fill(Color.white.opacity(0.12))
+				RoundedRectangle(cornerRadius: 16, style: .continuous)
+					.fill(Color.secondary.opacity(0.15))
 			)
 		}
 		.buttonStyle(.plain)
@@ -561,50 +547,50 @@ struct LibraryGridCardView: View {
 				selectedSigningAppPresenting = AnyApp(base: app)
 			}
 		} label: {
-			VStack(spacing: 12) {
-				// App Icon
-				FRAppIconView(app: app, size: 80)
-					.clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-					.shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+			VStack(spacing: 10) {
+				// App Icon (smaller)
+				FRAppIconView(app: app, size: 65)
+					.clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
+					.shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 1)
 				
 				// Text Stack
-				VStack(spacing: 4) {
+				VStack(spacing: 3) {
 					Text(app.name ?? .localized("Unknown"))
-						.font(.system(size: 14, weight: .bold))
-						.foregroundStyle(.white)
+						.font(.system(size: 13, weight: .semibold))
+						.foregroundStyle(.primary)
 						.lineLimit(1)
 						.multilineTextAlignment(.center)
 					
 					if let version = app.version {
 						Text("v\(version)")
-							.font(.system(size: 11))
-							.foregroundStyle(.white.opacity(0.6))
+							.font(.system(size: 10))
+							.foregroundStyle(.secondary)
 							.lineLimit(1)
 					}
 					
 					if app.isSigned {
 						Text("Signed")
-							.font(.system(size: 10, weight: .medium))
+							.font(.system(size: 9, weight: .medium))
 							.foregroundStyle(.green)
 					}
 				}
 				
-				// Action Button
+				// Action Button (smaller)
 				Text(app.isSigned ? "Install" : "Sign")
-					.font(.system(size: 13, weight: .semibold))
+					.font(.system(size: 12, weight: .semibold))
 					.foregroundStyle(.white)
-					.padding(.horizontal, 16)
-					.padding(.vertical, 8)
+					.padding(.horizontal, 14)
+					.padding(.vertical, 6)
 					.background(
 						Capsule()
 							.fill(app.isSigned ? Color.green : Color.blue)
 					)
 			}
 			.frame(maxWidth: .infinity)
-			.padding(16)
+			.padding(12)
 			.background(
-				RoundedRectangle(cornerRadius: 20, style: .continuous)
-					.fill(Color.white.opacity(0.12))
+				RoundedRectangle(cornerRadius: 16, style: .continuous)
+					.fill(Color.secondary.opacity(0.15))
 			)
 		}
 		.buttonStyle(.plain)

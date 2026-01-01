@@ -31,7 +31,10 @@ final class SigningHandler: NSObject {
 	}
 	
 	func copy() async throws {
+		AppLogManager.shared.info("Starting copy operation for app: \(_app.name ?? "Unknown")", category: "Signing")
+		
 		guard let appUrl = Storage.shared.getAppDirectory(for: _app) else {
+			AppLogManager.shared.error("App not found in storage", category: "Signing")
 			throw SigningFileHandlerError.appNotFound
 		}
 
@@ -42,10 +45,14 @@ final class SigningHandler: NSObject {
 		try _fileManager.copyItem(at: appUrl, to: movedAppURL)
 		_movedAppPath = movedAppURL
 		Logger.misc.info("[\(self._uuid)] Moved Payload to: \(movedAppURL.path)")
+		AppLogManager.shared.success("Successfully copied app to working directory", category: "Signing")
 	}
 	
 	func modify() async throws {
+		AppLogManager.shared.info("Starting modification phase", category: "Signing")
+		
 		guard let movedAppPath = _movedAppPath else {
+			AppLogManager.shared.error("App path not found during modification", category: "Signing")
 			throw SigningFileHandlerError.appNotFound
 		}
 		
@@ -54,27 +61,34 @@ final class SigningHandler: NSObject {
 				contentsOf: movedAppPath.appendingPathComponent("Info.plist")
 			)!.mutableCopy() as? NSMutableDictionary
 		else {
+			AppLogManager.shared.error("Info.plist not found or invalid", category: "Signing")
 			throw SigningFileHandlerError.infoPlistNotFound
 		}
+		
+		AppLogManager.shared.info("Applying modifications to app bundle", category: "Signing")
 		
 		if
 			let identifier = _options.appIdentifier,
 			let oldIdentifier = infoDictionary["CFBundleIdentifier"] as? String
 		{
+			AppLogManager.shared.info("Changing bundle identifier from \(oldIdentifier) to \(identifier)", category: "Signing")
 			try await _modifyPluginIdentifiers(old: oldIdentifier, new: identifier, for: movedAppPath)
 		}
 		
 		try await _modifyDict(using: infoDictionary, with: _options, to: movedAppPath)
 		
 		if let icon = appIcon {
+			AppLogManager.shared.info("Applying custom app icon", category: "Signing")
 			try await _modifyDict(using: infoDictionary, for: icon, to: movedAppPath)
 		}
 		
 		if let name = _options.appName {
+			AppLogManager.shared.info("Changing app name to \(name)", category: "Signing")
 			try await _modifyLocalesForName(name, for: movedAppPath)
 		}
 		
 		if !_options.removeFiles.isEmpty {
+			AppLogManager.shared.info("Removing \(_options.removeFiles.count) files", category: "Signing")
 			try await _removeFiles(for: movedAppPath, from: _options.removeFiles)
 		}
 		
@@ -82,19 +96,23 @@ final class SigningHandler: NSObject {
 		try await _removeWatchIfNeeded(for: movedAppPath)
 		
 		if _options.experiment_supportLiquidGlass {
+			AppLogManager.shared.info("Applying LiquidGlass support", category: "Signing")
 			try await _locateMachosAndChangeToSDK26(for: movedAppPath)
 		}
 		
 		if _options.experiment_replaceSubstrateWithEllekit {
+			AppLogManager.shared.info("Replacing Substrate with Ellekit", category: "Signing")
 			try await _inject(for: movedAppPath, with: _options)
 		} else {
 			if !_options.injectionFiles.isEmpty {
+				AppLogManager.shared.info("Injecting \(_options.injectionFiles.count) files", category: "Signing")
 				try await _inject(for: movedAppPath, with: _options)
 			}
 		}
 		
 		// iOS "26" (19) needs special treatment
 		if #available(iOS 19, *) {
+			AppLogManager.shared.info("Applying iOS 19 arm64e fixups", category: "Signing")
 			try await _locateMachosAndFixupArm64eSlice(for: movedAppPath)
 		}
 		
@@ -105,12 +123,15 @@ final class SigningHandler: NSObject {
 			_options.signingOption == .default,
 			appCertificate != nil
 		{
+			AppLogManager.shared.info("Starting code signing with certificate", category: "Signing")
 			try await handler.sign()
+			AppLogManager.shared.success("Code signing completed successfully", category: "Signing")
 //		} else if _options.signingOption == .adhoc {
 //			try await handler.adhocSign()
 		} else if _options.signingOption == .onlyModify {
-			//
+			AppLogManager.shared.info("Skipping signing (only modify mode)", category: "Signing")
 		} else {
+			AppLogManager.shared.error("No certificate available for signing", category: "Signing")
 			throw SigningFileHandlerError.missingCertifcate
 		}
 		
@@ -118,12 +139,18 @@ final class SigningHandler: NSObject {
 		try await self.addToDatabase()
 		
 		if let error = handler.hadError {
+			AppLogManager.shared.error("Signing failed: \(error.localizedDescription)", category: "Signing")
 			throw error
 		}
+		
+		AppLogManager.shared.success("App modification and signing completed successfully", category: "Signing")
 	}
 	
 	func move() async throws {
+		AppLogManager.shared.info("Moving signed app to final location", category: "Signing")
+		
 		guard let movedAppPath = _movedAppPath else {
+			AppLogManager.shared.error("App path not found during move", category: "Signing")
 			throw SigningFileHandlerError.appNotFound
 		}
 		
@@ -135,14 +162,18 @@ final class SigningHandler: NSObject {
 		
 		try _fileManager.moveItem(at: movedAppPath, to: destinationURL)
 		Logger.misc.info("[\(self._uuid)] Moved App to: \(destinationURL.path)")
+		AppLogManager.shared.success("App moved to: \(destinationURL.lastPathComponent)", category: "Signing")
 		
 		try? _fileManager.removeItem(at: _uniqueWorkDir)
 	}
 	
 	func addToDatabase() async throws {
+		AppLogManager.shared.info("Adding signed app to database", category: "Signing")
+		
 		let app = try await _directory()
 		
 		guard let appUrl = _fileManager.getPath(in: app, for: "app") else {
+			AppLogManager.shared.warning("Could not find app path in signed directory", category: "Signing")
 			return
 		}
 		
@@ -158,6 +189,7 @@ final class SigningHandler: NSObject {
 				appIcon: bundle?.iconFileName
 			) { _ in
 				Logger.signing.info("[\(self._uuid)] Added to database")
+				AppLogManager.shared.success("App successfully added to library: \(bundle?.name ?? "Unknown")", category: "Signing")
 				continuation.resume()
 			}
 		}
@@ -174,15 +206,24 @@ final class SigningHandler: NSObject {
 	
 	// Main sign method that orchestrates the signing process
 	func sign() async throws -> URL {
-		try await copy()
-		try await modify()
+		AppLogManager.shared.info("Starting signing process for: \(_app.name ?? "Unknown")", category: "Signing")
 		
-		// Return the signed app URL
-		guard let signedAppPath = try await _getSignedAppURL() else {
-			throw SigningFileHandlerError.appNotFound
+		do {
+			try await copy()
+			try await modify()
+			
+			// Return the signed app URL
+			guard let signedAppPath = try await _getSignedAppURL() else {
+				AppLogManager.shared.error("Failed to get signed app URL", category: "Signing")
+				throw SigningFileHandlerError.appNotFound
+			}
+			
+			AppLogManager.shared.success("Successfully signed app: \(_app.name ?? "Unknown")", category: "Signing")
+			return signedAppPath
+		} catch {
+			AppLogManager.shared.error("Signing process failed: \(error.localizedDescription)", category: "Signing")
+			throw error
 		}
-		
-		return signedAppPath
 	}
 	
 	private func _getSignedAppURL() async throws -> URL? {

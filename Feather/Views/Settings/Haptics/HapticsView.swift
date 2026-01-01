@@ -55,7 +55,7 @@ struct HapticsView: View {
                 Spacer()
                 if hapticsManager.intensity == intensity {
                     Image(systemName: "checkmark")
-                        .foregroundStyle(.accentColor)
+                        .foregroundStyle(.tint)
                 }
             }
         }
