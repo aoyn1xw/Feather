@@ -31,7 +31,7 @@ jobs:
 
       - name: Compile Feather
         run: |
-          agvtool new-version -all $(git rev-parse HEAD)
+          agvtool new-version -all $(git rev-list --count HEAD)
           make
           mkdir upload
           mv packages/* upload/
