@@ -516,26 +516,440 @@ struct ActivityViewController: UIViewControllerRepresentable {
 struct IPAInspectorView: View {
     @State private var isImporting = false
     @State private var selectedFile: URL?
+    @State private var ipaInfo: IPAInfo?
+    @State private var isAnalyzing = false
+    @State private var errorMessage: String?
+    @State private var showFileBrowser = false
+    
+    struct IPAInfo {
+        let fileName: String
+        let fileSize: String
+        let infoPlist: [String: Any]?
+        let bundleID: String?
+        let version: String?
+        let displayName: String?
+        let minIOSVersion: String?
+        let dylibs: [String]
+        let frameworks: [String]
+        let plugins: [String]
+        let entitlements: [String: Any]?
+        let provisioning: [String: Any]?
+        let fileStructure: [String]
+    }
     
     var body: some View {
         List {
-            Button("Select IPA File") {
-                isImporting = true
+            // Import Section
+            Section {
+                Button(action: { isImporting = true }) {
+                    HStack {
+                        Image(systemName: "doc.zipper")
+                            .font(.title3)
+                            .foregroundStyle(.blue)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Select IPA File")
+                                .font(.headline)
+                            if let file = selectedFile {
+                                Text(file.lastPathComponent)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                Text("No file selected")
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                            }
+                        }
+                        Spacer()
+                        if isAnalyzing {
+                            ProgressView()
+                        }
+                    }
+                }
+            } header: {
+                Text("Import")
             }
             
-            if let file = selectedFile {
-                Section("Metadata") {
-                    Text("File: \(file.lastPathComponent)")
-                    // Add more metadata extraction logic here
+            // Error Section
+            if let error = errorMessage {
+                Section {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.red)
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                } header: {
+                    Text("Error")
+                }
+            }
+            
+            // Basic Info Section
+            if let info = ipaInfo {
+                Section("Basic Information") {
+                    InfoRow(label: "File Name", value: info.fileName)
+                    InfoRow(label: "File Size", value: info.fileSize)
+                    if let bundleID = info.bundleID {
+                        InfoRow(label: "Bundle ID", value: bundleID)
+                    }
+                    if let displayName = info.displayName {
+                        InfoRow(label: "App Name", value: displayName)
+                    }
+                    if let version = info.version {
+                        InfoRow(label: "Version", value: version)
+                    }
+                    if let minVersion = info.minIOSVersion {
+                        InfoRow(label: "Min iOS", value: minVersion)
+                    }
+                }
+                
+                // Info.plist Section
+                if let plist = info.infoPlist, !plist.isEmpty {
+                    Section("Info.plist") {
+                        NavigationLink(destination: PlistViewer(dictionary: plist, title: "Info.plist")) {
+                            HStack {
+                                Image(systemName: "doc.text")
+                                    .foregroundStyle(.blue)
+                                Text("\(plist.count) entries")
+                                    .font(.subheadline)
+                            }
+                        }
+                    }
+                }
+                
+                // Dynamic Libraries Section
+                if !info.dylibs.isEmpty {
+                    Section("Dynamic Libraries (\(info.dylibs.count))") {
+                        ForEach(info.dylibs.prefix(10), id: \.self) { dylib in
+                            HStack {
+                                Image(systemName: "cube.box")
+                                    .foregroundStyle(.purple)
+                                    .font(.caption)
+                                Text(dylib)
+                                    .font(.caption.monospaced())
+                                    .lineLimit(1)
+                            }
+                        }
+                        if info.dylibs.count > 10 {
+                            NavigationLink(destination: ListDetailView(items: info.dylibs, title: "All Dynamic Libraries")) {
+                                Text("View all \(info.dylibs.count) libraries")
+                                    .font(.caption)
+                                    .foregroundStyle(.blue)
+                            }
+                        }
+                    }
+                }
+                
+                // Frameworks Section
+                if !info.frameworks.isEmpty {
+                    Section("Frameworks (\(info.frameworks.count))") {
+                        ForEach(info.frameworks.prefix(10), id: \.self) { framework in
+                            HStack {
+                                Image(systemName: "shippingbox")
+                                    .foregroundStyle(.orange)
+                                    .font(.caption)
+                                Text(framework)
+                                    .font(.caption.monospaced())
+                                    .lineLimit(1)
+                            }
+                        }
+                        if info.frameworks.count > 10 {
+                            NavigationLink(destination: ListDetailView(items: info.frameworks, title: "All Frameworks")) {
+                                Text("View all \(info.frameworks.count) frameworks")
+                                    .font(.caption)
+                                    .foregroundStyle(.blue)
+                            }
+                        }
+                    }
+                }
+                
+                // Plugins Section
+                if !info.plugins.isEmpty {
+                    Section("Plugins/Extensions (\(info.plugins.count))") {
+                        ForEach(info.plugins, id: \.self) { plugin in
+                            HStack {
+                                Image(systemName: "puzzlepiece.extension")
+                                    .foregroundStyle(.green)
+                                    .font(.caption)
+                                Text(plugin)
+                                    .font(.caption.monospaced())
+                                    .lineLimit(1)
+                            }
+                        }
+                    }
+                }
+                
+                // Entitlements Section
+                if let entitlements = info.entitlements, !entitlements.isEmpty {
+                    Section("Entitlements") {
+                        NavigationLink(destination: PlistViewer(dictionary: entitlements, title: "Entitlements")) {
+                            HStack {
+                                Image(systemName: "checkmark.shield")
+                                    .foregroundStyle(.green)
+                                Text("\(entitlements.count) entitlements")
+                                    .font(.subheadline)
+                            }
+                        }
+                    }
+                }
+                
+                // File Structure Section
+                if !info.fileStructure.isEmpty {
+                    Section("File Structure (\(info.fileStructure.count) files)") {
+                        ForEach(info.fileStructure.prefix(15), id: \.self) { file in
+                            HStack {
+                                Image(systemName: fileIcon(for: file))
+                                    .foregroundStyle(.secondary)
+                                    .font(.caption)
+                                Text(file)
+                                    .font(.caption.monospaced())
+                                    .lineLimit(1)
+                            }
+                        }
+                        if info.fileStructure.count > 15 {
+                            NavigationLink(destination: ListDetailView(items: info.fileStructure, title: "All Files")) {
+                                Text("View all \(info.fileStructure.count) files")
+                                    .font(.caption)
+                                    .foregroundStyle(.blue)
+                            }
+                        }
+                    }
                 }
             }
         }
         .navigationTitle("IPA Inspector")
-        .fileImporter(isPresented: $isImporting, allowedContentTypes: [.item]) { result in
-            if let url = try? result.get() {
-                selectedFile = url
+        .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $isImporting) {
+            FileImporterRepresentableView(
+                allowedContentTypes: [.ipa, .tipa],
+                onDocumentsPicked: { urls in
+                    guard let url = urls.first else { return }
+                    selectedFile = url
+                    analyzeIPA(url: url)
+                }
+            )
+            .ignoresSafeArea()
+        }
+    }
+    
+    private func analyzeIPA(url: URL) {
+        isAnalyzing = true
+        errorMessage = nil
+        ipaInfo = nil
+        
+        AppLogManager.shared.info("Analyzing IPA: \(url.lastPathComponent)", category: "IPA Inspector")
+        
+        Task {
+            do {
+                let info = try await extractIPAInfo(from: url)
+                await MainActor.run {
+                    ipaInfo = info
+                    isAnalyzing = false
+                    AppLogManager.shared.success("Successfully analyzed IPA: \(url.lastPathComponent)", category: "IPA Inspector")
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
+                    isAnalyzing = false
+                    AppLogManager.shared.error("Failed to analyze IPA: \(error.localizedDescription)", category: "IPA Inspector")
+                }
             }
         }
+    }
+    
+    private func extractIPAInfo(from url: URL) async throws -> IPAInfo {
+        let fileManager = FileManager.default
+        
+        // Get file size
+        let attributes = try fileManager.attributesOfItem(atPath: url.path)
+        let fileSize = ByteCountFormatter.string(fromByteCount: Int64(attributes[.size] as? UInt64 ?? 0), countStyle: .file)
+        
+        // Create temp directory
+        let tempDir = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try fileManager.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        
+        defer {
+            try? fileManager.removeItem(at: tempDir)
+        }
+        
+        // Unzip IPA (IPA is a zip file)
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
+        process.arguments = ["-q", url.path, "-d", tempDir.path]
+        try process.run()
+        process.waitUntilExit()
+        
+        // Find .app bundle
+        let payloadDir = tempDir.appendingPathComponent("Payload")
+        guard let appBundle = try fileManager.contentsOfDirectory(at: payloadDir, includingPropertiesForKeys: nil).first(where: { $0.pathExtension == "app" }) else {
+            throw NSError(domain: "IPAInspector", code: -1, userInfo: [NSLocalizedDescriptionKey: "No .app bundle found in IPA"])
+        }
+        
+        // Parse Info.plist
+        let infoPlistURL = appBundle.appendingPathComponent("Info.plist")
+        var infoPlist: [String: Any]?
+        var bundleID: String?
+        var version: String?
+        var displayName: String?
+        var minIOSVersion: String?
+        
+        if let plistData = try? Data(contentsOf: infoPlistURL),
+           let plist = try? PropertyListSerialization.propertyList(from: plistData, format: nil) as? [String: Any] {
+            infoPlist = plist
+            bundleID = plist["CFBundleIdentifier"] as? String
+            version = plist["CFBundleShortVersionString"] as? String
+            displayName = plist["CFBundleDisplayName"] as? String ?? plist["CFBundleName"] as? String
+            minIOSVersion = plist["MinimumOSVersion"] as? String
+        }
+        
+        // Find dynamic libraries
+        var dylibs: [String] = []
+        if let dylibFiles = try? fileManager.contentsOfDirectory(at: appBundle, includingPropertiesForKeys: nil) {
+            dylibs = dylibFiles.filter { $0.pathExtension == "dylib" }.map { $0.lastPathComponent }
+        }
+        
+        // Find frameworks
+        var frameworks: [String] = []
+        let frameworksDir = appBundle.appendingPathComponent("Frameworks")
+        if fileManager.fileExists(atPath: frameworksDir.path) {
+            if let frameworkFiles = try? fileManager.contentsOfDirectory(at: frameworksDir, includingPropertiesForKeys: nil) {
+                frameworks = frameworkFiles.filter { $0.pathExtension == "framework" }.map { $0.lastPathComponent }
+            }
+        }
+        
+        // Find plugins
+        var plugins: [String] = []
+        let pluginsDir = appBundle.appendingPathComponent("PlugIns")
+        if fileManager.fileExists(atPath: pluginsDir.path) {
+            if let pluginFiles = try? fileManager.contentsOfDirectory(at: pluginsDir, includingPropertiesForKeys: nil) {
+                plugins = pluginFiles.map { $0.lastPathComponent }
+            }
+        }
+        
+        // Extract entitlements (if available)
+        var entitlements: [String: Any]?
+        // Note: Entitlements are usually embedded in the binary, which requires more complex parsing
+        
+        // Get file structure
+        var fileStructure: [String] = []
+        if let enumerator = fileManager.enumerator(at: appBundle, includingPropertiesForKeys: [.isRegularFileKey]) {
+            for case let fileURL as URL in enumerator {
+                if let isRegularFile = try? fileURL.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile, isRegularFile {
+                    let relativePath = fileURL.path.replacingOccurrences(of: appBundle.path + "/", with: "")
+                    fileStructure.append(relativePath)
+                }
+            }
+        }
+        
+        return IPAInfo(
+            fileName: url.lastPathComponent,
+            fileSize: fileSize,
+            infoPlist: infoPlist,
+            bundleID: bundleID,
+            version: version,
+            displayName: displayName,
+            minIOSVersion: minIOSVersion,
+            dylibs: dylibs,
+            frameworks: frameworks,
+            plugins: plugins,
+            entitlements: entitlements,
+            provisioning: nil,
+            fileStructure: fileStructure.sorted()
+        )
+    }
+    
+    private func fileIcon(for filename: String) -> String {
+        let ext = (filename as NSString).pathExtension.lowercased()
+        switch ext {
+        case "plist": return "doc.text"
+        case "png", "jpg", "jpeg": return "photo"
+        case "dylib": return "cube.box"
+        case "framework": return "shippingbox"
+        case "nib", "storyboard", "xib": return "square.grid.3x3"
+        case "strings": return "text.quote"
+        case "html", "css", "js": return "globe"
+        case "json", "xml": return "doc.badge.gearshape"
+        default: return "doc"
+        }
+    }
+}
+
+// MARK: - Supporting Views
+
+struct InfoRow: View {
+    let label: String
+    let value: String
+    
+    var body: some View {
+        HStack(alignment: .top) {
+            Text(label)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(value)
+                .font(.subheadline.monospaced())
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.trailing)
+        }
+    }
+}
+
+struct ListDetailView: View {
+    let items: [String]
+    let title: String
+    @State private var searchText = ""
+    
+    var filteredItems: [String] {
+        if searchText.isEmpty {
+            return items
+        }
+        return items.filter { $0.localizedCaseInsensitiveContains(searchText) }
+    }
+    
+    var body: some View {
+        List {
+            ForEach(filteredItems, id: \.self) { item in
+                Text(item)
+                    .font(.caption.monospaced())
+            }
+        }
+        .searchable(text: $searchText, prompt: "Search...")
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct PlistViewer: View {
+    let dictionary: [String: Any]
+    let title: String
+    @State private var searchText = ""
+    
+    var filteredKeys: [String] {
+        let keys = dictionary.keys.sorted()
+        if searchText.isEmpty {
+            return keys
+        }
+        return keys.filter { $0.localizedCaseInsensitiveContains(searchText) }
+    }
+    
+    var body: some View {
+        List {
+            ForEach(filteredKeys, id: \.self) { key in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(key)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.primary)
+                    Text(String(describing: dictionary[key] ?? ""))
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                }
+                .padding(.vertical, 4)
+            }
+        }
+        .searchable(text: $searchText, prompt: "Search keys...")
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
