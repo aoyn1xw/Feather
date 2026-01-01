@@ -781,7 +781,7 @@ struct IPAInspectorView: View {
         process.waitUntilExit()
         #else
         // For iOS, use a different approach or throw an error
-        throw NSError(domain: "IPAInspector", code: -2, userInfo: [NSLocalizedDescriptionKey: "IPA extraction is not supported on iOS"])
+        throw NSError(domain: "IPAInspector", code: -2, userInfo: [NSLocalizedDescriptionKey: "Command-line IPA extraction is only available on macOS"])
         #endif
         
         // Find .app bundle
