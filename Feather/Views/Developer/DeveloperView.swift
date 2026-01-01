@@ -810,17 +810,6 @@ struct IPAInspectorView: View {
                     Text("Some advanced analysis features require macOS command-line tools or specialized security frameworks not available in the iOS sandbox.")
                 }
             }
-                        }
-                        if info.fileStructure.count > 15 {
-                            NavigationLink(destination: ListDetailView(items: info.fileStructure, title: "All Files")) {
-                                Text("View all \(info.fileStructure.count) files")
-                                    .font(.caption)
-                                    .foregroundStyle(.blue)
-                            }
-                        }
-                    }
-                }
-            }
         }
         .navigationTitle("IPA Inspector")
         .navigationBarTitleDisplayMode(.inline)
