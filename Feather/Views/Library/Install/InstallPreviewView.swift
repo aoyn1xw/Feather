@@ -7,28 +7,98 @@ import IDeviceSwift
 struct InstallPreviewView: View {
 @Environment(\.dismiss) var dismiss
 
-@AppStorage("Feather.useShareSheetForArchiving") private var _useShareSheet: Bool = false
-@AppStorage("Feather.installationMethod") private var _installationMethod: Int = 0
+@AppStorage("Feather.useShareSheetForArchiving") private var _useShareSheet: Boo
+l = false
+@AppStorage("Feather.installationMethod") private var _installationMethod: Int =
+ 0
 @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
 @State private var _isWebviewPresenting = false
+@State private var _initializationError: String?
 
 var app: AppInfoPresentable
 @StateObject var viewModel: InstallerStatusViewModel
-@StateObject var installer: ServerInstaller
+var installer: ServerInstaller?
 
 @State var isSharing: Bool
 
 init(app: AppInfoPresentable, isSharing: Bool = false) {
 self.app = app
 self.isSharing = isSharing
-let viewModel = InstallerStatusViewModel(isIdevice: UserDefaults.standard.integer(forKey: "Feather.installationMethod") == 1)
+let viewModel = InstallerStatusViewModel(isIdevice: UserDefaults.standard.intege
+r(forKey: "Feather.installationMethod") == 1)
 self._viewModel = StateObject(wrappedValue: viewModel)
-self._installer = StateObject(wrappedValue: try! ServerInstaller(app: app, viewModel: viewModel))
+
+// Try to create the installer safely
+do {
+    self.installer = try ServerInstaller(app: app, viewModel: viewModel)
+} catch {
+    self.installer = nil
+    self._initializationError = error.localizedDescription
+}
 }
 
 // MARK: Body
 var body: some View {
-VStack(spacing: 24) {
+    // Check for initialization error first
+    if let errorMessage = _initializationError {
+        VStack(spacing: 24) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.red.opacity(0.15), Color.red.opacity(
+0.05)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [Color.red.opacity(0.3), Color.red.o
+pacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.5
+                            )
+                    )
+
+                VStack(spacing: 16) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 50))
+                        .foregroundStyle(.red)
+
+                    VStack(spacing: 8) {
+                        Text("Installation Error")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.primary)
+
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                }
+                .padding(20)
+            }
+            .frame(height: 180)
+            .padding(.horizontal, 20)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(uiColor: .systemBackground))
+        .onAppear {
+            // Automatically dismiss after showing error
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                dismiss()
+            }
+        }
+    } else {
+        // Normal installation flow
+        VStack(spacing: 24) {
             // Modern Status Card
             ZStack {
                 // Gradient Background
@@ -36,10 +106,13 @@ VStack(spacing: 24) {
                     .fill(
                         LinearGradient(
                             colors: viewModel.isCompleted
-                                ? [Color.green.opacity(0.15), Color.green.opacity(0.05)]
+                                ? [Color.green.opacity(0.15), Color.green.opacit
+y(0.05)]
                                 : viewModel.status == .broken
-                                ? [Color.red.opacity(0.15), Color.red.opacity(0.05)]
-                                : [Color.accentColor.opacity(0.15), Color.accentColor.opacity(0.05)],
+                                ? [Color.red.opacity(0.15), Color.red.opacity(0.
+05)]
+                                : [Color.accentColor.opacity(0.15), Color.accent
+Color.opacity(0.05)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -49,10 +122,13 @@ VStack(spacing: 24) {
                             .stroke(
                                 LinearGradient(
                                     colors: viewModel.isCompleted
-                                        ? [Color.green.opacity(0.3), Color.green.opacity(0.1)]
+                                        ? [Color.green.opacity(0.3), Color.green
+.opacity(0.1)]
                                         : viewModel.status == .broken
-                                        ? [Color.red.opacity(0.3), Color.red.opacity(0.1)]
-                                        : [Color.accentColor.opacity(0.3), Color.accentColor.opacity(0.1)],
+                                        ? [Color.red.opacity(0.3), Color.red.opa
+city(0.1)]
+                                        : [Color.accentColor.opacity(0.3), Color
+.accentColor.opacity(0.1)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 ),
@@ -63,12 +139,14 @@ VStack(spacing: 24) {
                 VStack(spacing: 16) {
                     // Icon & Progress
                     InstallProgressView(app: app, viewModel: viewModel)
-                        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y:
+ 5)
 
                     // Modern Status Text with Icon
                     VStack(spacing: 8) {
                         HStack(spacing: 8) {
-                            if !viewModel.isCompleted && viewModel.status != .broken {
+                            if !viewModel.isCompleted && viewModel.status != .br
+oken {
                                 ProgressView()
                                     .scaleEffect(0.8)
                                     .tint(.accentColor)
@@ -77,7 +155,8 @@ VStack(spacing: 24) {
                                     .font(.title3)
                                     .foregroundStyle(.green)
                             } else if viewModel.status == .broken {
-                                Image(systemName: "exclamationmark.triangle.fill")
+                                Image(systemName: "exclamationmark.triangle.fill
+")
                                     .font(.title3)
                                     .foregroundStyle(.red)
                             }
@@ -90,7 +169,8 @@ VStack(spacing: 24) {
                         .modifier(ContentTransitionModifier())
 
                         if viewModel.status == .broken {
-                            Text(.localized("An error occurred during installation."))
+                            Text(.localized("An error occurred during installati
+on."))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
@@ -103,7 +183,8 @@ VStack(spacing: 24) {
                                 .padding(.horizontal)
                         }
                     }
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.statusLabel)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), val
+ue: viewModel.statusLabel)
                 }
                 .padding(20)
             }
@@ -125,14 +206,16 @@ VStack(spacing: 24) {
                     .padding(.vertical, 16)
                     .background(
                         LinearGradient(
-                            colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+                            colors: [Color.accentColor, Color.accentColor.opacit
+y(0.8)],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
                     .foregroundStyle(.white)
                     .clipShape(Capsule())
-                    .shadow(color: Color.accentColor.opacity(0.4), radius: 12, x: 0, y: 6)
+                    .shadow(color: Color.accentColor.opacity(0.4), radius: 12, x
+: 0, y: 6)
                 }
                 .padding(.horizontal, 20)
                 .transition(.scale.combined(with: .opacity))
@@ -140,62 +223,83 @@ VStack(spacing: 24) {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(uiColor: .systemBackground))
-.sheet(isPresented: $_isWebviewPresenting) {
-SafariRepresentableView(url: installer.pageEndpoint).ignoresSafeArea()
-}
-.onReceive(viewModel.$status) { newStatus in
-if _installationMethod == 0 {
-if case .ready = newStatus {
-if _serverMethod == 0 {
-UIApplication.shared.open(URL(string: installer.iTunesLink)!)
-} else if _serverMethod == 1 {
-_isWebviewPresenting = true
-}
-}
+        .sheet(isPresented: $_isWebviewPresenting) {
+            if let installer = installer {
+                SafariRepresentableView(url: installer.pageEndpoint).ignoresSafe
+Area()
+            }
+        }
+        .onReceive(viewModel.$status) { newStatus in
+            if _installationMethod == 0 {
+                if case .ready = newStatus {
+                    if _serverMethod == 0 {
+                        if let installer = installer {
+                            UIApplication.shared.open(URL(string: installer.iTun
+esLink)!)
+                        }
+                    } else if _serverMethod == 1 {
+                        _isWebviewPresenting = true
+                    }
+                }
 
-if case .sendingPayload = newStatus, _serverMethod == 1 {
-_isWebviewPresenting = false
-}
-                
+                if case .sendingPayload = newStatus, _serverMethod == 1 {
+                    _isWebviewPresenting = false
+                }
+
                 if case .completed = newStatus {
                     BackgroundAudioManager.shared.stop()
                 }
-}
-}
-.onAppear(perform: _install)
-        .onAppear {
-            BackgroundAudioManager.shared.start()
+            }
         }
-        .onDisappear {
-            BackgroundAudioManager.shared.stop()
-        }
-}
+        .onAppear(perform: _install)
+         .onAppear {
+             BackgroundAudioManager.shared.start()
+         }
+         .onDisappear {
+             BackgroundAudioManager.shared.stop()
+         }
+     } // Close else block
+ }
 
-private func _install() {
-guard isSharing || app.identifier != Bundle.main.bundleIdentifier! || _installationMethod == 1 else {
-UIAlertController.showAlertWithOk(
-title: .localized("Install"),
-message: .localized("You cannot update '%@' with itself, please use an alternative tool to update it.", arguments: Bundle.main.name)
-)
-dismiss()
-return
-}
+ private func _install() {
+     // Check if installer was initialized properly
+     guard let installer = installer else {
+         UIAlertController.showAlertWithOk(
+             title: .localized("Error"),
+             message: .localized("Failed to initialize installer. Please try aga
+in.")
+         )
+         dismiss()
+         return
+     }
 
-Task {
-do {
-if isSharing {
-try await installer.export()
-} else {
-try await installer.install()
-}
-} catch {
-await MainActor.run {
-UIAlertController.showAlertWithOk(title: .localized("Error"), message: error.localizedDescription)
-dismiss()
-}
-}
-}
-}
+     guard isSharing || app.identifier != Bundle.main.bundleIdentifier! || _inst
+allationMethod == 1 else {
+         UIAlertController.showAlertWithOk(
+             title: .localized("Install"),
+             message: .localized("You cannot update '%@' with itself, please use
+ an alternative tool to update it.", arguments: Bundle.main.name)
+         )
+         dismiss()
+         return
+     }
+
+     Task {
+         do {
+             if isSharing {
+                 try await installer.export()
+             } else {
+                 try await installer.install()
+             }
+         } catch {
+             await MainActor.run {
+                 UIAlertController.showAlertWithOk(title: .localized("Error"), m
+essage: error.localizedDescription)
+                 dismiss()
+             }
+         }
+     }
+ }
 
     private func getStatusSubtitle() -> String {
         switch viewModel.status {
