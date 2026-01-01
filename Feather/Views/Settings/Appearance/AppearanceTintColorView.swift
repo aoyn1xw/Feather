@@ -237,16 +237,16 @@ struct CustomColorPickerView: View {
 				}
 
 				if colorType == "solid" {
-					Section("Solid Color") {
+					Section(header: Text("Solid Color")) {
 						ColorPicker("Color", selection: $solidColor, supportsOpacity: false)
 					}
 				} else {
-					Section("Custom Gradient") {
+					Section(header: Text("Custom Gradient")) {
 						ColorPicker("Start Color", selection: $gradientStart, supportsOpacity: false)
 						ColorPicker("End Color", selection: $gradientEnd, supportsOpacity: false)
 					}
 
-					Section("Gradient Presets") {
+					Section(header: Text("Gradient Presets")) {
 						ScrollView(.horizontal, showsIndicators: false) {
 							HStack(spacing: 16) {
 								ForEach(gradientPresets, id: \.name) { preset in
@@ -288,7 +288,7 @@ struct CustomColorPickerView: View {
 					}
 				}
 
-				Section("Preview") {
+				Section(header: Text("Preview")) {
 					HStack {
 						Spacer()
 						if colorType == "solid" {
