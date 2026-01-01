@@ -24,10 +24,24 @@ class ServerInstaller: Identifiable, ObservableObject {
 	init(app: AppInfoPresentable, viewModel: InstallerStatusViewModel) throws {
 		self.app = app
 		self.viewModel = viewModel
-		try _setup()
-		try _configureRoutes()
-		try _server?.server.start()
-		_needsShutdown = true
+		
+		AppLogManager.shared.info("Initializing ServerInstaller for \(app.name ?? "Unknown") on port \(port)", category: "Installation")
+		
+		do {
+			try _setup()
+			AppLogManager.shared.debug("ServerInstaller setup completed", category: "Installation")
+			
+			try _configureRoutes()
+			AppLogManager.shared.debug("ServerInstaller routes configured", category: "Installation")
+			
+			try _server?.server.start()
+			AppLogManager.shared.success("ServerInstaller server started successfully", category: "Installation")
+			
+			_needsShutdown = true
+		} catch {
+			AppLogManager.shared.error("ServerInstaller initialization failed: \(error.localizedDescription)", category: "Installation")
+			throw error
+		}
 	}
 	
 	deinit {
@@ -35,11 +49,21 @@ class ServerInstaller: Identifiable, ObservableObject {
 	}
 	
 	private func _setup() throws {
-		self._server = try? setupApp(port: port)
+		guard let server = try? setupApp(port: port) else {
+			AppLogManager.shared.error("Failed to setup server application on port \(port)", category: "Installation")
+			throw NSError(domain: "ServerInstaller", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to setup server on port \(port)"])
+		}
+		self._server = server
+		AppLogManager.shared.debug("Server application setup completed on port \(port)", category: "Installation")
 	}
 		
 	private func _configureRoutes() throws {
-		_server?.get("*") { [weak self] req in
+		guard let server = _server else {
+			AppLogManager.shared.error("Cannot configure routes: server is nil", category: "Installation")
+			throw NSError(domain: "ServerInstaller", code: -2, userInfo: [NSLocalizedDescriptionKey: "Server not initialized"])
+		}
+		
+		server.get("*") { [weak self] req in
 			guard let self else { return Response(status: .badGateway) }
 			switch req.url.path {
 			case plistEndpoint.path:

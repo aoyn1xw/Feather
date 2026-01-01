@@ -448,6 +448,11 @@ extension SigningView {
                 _isSigningProcessPresented = false
                 switch result {
                 case .success(let installLink):
+                    // Send notification if enabled
+                    if UserDefaults.standard.bool(forKey: "Feather.notificationsEnabled") {
+                        NotificationManager.shared.sendAppSignedNotification(appName: app.name ?? "App")
+                    }
+                    
                     let install = UIAlertAction(title: .localized("Install"), style: .default) { _ in
                         if let url = URL(string: installLink) {
                             UIApplication.shared.open(url)
@@ -498,6 +503,11 @@ extension SigningView {
                         !app.isSigned
                     {
                         Storage.shared.deleteApp(for: app)
+                    }
+                    
+                    // Send notification if enabled
+                    if UserDefaults.standard.bool(forKey: "Feather.notificationsEnabled") {
+                        NotificationManager.shared.sendAppSignedNotification(appName: app.name ?? "App")
                     }
                     
                     if _temporaryOptions.post_installAppAfterSigned {

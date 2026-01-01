@@ -61,6 +61,14 @@ struct SettingsView: View {
                     Text(.localized("Configure the apps way of installing, its zip compression levels, and custom modifications to apps."))
                 }
                 
+                NBSection(.localized("Notifications")) {
+                    NavigationLink(destination: NotificationsView()) {
+                        Label(.localized("Notifications"), systemImage: "bell.badge.fill")
+                    }
+                } footer: {
+                    Text(.localized("Receive notifications when apps are successfully signed and ready to install."))
+                }
+                
                 NBSection(.localized("Experimental")) {
                     NavigationLink(destination: FilesTabSettingsView()) {
                         Label(.localized("Files Tab"), systemImage: "folder.fill")
