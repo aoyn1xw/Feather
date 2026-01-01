@@ -632,10 +632,15 @@ struct IPAInspectorView: View {
                             InfoRow(label: "App ID Name", value: appIDName)
                         }
                         if let expirationDate = provisioning.expirationDate {
-                            let formatter = DateFormatter()
-                            formatter.dateStyle = .medium
-                            formatter.timeStyle = .short
-                            InfoRow(label: "Expires", value: formatter.string(from: expirationDate))
+                            InfoRow(
+                                label: "Expires",
+                                value: {
+                                    let formatter = DateFormatter()
+                                    formatter.dateStyle = .medium
+                                    formatter.timeStyle = .short
+                                    return formatter.string(from: expirationDate)
+                                }()
+                            )
                         }
                         if let devices = provisioning.provisionedDevices {
                             NavigationLink(destination: ListDetailView(items: devices, title: "Provisioned Devices")) {
