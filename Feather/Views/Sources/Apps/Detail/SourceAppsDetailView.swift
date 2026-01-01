@@ -157,7 +157,7 @@ struct SourceAppsDetailView: View {
 				
 				if let appPermissions = app.appPermissions {
 					NBSection(.localized("Permissions")) {
-						NavigationLink(destination: PermissionsView(appPermissions: appPermissions)) {
+						NavigationLink(destination: PermissionsView(appPermissions: appPermissions, dominantColor: dominantColor)) {
 							NBTitleWithSubtitleView(
 								title: .localized("Permissions"),
 								subtitle: .localized("See which permissions this app requires.")
@@ -165,8 +165,22 @@ struct SourceAppsDetailView: View {
 						}
 						.padding()
 						.background(
-							RoundedRectangle(cornerRadius: 18, style: .continuous)
-								.fill(Color(.quaternarySystemFill))
+							ZStack {
+								RoundedRectangle(cornerRadius: 16, style: .continuous)
+									.fill(
+										LinearGradient(
+											colors: [
+												dominantColor.opacity(0.15),
+												dominantColor.opacity(0.05)
+											],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
+								
+								RoundedRectangle(cornerRadius: 16, style: .continuous)
+									.stroke(dominantColor.opacity(0.2), lineWidth: 1)
+							}
 						)
 					}
 				}
@@ -180,6 +194,35 @@ struct SourceAppsDetailView: View {
 				}
 			}())
 		}
+		.background(
+			ZStack {
+				// Full gradient background
+				LinearGradient(
+					colors: [
+						dominantColor.opacity(0.4),
+						dominantColor.opacity(0.2),
+						dominantColor.opacity(0.1),
+						Color(UIColor.systemBackground)
+					],
+					startPoint: .top,
+					endPoint: .bottom
+				)
+				.ignoresSafeArea()
+				
+				// Add radial gradient overlay for more depth
+				RadialGradient(
+					colors: [
+						dominantColor.opacity(0.3),
+						dominantColor.opacity(0.1),
+						Color.clear
+					],
+					center: .top,
+					startRadius: 50,
+					endRadius: 500
+				)
+				.ignoresSafeArea()
+			}
+		)
 		.flexibleHeaderScrollView()
 		.shouldSetInset()
 		.toolbar {

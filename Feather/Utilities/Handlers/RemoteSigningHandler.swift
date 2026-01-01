@@ -76,32 +76,38 @@ final class RemoteSigningHandler: NSObject {
         
         var data = Data()
         
-        // IPA File
-        if let ipaData = try? Data(contentsOf: appURL) {
-            data.append("--\(boundary)\r\n".data(using: .utf8)!)
-            data.append("Content-Disposition: form-data; name=\"ipa\"; filename=\"\(appURL.lastPathComponent)\"\r\n".data(using: .utf8)!)
-            data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
-            data.append(ipaData)
-            data.append("\r\n".data(using: .utf8)!)
+        // IPA File - ensure we actually read the file
+        guard let ipaData = try? Data(contentsOf: appURL), !ipaData.isEmpty else {
+            throw RemoteSigningError.serverError("Failed to read IPA file")
         }
+        
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"ipa\"; filename=\"\(appURL.lastPathComponent)\"\r\n".data(using: .utf8)!)
+        data.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+        data.append(ipaData)
+        data.append("\r\n".data(using: .utf8)!)
         
         // P12 File
-        if let p12Data = try? Data(contentsOf: p12URL) {
-            data.append("--\(boundary)\r\n".data(using: .utf8)!)
-            data.append("Content-Disposition: form-data; name=\"p12\"; filename=\"cert.p12\"\r\n".data(using: .utf8)!)
-            data.append("Content-Type: application/x-pkcs12\r\n\r\n".data(using: .utf8)!)
-            data.append(p12Data)
-            data.append("\r\n".data(using: .utf8)!)
+        guard let p12Data = try? Data(contentsOf: p12URL), !p12Data.isEmpty else {
+            throw RemoteSigningError.serverError("Failed to read P12 certificate file")
         }
         
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"p12\"; filename=\"cert.p12\"\r\n".data(using: .utf8)!)
+        data.append("Content-Type: application/x-pkcs12\r\n\r\n".data(using: .utf8)!)
+        data.append(p12Data)
+        data.append("\r\n".data(using: .utf8)!)
+        
         // Mobile Provision
-        if let provisionData = try? Data(contentsOf: provisionURL) {
-            data.append("--\(boundary)\r\n".data(using: .utf8)!)
-            data.append("Content-Disposition: form-data; name=\"mobileprovision\"; filename=\"profile.mobileprovision\"\r\n".data(using: .utf8)!)
-            data.append("Content-Type: application/x-apple-aspen-config\r\n\r\n".data(using: .utf8)!)
-            data.append(provisionData)
-            data.append("\r\n".data(using: .utf8)!)
+        guard let provisionData = try? Data(contentsOf: provisionURL), !provisionData.isEmpty else {
+            throw RemoteSigningError.serverError("Failed to read provisioning profile file")
         }
+        
+        data.append("--\(boundary)\r\n".data(using: .utf8)!)
+        data.append("Content-Disposition: form-data; name=\"mobileprovision\"; filename=\"profile.mobileprovision\"\r\n".data(using: .utf8)!)
+        data.append("Content-Type: application/x-apple-aspen-config\r\n\r\n".data(using: .utf8)!)
+        data.append(provisionData)
+        data.append("\r\n".data(using: .utf8)!)
         
         // Password
         if let password = _certificate.password {
