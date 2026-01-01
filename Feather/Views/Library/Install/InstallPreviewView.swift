@@ -30,7 +30,7 @@ do {
     self.installer = try ServerInstaller(app: app, viewModel: viewModel)
 } catch {
     self.installer = nil
-    self._initializationError = State(initialValue: error.localizedDescription)
+    self._initializationError = error.localizedDescription
 }
 }
 
