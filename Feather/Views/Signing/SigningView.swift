@@ -448,14 +448,14 @@ extension SigningView {
             ) { result in
                 _isSigningProcessPresented = false
                 switch result {
-                case .success(let installLink):
+                case .success(let response):
                     let install = UIAlertAction(title: .localized("Install"), style: .default) { _ in
-                        if let url = URL(string: installLink) {
+                        if let url = URL(string: response.directInstallLink) {
                             UIApplication.shared.open(url)
                         }
                     }
                     let copy = UIAlertAction(title: .localized("Copy Link"), style: .default) { _ in
-                        UIPasteboard.general.string = installLink
+                        UIPasteboard.general.string = response.installLink
                     }
                     let cancel = UIAlertAction(title: .localized("Cancel"), style: .cancel)
                     

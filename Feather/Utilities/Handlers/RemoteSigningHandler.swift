@@ -38,7 +38,7 @@ final class RemoteSigningHandler: NSObject {
         super.init()
     }
     
-    func sign() async throws -> String {
+    func sign() async throws -> RemoteSigningResponse {
         guard let appURL = Storage.shared.getAppDirectory(for: _app) else {
             throw RemoteSigningError.appNotFound
         }
@@ -105,7 +105,6 @@ final class RemoteSigningHandler: NSObject {
             throw RemoteSigningError.serverError(errorMessage)
         }
         
-        let decodedResponse = try JSONDecoder().decode(RemoteSigningResponse.self, from: responseData)
-        return decodedResponse.installLink
+        return try JSONDecoder().decode(RemoteSigningResponse.self, from: responseData)
     }
 }

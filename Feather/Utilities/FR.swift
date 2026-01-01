@@ -64,15 +64,15 @@ enum FR {
         _ app: AppInfoPresentable,
         using options: Options,
         certificate: CertificatePair,
-        completion: @escaping (Result<String, Error>) -> Void
+        completion: @escaping (Result<RemoteSigningResponse, Error>) -> Void
     ) {
         Task.detached {
             let handler = RemoteSigningHandler(app: app, certificate: certificate, options: options)
             
             do {
-                let installLink = try await handler.sign()
+                let response = try await handler.sign()
                 await MainActor.run {
-                    completion(.success(installLink))
+                    completion(.success(response))
                 }
             } catch {
                 await MainActor.run {
