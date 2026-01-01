@@ -15,7 +15,8 @@ class GradientTextManager: ObservableObject {
 	private init() {}
 	
 	var gradientColors: [Color] {
-		[Color(hex: gradientStartColorHex), Color(hex: gradientEndColorHex)]
+		let colors: [Color] = [Color(hex: gradientStartColorHex), Color(hex: gradientEndColorHex)]
+		return colors
 	}
 	
 	var gradientStartPoint: UnitPoint {
