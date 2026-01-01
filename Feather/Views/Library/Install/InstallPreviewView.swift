@@ -242,8 +242,11 @@ var body: some View {
  }
 
  private func _install() {
+     AppLogManager.shared.info("Starting installation for: \(app.name ?? "Unknown")", category: "Installation")
+
      // Check if installer was initialized properly
      guard let installer = installer else {
+         AppLogManager.shared.error("Failed to initialize installer for \(app.name ?? "Unknown")", category: "Installation")
          UIAlertController.showAlertWithOk(
              title: .localized("Error"),
              message: .localized("Failed to initialize installer. Please try again.")
@@ -253,6 +256,7 @@ var body: some View {
      }
 
      guard isSharing || app.identifier != Bundle.main.bundleIdentifier! || _installationMethod == 1 else {
+         AppLogManager.shared.warning("Cannot install Feather over itself", category: "Installation")
          UIAlertController.showAlertWithOk(
              title: .localized("Install"),
              message: .localized("You cannot update '%@' with itself, please use an alternative tool to update it.", arguments: Bundle.main.name)
@@ -264,11 +268,16 @@ var body: some View {
      Task {
          do {
              if isSharing {
+                 AppLogManager.shared.info("Exporting app: \(app.name ?? "Unknown")", category: "Installation")
                  try await installer.export()
+                 AppLogManager.shared.success("Successfully exported app: \(app.name ?? "Unknown")", category: "Installation")
              } else {
+                 AppLogManager.shared.info("Installing app: \(app.name ?? "Unknown") via method \(_installationMethod)", category: "Installation")
                  try await installer.install()
+                 AppLogManager.shared.success("Successfully installed app: \(app.name ?? "Unknown")", category: "Installation")
              }
          } catch {
+             AppLogManager.shared.error("Installation failed for \(app.name ?? "Unknown"): \(error.localizedDescription)", category: "Installation")
              await MainActor.run {
                  UIAlertController.showAlertWithOk(title: .localized("Error"), message: error.localizedDescription)
                  dismiss()
