@@ -14,7 +14,7 @@ struct DeveloperView: View {
     var body: some View {
         NBNavigationView("Developer") {
             List {
-                Section {
+                Section(header: Text("Diagnostics")) {
                     NavigationLink(destination: AppLogsView()) {
                         Label("App Logs", systemImage: "terminal")
                     }
@@ -32,11 +32,9 @@ struct DeveloperView: View {
                         get: { UserDefaults.standard.bool(forKey: "verboseLogging") },
                         set: { UserDefaults.standard.set($0, forKey: "verboseLogging") }
                     ))
-                } header: {
-                    Text("Diagnostics")
                 }
                 
-                Section {
+                Section(header: Text("Analysis")) {
                     NavigationLink(destination: IPAInspectorView()) {
                         Label("IPA Inspector", systemImage: "doc.zipper")
                     }
@@ -46,11 +44,9 @@ struct DeveloperView: View {
                     NavigationLink(destination: FileSystemBrowserView()) {
                         Label("File System", systemImage: "folder")
                     }
-                } header: {
-                    Text("Analysis")
                 }
                 
-                Section {
+                Section(header: Text("Data")) {
                     NavigationLink(destination: SourceDataView()) {
                         Label("Source Data", systemImage: "server.rack")
                     }
@@ -63,11 +59,9 @@ struct DeveloperView: View {
                     NavigationLink(destination: CoreDataInspectorView()) {
                         Label("CoreData Inspector", systemImage: "cylinder.split.1x2")
                     }
-                } header: {
-                    Text("Data")
                 }
                 
-                Section {
+                Section(header: Text("UI Debugging")) {
                     Toggle("Show Layout Boundaries", isOn: $showLayoutBoundaries)
                         .onChange(of: showLayoutBoundaries) { newValue in
                             UserDefaults.standard.set(newValue, forKey: "_UIConstraintBasedLayoutPlayground")
@@ -79,19 +73,15 @@ struct DeveloperView: View {
                                 windowScene.windows.first?.layer.speed = newValue ? 0.1 : 1.0
                             }
                         }
-                } header: {
-                    Text("UI Debugging")
                 }
                 
-                Section {
+                Section(header: Text("Experiments")) {
                     NavigationLink(destination: FeatureFlagsView()) {
                         Label("Feature Flags", systemImage: "flag")
                     }
-                } header: {
-                    Text("Experiments")
                 }
                 
-                Section {
+                Section(header: Text("Danger Zone")) {
                     Button(role: .destructive) {
                         resetAppState()
                     } label: {
@@ -109,8 +99,6 @@ struct DeveloperView: View {
                     } label: {
                         Label("Reset All Data", systemImage: "exclamationmark.triangle.fill")
                     }
-                } header: {
-                    Text("Danger Zone")
                 }
                 
                 Section {
@@ -553,7 +541,7 @@ struct IPAInspectorView: View {
     var body: some View {
         List {
             // Import Section
-            Section {
+            Section(header: Text("Import")) {
                 Button(action: { isImporting = true }) {
                     HStack {
                         Image(systemName: "doc.zipper")
@@ -578,13 +566,11 @@ struct IPAInspectorView: View {
                         }
                     }
                 }
-            } header: {
-                Text("Import")
             }
             
             // Error Section
             if let error = errorMessage {
-                Section {
+                Section(header: Text("Error")) {
                     HStack {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundStyle(.red)
@@ -592,8 +578,6 @@ struct IPAInspectorView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
-                } header: {
-                    Text("Error")
                 }
             }
             
@@ -682,7 +666,7 @@ struct IPAInspectorView: View {
                 
                 // Dynamic Libraries Section
                 if !info.dylibs.isEmpty {
-                    Section {
+                    Section(header: Text("Dynamic Libraries (\(info.dylibs.count))"), footer: Text("Detected .dylib files that may be injected into the app.")) {
                         ForEach(info.dylibs.prefix(10), id: \.self) { dylib in
                             HStack {
                                 Image(systemName: "cube.box")
@@ -700,10 +684,6 @@ struct IPAInspectorView: View {
                                     .foregroundStyle(.blue)
                             }
                         }
-                    } header: {
-                        Text("Dynamic Libraries (\(info.dylibs.count))")
-                    } footer: {
-                        Text("Detected .dylib files that may be injected into the app.")
                     }
                 }
                 
@@ -748,10 +728,7 @@ struct IPAInspectorView: View {
                 
                 // Entitlements Section
                 if let entitlements = info.entitlements, !entitlements.isEmpty {
-                    Section(
-                        header: { Text("Entitlements (from Provisioning Profile)") },
-                        footer: { Text("Entitlements declared in the embedded provisioning profile.") }
-                    ) {
+                    Section(header: Text("Entitlements (from Provisioning Profile)"), footer: Text("Entitlements declared in the embedded provisioning profile.")) {
                         NavigationLink(destination: PlistViewer(dictionary: entitlements, title: "Entitlements")) {
                             HStack {
                                 Image(systemName: "checkmark.shield")
@@ -787,7 +764,7 @@ struct IPAInspectorView: View {
                 }
                 
                 // Limitations Section
-                Section {
+                Section(header: Text("Limitations"), footer: Text("Some advanced analysis features require macOS command-line tools or specialized security frameworks not available in the iOS sandbox.")) {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack(spacing: 8) {
                             Image(systemName: "info.circle.fill")
@@ -807,10 +784,6 @@ struct IPAInspectorView: View {
                         }
                     }
                     .padding(.vertical, 4)
-                } header: {
-                    Text("Limitations")
-                } footer: {
-                    Text("Some advanced analysis features require macOS command-line tools or specialized security frameworks not available in the iOS sandbox.")
                 }
             }
         }
