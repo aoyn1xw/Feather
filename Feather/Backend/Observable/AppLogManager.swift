@@ -1,6 +1,9 @@
 import Foundation
 import OSLog
 import Combine
+#if canImport(UIKit)
+import UIKit
+#endif
 
 // MARK: - Log Entry
 struct LogEntry: Identifiable, Codable {
@@ -216,6 +219,7 @@ final class AppLogManager: ObservableObject {
     // MARK: - Log Interception
     
     private func setupLogInterception() {
+        #if canImport(UIKit)
         // Log app lifecycle events
         NotificationCenter.default.addObserver(
             forName: UIApplication.didBecomeActiveNotification,
@@ -241,6 +245,7 @@ final class AppLogManager: ObservableObject {
             self?.info("App entered background", category: "Lifecycle")
             self?.persistLogs()
         }
+        #endif
     }
     
     deinit {

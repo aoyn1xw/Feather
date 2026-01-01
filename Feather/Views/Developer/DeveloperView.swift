@@ -773,11 +773,16 @@ struct IPAInspectorView: View {
         }
         
         // Unzip IPA (IPA is a zip file)
+        #if os(macOS) || targetEnvironment(macCatalyst)
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/unzip")
         process.arguments = ["-q", url.path, "-d", tempDir.path]
         try process.run()
         process.waitUntilExit()
+        #else
+        // For iOS, use a different approach or throw an error
+        throw NSError(domain: "IPAInspector", code: -2, userInfo: [NSLocalizedDescriptionKey: "IPA extraction is not supported on iOS"])
+        #endif
         
         // Find .app bundle
         let payloadDir = tempDir.appendingPathComponent("Payload")
