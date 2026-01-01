@@ -79,6 +79,23 @@ struct DeveloperView: View {
                     NavigationLink(destination: FeatureFlagsView()) {
                         Label("Feature Flags", systemImage: "flag")
                     }
+                    
+                    Button {
+                        // Reset onboarding flag to show it again
+                        UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
+                        HapticsManager.shared.success()
+                        
+                        // Log the action
+                        AppLogManager.shared.info("Onboarding reset - user will see onboarding again on next launch", category: "Developer")
+                        
+                        // Show confirmation alert
+                        UIAlertController.showAlertWithOk(
+                            title: "Onboarding Reset",
+                            message: "The onboarding screen will be shown when you restart the app."
+                        )
+                    } label: {
+                        Label("Replay Onboarding", systemImage: "arrow.counterclockwise.circle")
+                    }
                 }
                 
                 Section(header: Text("Danger Zone")) {
