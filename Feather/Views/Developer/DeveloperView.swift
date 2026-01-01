@@ -835,6 +835,15 @@ struct IPAInspectorView: View {
     private func extractIPAInfo(from url: URL) async throws -> IPAInfo {
         let fileManager = FileManager.default
         
+        // Start accessing security-scoped resource FIRST
+        guard url.startAccessingSecurityScopedResource() else {
+            throw NSError(domain: "IPAInspector", code: -3, userInfo: [NSLocalizedDescriptionKey: "Cannot access file. Permission denied."])
+        }
+        
+        defer {
+            url.stopAccessingSecurityScopedResource()
+        }
+        
         // Get file size
         let attributes = try fileManager.attributesOfItem(atPath: url.path)
         let fileSize = ByteCountFormatter.string(fromByteCount: Int64(attributes[.size] as? UInt64 ?? 0), countStyle: .file)
@@ -845,16 +854,6 @@ struct IPAInspectorView: View {
         
         defer {
             try? fileManager.removeItem(at: tempDir)
-        }
-        
-        // IPA is a ZIP archive - use ZIPFoundation to extract
-        // Start accessing security-scoped resource
-        guard url.startAccessingSecurityScopedResource() else {
-            throw NSError(domain: "IPAInspector", code: -3, userInfo: [NSLocalizedDescriptionKey: "Cannot access file. Permission denied."])
-        }
-        
-        defer {
-            url.stopAccessingSecurityScopedResource()
         }
         
         // Extract IPA using ZIPFoundation

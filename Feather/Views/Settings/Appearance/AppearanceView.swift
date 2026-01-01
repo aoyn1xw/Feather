@@ -18,6 +18,9 @@ struct AppearanceView: View {
 	@AppStorage("com.apple.SwiftUI.IgnoreSolariumLinkedOnCheck")
 	private var _ignoreSolariumLinkedOnCheck: Bool = false
 	
+	@AppStorage("Feather.showNews")
+	private var _showNews: Bool = true
+	
 	// MARK: Body
     var body: some View {
 		NBList(.localized("Appearance")) {
@@ -50,6 +53,10 @@ struct AppearanceView: View {
 				}
 				.labelsHidden()
 				.pickerStyle(.inline)
+				
+				Toggle(.localized("Show News"), isOn: $_showNews)
+			} footer: {
+				Text(.localized("When disabled, news from sources will not be displayed in the app."))
 			}
 			
 			NBSection(.localized("Status Bar")) {
