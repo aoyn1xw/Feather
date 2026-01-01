@@ -682,7 +682,7 @@ struct IPAInspectorView: View {
                 
                 // Dynamic Libraries Section
                 if !info.dylibs.isEmpty {
-                    Section(header: Text("Dynamic Libraries (\(info.dylibs.count))")) {
+                    Section {
                         ForEach(info.dylibs.prefix(10), id: \.self) { dylib in
                             HStack {
                                 Image(systemName: "cube.box")
@@ -700,6 +700,8 @@ struct IPAInspectorView: View {
                                     .foregroundStyle(.blue)
                             }
                         }
+                    } header: {
+                        Text("Dynamic Libraries (\(info.dylibs.count))")
                     } footer: {
                         Text("Detected .dylib files that may be injected into the app.")
                     }
