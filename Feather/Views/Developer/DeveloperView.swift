@@ -748,7 +748,10 @@ struct IPAInspectorView: View {
                 
                 // Entitlements Section
                 if let entitlements = info.entitlements, !entitlements.isEmpty {
-                    Section(header: Text("Entitlements (from Provisioning Profile)")) {
+                    Section(
+                        header: { Text("Entitlements (from Provisioning Profile)") },
+                        footer: { Text("Entitlements declared in the embedded provisioning profile.") }
+                    ) {
                         NavigationLink(destination: PlistViewer(dictionary: entitlements, title: "Entitlements")) {
                             HStack {
                                 Image(systemName: "checkmark.shield")
@@ -757,8 +760,6 @@ struct IPAInspectorView: View {
                                     .font(.subheadline)
                             }
                         }
-                    } footer: {
-                        Text("Entitlements declared in the embedded provisioning profile.")
                     }
                 }
                 
