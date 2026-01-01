@@ -615,7 +615,7 @@ struct IPAInspectorView: View {
                     }
                 }
                 
-                Section("Basic Information") {
+                Section(header: Text("Basic Information")) {
                     InfoRow(label: "File Name", value: info.fileName)
                     InfoRow(label: "File Size", value: info.fileSize)
                     if let bundleID = info.bundleID {
@@ -637,7 +637,7 @@ struct IPAInspectorView: View {
                 
                 // Provisioning Profile Section
                 if let provisioning = info.provisioning {
-                    Section("Provisioning Profile") {
+                    Section(header: Text("Provisioning Profile")) {
                         if let teamName = provisioning.teamName {
                             InfoRow(label: "Team Name", value: teamName)
                         }
@@ -668,7 +668,7 @@ struct IPAInspectorView: View {
                 
                 // Info.plist Section
                 if let plist = info.infoPlist, !plist.isEmpty {
-                    Section("Info.plist") {
+                    Section(header: Text("Info.plist")) {
                         NavigationLink(destination: PlistViewer(dictionary: plist, title: "Info.plist")) {
                             HStack {
                                 Image(systemName: "doc.text")
@@ -682,7 +682,7 @@ struct IPAInspectorView: View {
                 
                 // Dynamic Libraries Section
                 if !info.dylibs.isEmpty {
-                    Section("Dynamic Libraries (\(info.dylibs.count))") {
+                    Section(header: Text("Dynamic Libraries (\(info.dylibs.count))")) {
                         ForEach(info.dylibs.prefix(10), id: \.self) { dylib in
                             HStack {
                                 Image(systemName: "cube.box")
@@ -707,7 +707,7 @@ struct IPAInspectorView: View {
                 
                 // Frameworks Section
                 if !info.frameworks.isEmpty {
-                    Section("Frameworks (\(info.frameworks.count))") {
+                    Section(header: Text("Frameworks (\(info.frameworks.count))")) {
                         ForEach(info.frameworks.prefix(10), id: \.self) { framework in
                             HStack {
                                 Image(systemName: "shippingbox")
@@ -730,7 +730,7 @@ struct IPAInspectorView: View {
                 
                 // Plugins Section
                 if !info.plugins.isEmpty {
-                    Section("Plugins/Extensions (\(info.plugins.count))") {
+                    Section(header: Text("Plugins/Extensions (\(info.plugins.count))")) {
                         ForEach(info.plugins, id: \.self) { plugin in
                             HStack {
                                 Image(systemName: "puzzlepiece.extension")
@@ -746,7 +746,7 @@ struct IPAInspectorView: View {
                 
                 // Entitlements Section
                 if let entitlements = info.entitlements, !entitlements.isEmpty {
-                    Section("Entitlements (from Provisioning Profile)") {
+                    Section(header: Text("Entitlements (from Provisioning Profile)")) {
                         NavigationLink(destination: PlistViewer(dictionary: entitlements, title: "Entitlements")) {
                             HStack {
                                 Image(systemName: "checkmark.shield")
@@ -762,7 +762,7 @@ struct IPAInspectorView: View {
                 
                 // File Structure Section
                 if !info.fileStructure.isEmpty {
-                    Section("File Structure (\(info.fileStructure.count) files)") {
+                    Section(header: Text("File Structure (\(info.fileStructure.count) files)")) {
                         ForEach(info.fileStructure.prefix(15), id: \.self) { file in
                             HStack {
                                 Image(systemName: fileIcon(for: file))
@@ -1169,7 +1169,7 @@ struct JSONViewer: View {
 struct AppStateView: View {
     var body: some View {
         List {
-            Section("Storage") {
+            Section(header: Text("Storage")) {
                 Text("Documents: \(getDocumentsSize())")
                 Text("Cache: \(getCacheSize())")
             }
@@ -1210,7 +1210,7 @@ struct PerformanceMonitorView: View {
     
     var body: some View {
         List {
-            Section("System Resources") {
+            Section(header: Text("System Resources")) {
                 HStack {
                     Label("CPU Usage", systemImage: "cpu")
                     Spacer()
@@ -1234,7 +1234,7 @@ struct PerformanceMonitorView: View {
                 }
             }
             
-            Section("App Performance") {
+            Section(header: Text("App Performance")) {
                 HStack {
                     Label("Frame Rate", systemImage: "waveform.path.ecg")
                     Spacer()
@@ -1325,7 +1325,7 @@ struct PerformanceMonitorView: View {
 struct CoreDataInspectorView: View {
     var body: some View {
         List {
-            Section("Entities") {
+            Section(header: Text("Entities")) {
                 NavigationLink("Certificates") {
                     EntityDetailView(entityName: "Certificate")
                 }
@@ -1340,7 +1340,7 @@ struct CoreDataInspectorView: View {
                 }
             }
             
-            Section("Statistics") {
+            Section(header: Text("Statistics")) {
                 HStack {
                     Text("Total Certificates")
                     Spacer()
