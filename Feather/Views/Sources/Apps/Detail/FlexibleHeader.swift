@@ -46,7 +46,7 @@ private struct FlexibleHeaderScrollViewModifier: ViewModifier {
 
 // MARK: - View Extensions
 
-extension ScrollView {
+extension View {
 	@ViewBuilder
 	@MainActor func flexibleHeaderScrollView() -> some View {
 		if #available(iOS 18, *) {
@@ -55,9 +55,7 @@ extension ScrollView {
 			self
 		}
 	}
-}
-
-extension View {
+	
 	@ViewBuilder
 	func flexibleHeaderContent() -> some View {
 		if #available(iOS 18, *) {
