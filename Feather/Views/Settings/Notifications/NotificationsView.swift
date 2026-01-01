@@ -52,7 +52,7 @@ struct NotificationsView: View {
                         HStack {
                             Image(systemName: "bell.badge.fill")
                                 .font(.title2)
-                                .foregroundStyle(.accentColor)
+                                .foregroundStyle(Color.accentColor)
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Downloaded App")

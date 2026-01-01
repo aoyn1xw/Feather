@@ -37,8 +37,8 @@ init(app: AppInfoPresentable, isSharing: Bool = false) {
 		let errorMessage = "Failed to initialize ServerInstaller: \(initError.localizedDescription)"
 		AppLogManager.shared.error(errorMessage, category: "Installation")
 		error = errorMessage
-	} catch {
-		let errorMessage = "Failed to initialize ServerInstaller: \(error.localizedDescription)"
+	} catch let otherError {
+		let errorMessage = "Failed to initialize ServerInstaller: \(otherError.localizedDescription)"
 		AppLogManager.shared.error(errorMessage, category: "Installation")
 		error = errorMessage
 	}

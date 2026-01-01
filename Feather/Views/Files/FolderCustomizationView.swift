@@ -29,22 +29,7 @@ struct FolderCustomizationView: View {
                         GridItem(.adaptive(minimum: 60))
                     ], spacing: 16) {
                         ForEach(availableIcons, id: \.self) { icon in
-                            Button {
-                                selectedIcon = icon
-                                saveIcon()
-                            } label: {
-                                VStack(spacing: 8) {
-                                    Image(systemName: icon)
-                                        .font(.system(size: 32))
-                                        .foregroundStyle(selectedIcon == icon ? .accentColor : .secondary)
-                                        .frame(width: 60, height: 60)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                                .fill(selectedIcon == icon ? Color.accentColor.opacity(0.1) : Color.secondary.opacity(0.1))
-                                        )
-                                }
-                            }
-                            .buttonStyle(.plain)
+                            iconButton(for: icon)
                         }
                     }
                     .padding(.vertical, 8)
@@ -75,5 +60,28 @@ struct FolderCustomizationView: View {
         UserDefaults.standard.set(selectedIcon, forKey: "folder_icon_\(folderURL.path)")
         HapticsManager.shared.impact()
         FileManagerService.shared.loadFiles()
+    }
+    
+    private func iconButton(for icon: String) -> some View {
+        let isSelected = selectedIcon == icon
+        let iconColor: Color = isSelected ? .accentColor : .secondary
+        let backgroundColor: Color = isSelected ? Color.accentColor.opacity(0.1) : Color.secondary.opacity(0.1)
+        
+        return Button {
+            selectedIcon = icon
+            saveIcon()
+        } label: {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 32))
+                    .foregroundStyle(iconColor)
+                    .frame(width: 60, height: 60)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(backgroundColor)
+                    )
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
