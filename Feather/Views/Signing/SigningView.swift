@@ -450,7 +450,7 @@ extension SigningView {
                 switch result {
                 case .success(let response):
                     let install = UIAlertAction(title: .localized("Install"), style: .default) { _ in
-                        if let url = URL(string: response.directInstallLink) {
+                        if let url = URL(string: response.installLink) {
                             UIApplication.shared.open(url)
                         }
                     }
