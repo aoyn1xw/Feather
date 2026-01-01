@@ -195,37 +195,322 @@ struct UserDefaultsEditorView: View {
 }
 
 struct AppLogsView: View {
-    @State private var logs: [String] = ["Log system initialized..."]
-    @State private var filter: String = ""
+    @StateObject private var logManager = AppLogManager.shared
+    @State private var searchText = ""
+    @State private var selectedLevel: LogEntry.LogLevel?
+    @State private var selectedCategory: String?
+    @State private var showFilters = false
+    @State private var showShareSheet = false
+    @State private var shareText = ""
+    @State private var autoScroll = true
+    
+    var filteredLogs: [LogEntry] {
+        logManager.filteredLogs(searchText: searchText, level: selectedLevel, category: selectedCategory)
+    }
     
     var body: some View {
-        VStack {
-            TextField("Filter logs...", text: $filter)
-                .textFieldStyle(.roundedBorder)
-                .padding()
+        VStack(spacing: 0) {
+            // Search and Filter Bar
+            VStack(spacing: 12) {
+                HStack(spacing: 12) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.secondary)
+                    
+                    TextField("Search logs...", text: $searchText)
+                        .textFieldStyle(.plain)
+                    
+                    if !searchText.isEmpty {
+                        Button(action: { searchText = "" }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .padding(10)
+                .background(Color.secondary.opacity(0.1))
+                .cornerRadius(10)
+                
+                // Filter Pills
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        // All logs
+                        FilterPill(
+                            title: "All",
+                            isSelected: selectedLevel == nil,
+                            count: logManager.logs.count
+                        ) {
+                            selectedLevel = nil
+                        }
+                        
+                        // Level filters
+                        ForEach(LogEntry.LogLevel.allCases, id: \.self) { level in
+                            let count = logManager.logs.filter { $0.level == level }.count
+                            if count > 0 {
+                                FilterPill(
+                                    title: level.rawValue,
+                                    icon: level.icon,
+                                    isSelected: selectedLevel == level,
+                                    count: count
+                                ) {
+                                    selectedLevel = selectedLevel == level ? nil : level
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 2)
+                }
+            }
+            .padding()
             
-            ScrollView {
-                LazyVStack(alignment: .leading) {
-                    ForEach(logs.filter { filter.isEmpty || $0.contains(filter) }, id: \.self) { log in
-                        Text(log)
-                            .font(.caption.monospaced())
-                            .padding(.horizontal)
-                            .padding(.vertical, 2)
+            Divider()
+            
+            // Logs List
+            if filteredLogs.isEmpty {
+                VStack(spacing: 12) {
+                    Spacer()
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .font(.system(size: 50))
+                        .foregroundStyle(.secondary)
+                    Text(logManager.logs.isEmpty ? "No logs yet" : "No matching logs")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                    if !logManager.logs.isEmpty {
+                        Text("Try adjusting your search or filters")
+                            .font(.subheadline)
+                            .foregroundStyle(.tertiary)
+                    }
+                    Spacer()
+                }
+            } else {
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 4) {
+                            ForEach(filteredLogs) { log in
+                                LogEntryRow(entry: log)
+                                    .id(log.id)
+                            }
+                        }
+                        .padding()
+                    }
+                    .onChange(of: filteredLogs.count) { _ in
+                        if autoScroll, let lastLog = filteredLogs.last {
+                            withAnimation {
+                                proxy.scrollTo(lastLog.id, anchor: .bottom)
+                            }
+                        }
                     }
                 }
             }
         }
         .navigationTitle("App Logs")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            Button(action: exportLogs) {
-                Image(systemName: "square.and.arrow.up")
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                // Auto-scroll toggle
+                Button(action: { autoScroll.toggle() }) {
+                    Image(systemName: autoScroll ? "arrow.down.circle.fill" : "arrow.down.circle")
+                }
+                
+                // Clear logs
+                Button(role: .destructive, action: {
+                    logManager.clearLogs()
+                }) {
+                    Image(systemName: "trash")
+                }
+                
+                // Share menu
+                Menu {
+                    Button(action: shareAsText) {
+                        Label("Share as Text", systemImage: "doc.text")
+                    }
+                    
+                    Button(action: shareAsJSON) {
+                        Label("Share as JSON", systemImage: "doc.badge.gearshape")
+                    }
+                    
+                    Button(action: copyToClipboard) {
+                        Label("Copy to Clipboard", systemImage: "doc.on.clipboard")
+                    }
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                }
+            }
+        }
+        .sheet(isPresented: $showShareSheet) {
+            ActivityViewController(activityItems: [shareText])
+        }
+        .onAppear {
+            // Add initial log
+            if logManager.logs.isEmpty {
+                logManager.info("App Logs view initialized", category: "Developer")
             }
         }
     }
     
-    func exportLogs() {
-        // Export logic
+    private func shareAsText() {
+        shareText = logManager.exportLogs()
+        showShareSheet = true
     }
+    
+    private func shareAsJSON() {
+        if let jsonData = logManager.exportLogsAsJSON(),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            shareText = jsonString
+            showShareSheet = true
+        }
+    }
+    
+    private func copyToClipboard() {
+        UIPasteboard.general.string = logManager.exportLogs()
+        logManager.success("Logs copied to clipboard", category: "Developer")
+    }
+}
+
+// MARK: - Filter Pill
+struct FilterPill: View {
+    let title: String
+    var icon: String?
+    let isSelected: Bool
+    let count: Int
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                if let icon = icon {
+                    Text(icon)
+                }
+                Text(title)
+                    .font(.caption.bold())
+                Text("(\(count))")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(isSelected ? Color.accentColor : Color.secondary.opacity(0.15))
+            )
+            .foregroundStyle(isSelected ? .white : .primary)
+        }
+    }
+}
+
+// MARK: - Log Entry Row
+struct LogEntryRow: View {
+    let entry: LogEntry
+    @State private var isExpanded = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .top, spacing: 8) {
+                // Level indicator
+                Text(entry.level.icon)
+                    .font(.system(size: 12))
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    // Main message
+                    HStack {
+                        Text(entry.formattedTimestamp)
+                            .font(.caption2.monospaced())
+                            .foregroundStyle(.secondary)
+                        
+                        Text("[\(entry.category)]")
+                            .font(.caption2.bold())
+                            .foregroundStyle(.blue)
+                        
+                        Spacer()
+                    }
+                    
+                    Text(entry.message)
+                        .font(.caption.monospaced())
+                        .foregroundStyle(levelColor(entry.level))
+                    
+                    // Expanded details
+                    if isExpanded {
+                        Divider()
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            DetailRow(label: "Level", value: entry.level.rawValue)
+                            DetailRow(label: "Category", value: entry.category)
+                            DetailRow(label: "File", value: entry.file)
+                            DetailRow(label: "Function", value: entry.function)
+                            DetailRow(label: "Line", value: "\(entry.line)")
+                        }
+                        .font(.caption2.monospaced())
+                        .padding(.top, 4)
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding(8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(levelBackgroundColor(entry.level))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(levelBorderColor(entry.level), lineWidth: 1)
+            )
+            .contentShape(Rectangle())
+            .onTapGesture {
+                withAnimation(.spring(response: 0.3)) {
+                    isExpanded.toggle()
+                }
+            }
+        }
+    }
+    
+    private func levelColor(_ level: LogEntry.LogLevel) -> Color {
+        switch level {
+        case .debug: return .gray
+        case .info: return .blue
+        case .success: return .green
+        case .warning: return .orange
+        case .error: return .red
+        case .critical: return .purple
+        }
+    }
+    
+    private func levelBackgroundColor(_ level: LogEntry.LogLevel) -> Color {
+        levelColor(level).opacity(0.05)
+    }
+    
+    private func levelBorderColor(_ level: LogEntry.LogLevel) -> Color {
+        levelColor(level).opacity(0.2)
+    }
+}
+
+// MARK: - Detail Row
+struct DetailRow: View {
+    let label: String
+    let value: String
+    
+    var body: some View {
+        HStack {
+            Text("\(label):")
+                .foregroundStyle(.secondary)
+            Text(value)
+                .foregroundStyle(.primary)
+        }
+    }
+}
+
+// MARK: - Activity View Controller
+struct ActivityViewController: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: nil
+        )
+        return controller
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 struct IPAInspectorView: View {
