@@ -11,10 +11,11 @@ struct InstallPreviewView: View {
 @AppStorage("Feather.installationMethod") private var _installationMethod: Int = 0
 @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
 @State private var _isWebviewPresenting = false
+@State private var _initializationError: String?
 
 var app: AppInfoPresentable
 @StateObject var viewModel: InstallerStatusViewModel
-@StateObject var installer: ServerInstaller
+var installer: ServerInstaller?
 
 @State var isSharing: Bool
 
@@ -23,12 +24,76 @@ self.app = app
 self.isSharing = isSharing
 let viewModel = InstallerStatusViewModel(isIdevice: UserDefaults.standard.integer(forKey: "Feather.installationMethod") == 1)
 self._viewModel = StateObject(wrappedValue: viewModel)
-self._installer = StateObject(wrappedValue: try! ServerInstaller(app: app, viewModel: viewModel))
+
+// Try to create the installer safely
+do {
+    self.installer = try ServerInstaller(app: app, viewModel: viewModel)
+} catch {
+    self.installer = nil
+    self._initializationError = State(initialValue: error.localizedDescription)
+}
 }
 
 // MARK: Body
 var body: some View {
-VStack(spacing: 24) {
+    // Check for initialization error first
+    if let errorMessage = _initializationError {
+        VStack(spacing: 24) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.red.opacity(0.15), Color.red.opacity(0.05)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [Color.red.opacity(0.3), Color.red.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.5
+                            )
+                    )
+                
+                VStack(spacing: 16) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 50))
+                        .foregroundStyle(.red)
+                    
+                    VStack(spacing: 8) {
+                        Text("Installation Error")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.primary)
+                        
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                }
+                .padding(20)
+            }
+            .frame(height: 180)
+            .padding(.horizontal, 20)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(uiColor: .systemBackground))
+        .onAppear {
+            // Automatically dismiss after showing error
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                dismiss()
+            }
+        }
+    } else {
+        // Normal installation flow
+        VStack(spacing: 24) {
             // Modern Status Card
             ZStack {
                 // Gradient Background
@@ -140,62 +205,77 @@ VStack(spacing: 24) {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(uiColor: .systemBackground))
-.sheet(isPresented: $_isWebviewPresenting) {
-SafariRepresentableView(url: installer.pageEndpoint).ignoresSafeArea()
-}
-.onReceive(viewModel.$status) { newStatus in
-if _installationMethod == 0 {
-if case .ready = newStatus {
-if _serverMethod == 0 {
-UIApplication.shared.open(URL(string: installer.iTunesLink)!)
-} else if _serverMethod == 1 {
-_isWebviewPresenting = true
-}
-}
-
-if case .sendingPayload = newStatus, _serverMethod == 1 {
-_isWebviewPresenting = false
-}
+        .sheet(isPresented: $_isWebviewPresenting) {
+            if let installer = installer {
+                SafariRepresentableView(url: installer.pageEndpoint).ignoresSafeArea()
+            }
+        }
+        .onReceive(viewModel.$status) { newStatus in
+            if _installationMethod == 0 {
+                if case .ready = newStatus {
+                    if _serverMethod == 0 {
+                        if let installer = installer {
+                            UIApplication.shared.open(URL(string: installer.iTunesLink)!)
+                        }
+                    } else if _serverMethod == 1 {
+                        _isWebviewPresenting = true
+                    }
+                }
                 
+                if case .sendingPayload = newStatus, _serverMethod == 1 {
+                    _isWebviewPresenting = false
+                }
+                    
                 if case .completed = newStatus {
                     BackgroundAudioManager.shared.stop()
                 }
-}
-}
-.onAppear(perform: _install)
-        .onAppear {
-            BackgroundAudioManager.shared.start()
+            }
         }
-        .onDisappear {
-            BackgroundAudioManager.shared.stop()
-        }
-}
+        .onAppear(perform: _install)
+         .onAppear {
+             BackgroundAudioManager.shared.start()
+         }
+         .onDisappear {
+             BackgroundAudioManager.shared.stop()
+         }
+     } // Close else block
+ }
 
-private func _install() {
-guard isSharing || app.identifier != Bundle.main.bundleIdentifier! || _installationMethod == 1 else {
-UIAlertController.showAlertWithOk(
-title: .localized("Install"),
-message: .localized("You cannot update '%@' with itself, please use an alternative tool to update it.", arguments: Bundle.main.name)
-)
-dismiss()
-return
-}
-
-Task {
-do {
-if isSharing {
-try await installer.export()
-} else {
-try await installer.install()
-}
-} catch {
-await MainActor.run {
-UIAlertController.showAlertWithOk(title: .localized("Error"), message: error.localizedDescription)
-dismiss()
-}
-}
-}
-}
+ private func _install() {
+     // Check if installer was initialized properly
+     guard let installer = installer else {
+         UIAlertController.showAlertWithOk(
+             title: .localized("Error"),
+             message: .localized("Failed to initialize installer. Please try again.")
+         )
+         dismiss()
+         return
+     }
+     
+     guard isSharing || app.identifier != Bundle.main.bundleIdentifier! || _installationMethod == 1 else {
+         UIAlertController.showAlertWithOk(
+             title: .localized("Install"),
+             message: .localized("You cannot update '%@' with itself, please use an alternative tool to update it.", arguments: Bundle.main.name)
+         )
+         dismiss()
+         return
+     }
+     
+     Task {
+         do {
+             if isSharing {
+                 try await installer.export()
+             } else {
+                 try await installer.install()
+             }
+         } catch {
+             await MainActor.run {
+                 UIAlertController.showAlertWithOk(title: .localized("Error"), message: error.localizedDescription)
+                 dismiss()
+             }
+         }
+     }
+ }
 
     private func getStatusSubtitle() -> String {
         switch viewModel.status {
