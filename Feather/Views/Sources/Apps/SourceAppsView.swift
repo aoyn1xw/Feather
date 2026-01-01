@@ -66,7 +66,7 @@ struct SourceAppsView: View {
 		let sorted: [(source: ASRepository, app: ASRepository.App)]
 		switch _sortOption {
 		case .default:
-			sorted = filtered
+			sorted = _sortAscending ? filtered : filtered.reversed()
 		case .date:
 			sorted = filtered.sorted {
 				let d1 = $0.app.currentDate?.date ?? .distantPast
@@ -82,7 +82,7 @@ struct SourceAppsView: View {
 			}
 		}
 		
-		return _sortAscending ? sorted : sorted.reversed()
+		return sorted
 	}
 	
 	private var _totalAppCount: Int {
@@ -120,7 +120,7 @@ struct SourceAppsView: View {
 		.searchable(
 			text: $_searchText,
 			placement: .navigationBarDrawer(displayMode: .always),
-			prompt: _totalAppCount > 0 ? .localized("Search \(_totalAppCount) Apps") : .localized("Search Apps")
+			prompt: _totalAppCount > 0 ? Text("Search \(_totalAppCount) Apps") : Text("Search Apps")
 		)
 		.toolbarTitleMenu {
 			if
@@ -236,8 +236,6 @@ extension SourceAppsView {
 	}
 }
 
-import SwiftUI
-
 extension View {
 	@ViewBuilder
 	func navigationDestinationIfAvailable<Item: Identifiable & Hashable, Destination: View>(
@@ -261,60 +259,57 @@ struct SourceAppCardView: View {
 	@State private var isPressed = false
 	
 	var body: some View {
-		Button(action: {}) {
-			HStack(spacing: 14) {
-				// App Icon
-				appIcon
+		HStack(spacing: 14) {
+			// App Icon
+			appIcon
+			
+			// App Info
+			VStack(alignment: .leading, spacing: 4) {
+				Text(app.currentName)
+					.font(.system(size: 16, weight: .semibold))
+					.foregroundStyle(.primary)
+					.lineLimit(1)
 				
-				// App Info
-				VStack(alignment: .leading, spacing: 4) {
-					Text(app.currentName)
-						.font(.system(size: 16, weight: .semibold))
-						.foregroundStyle(.primary)
+				if let version = app.currentVersion {
+					Text("v\(version)")
+						.font(.system(size: 13))
+						.foregroundStyle(.secondary)
 						.lineLimit(1)
-					
-					if let version = app.currentVersion {
-						Text("v\(version)")
-							.font(.system(size: 13))
-							.foregroundStyle(.secondary)
-							.lineLimit(1)
-					}
-					
-					if let desc = app.currentDescription ?? app.localizedDescription {
-						Text(desc)
-							.font(.system(size: 12))
-							.foregroundStyle(.secondary)
-							.lineLimit(2)
-					}
 				}
 				
-				Spacer(minLength: 8)
-				
-				// Chevron
-				Image(systemName: "chevron.right")
-					.font(.system(size: 14, weight: .semibold))
-					.foregroundStyle(.tertiary)
+				if let desc = app.currentDescription ?? app.localizedDescription {
+					Text(desc)
+						.font(.system(size: 12))
+						.foregroundStyle(.secondary)
+						.lineLimit(2)
+				}
 			}
-			.padding(14)
-			.background(cardBackground)
-			.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-			.overlay(
-				RoundedRectangle(cornerRadius: 14, style: .continuous)
-					.strokeBorder(
-						Color.primary.opacity(0.08),
-						lineWidth: 1
-					)
-			)
-			.shadow(
-				color: Color.black.opacity(useGradients ? 0.08 : 0.04),
-				radius: useGradients ? 8 : 4,
-				x: 0,
-				y: useGradients ? 4 : 2
-			)
-			.scaleEffect(isPressed ? 0.97 : 1.0)
-			.animation(.easeInOut(duration: 0.15), value: isPressed)
+			
+			Spacer(minLength: 8)
+			
+			// Chevron
+			Image(systemName: "chevron.right")
+				.font(.system(size: 14, weight: .semibold))
+				.foregroundStyle(.tertiary)
 		}
-		.buttonStyle(PlainButtonStyle())
+		.padding(14)
+		.background(cardBackground)
+		.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+		.overlay(
+			RoundedRectangle(cornerRadius: 14, style: .continuous)
+				.strokeBorder(
+					Color.primary.opacity(0.08),
+					lineWidth: 1
+				)
+		)
+		.shadow(
+			color: Color.black.opacity(useGradients ? 0.08 : 0.04),
+			radius: useGradients ? 8 : 4,
+			x: 0,
+			y: useGradients ? 4 : 2
+		)
+		.scaleEffect(isPressed ? 0.97 : 1.0)
+		.animation(.easeInOut(duration: 0.15), value: isPressed)
 		.simultaneousGesture(
 			DragGesture(minimumDistance: 0)
 				.onChanged { _ in isPressed = true }
