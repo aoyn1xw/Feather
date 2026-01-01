@@ -175,9 +175,13 @@ struct BackupRestoreView: View {
 					}
 					
 					// Save metadata
-					if let name = cert.name { metadata["name"] = name }
-					if let teamID = cert.teamID { metadata["teamID"] = teamID }
-					if let issuerName = cert.issuerName { metadata["issuerName"] = issuerName }
+					if let provisionData = Storage.shared.getProvisionFileDecoded(for: cert) {
+						metadata["name"] = provisionData.Name
+						if let teamID = provisionData.TeamIdentifier.first {
+							metadata["teamID"] = teamID
+						}
+						metadata["teamName"] = provisionData.TeamName
+					}
 					if let date = cert.date { metadata["date"] = date.timeIntervalSince1970 }
 					metadata["ppQCheck"] = cert.ppQCheck
 					
