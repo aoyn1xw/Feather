@@ -3,6 +3,7 @@ import SwiftUI
 
 struct TabbarView: View {
 	@State private var selectedTab: TabEnum = .home
+	@AppStorage("Feather.filesTabEnabled") private var filesTabEnabled = false
 
 	var body: some View {
 		TabView(selection: $selectedTab) {
@@ -22,5 +23,6 @@ struct TabbarView: View {
 					.tag(tab)
 			}
 		}
+		.id(filesTabEnabled) // Force refresh when files tab setting changes
 	}
 }

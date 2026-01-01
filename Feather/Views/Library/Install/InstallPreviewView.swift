@@ -20,25 +20,31 @@ var installer: ServerInstaller?
 @State var isSharing: Bool
 
 init(app: AppInfoPresentable, isSharing: Bool = false) {
-self.app = app
-self.isSharing = isSharing
-let viewModel = InstallerStatusViewModel(isIdevice: UserDefaults.standard.integer(forKey: "Feather.installationMethod") == 1)
-self._viewModel = StateObject(wrappedValue: viewModel)
+	self.app = app
+	self.isSharing = isSharing
+	let viewModel = InstallerStatusViewModel(isIdevice: UserDefaults.standard.integer(forKey: "Feather.installationMethod") == 1)
+	self._viewModel = StateObject(wrappedValue: viewModel)
 
-// Try to create the installer safely
-var tempInstaller: ServerInstaller? = nil
-var error: String? = nil
+	// Try to create the installer safely with detailed error handling
+	var tempInstaller: ServerInstaller? = nil
+	var error: String? = nil
 
-do {
-    tempInstaller = try ServerInstaller(app: app, viewModel: viewModel)
-    AppLogManager.shared.success("ServerInstaller initialized successfully for \(app.name ?? "Unknown")", category: "Installation")
-} catch {
-    AppLogManager.shared.error("Failed to initialize ServerInstaller: \(error.localizedDescription)", category: "Installation")
-    error = error.localizedDescription
-}
+	do {
+		AppLogManager.shared.info("Attempting to initialize ServerInstaller for \(app.name ?? "Unknown")", category: "Installation")
+		tempInstaller = try ServerInstaller(app: app, viewModel: viewModel)
+		AppLogManager.shared.success("ServerInstaller initialized successfully for \(app.name ?? "Unknown")", category: "Installation")
+	} catch let initError as NSError {
+		let errorMessage = "Failed to initialize ServerInstaller: \(initError.localizedDescription)"
+		AppLogManager.shared.error(errorMessage, category: "Installation")
+		error = errorMessage
+	} catch {
+		let errorMessage = "Failed to initialize ServerInstaller: \(error.localizedDescription)"
+		AppLogManager.shared.error(errorMessage, category: "Installation")
+		error = errorMessage
+	}
 
-self.installer = tempInstaller
-self._initializationError = State(initialValue: error)
+	self.installer = tempInstaller
+	self._initializationError = State(initialValue: error)
 }
 
 // MARK: Body
@@ -201,14 +207,20 @@ var body: some View {
      
      // Check if installer was initialized properly
      guard let installer = installer else {
-         AppLogManager.shared.error("Failed to initialize installer for \(app.name ?? "Unknown")", category: "Installation")
+         let errorMsg = _initializationError ?? "Unknown initialization error"
+         AppLogManager.shared.error("Cannot install - installer initialization failed for \(app.name ?? "Unknown"): \(errorMsg)", category: "Installation")
          
          DispatchQueue.main.async {
-             UIAlertController.showAlertWithOk(
-                 title: .localized("Error"),
-                 message: .localized("Failed to initialize installer. Please try again.")
-             )
-             dismiss()
+             viewModel.status = .broken
+             
+             // Show error alert after a brief delay
+             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                 UIAlertController.showAlertWithOk(
+                     title: .localized("Installation Error"),
+                     message: .localized("Failed to initialize installer: \(errorMsg)")
+                 )
+                 dismiss()
+             }
          }
          return
      }
@@ -237,6 +249,7 @@ var body: some View {
          } catch {
              AppLogManager.shared.error("Installation failed for \(app.name ?? "Unknown"): \(error.localizedDescription)", category: "Installation")
              await MainActor.run {
+                 viewModel.status = .broken
                  UIAlertController.showAlertWithOk(title: .localized("Error"), message: error.localizedDescription)
                  dismiss()
              }

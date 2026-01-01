@@ -440,34 +440,60 @@ struct LibraryCardView: View {
 			}
 		} label: {
 			HStack(spacing: 12) {
-				// Left: App Icon (smaller) - with its own context menu
-				FRAppIconView(app: app, size: 50)
-					.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-					.shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 1)
-					.contextMenu {
-						Button(.localized("Get Info"), systemImage: "info.circle") {
-							selectedInfoAppPresenting = AnyApp(base: app)
+				// Left: App Icon (smaller) - tappable with context menu
+				Menu {
+					Button(.localized("Get Info"), systemImage: "info.circle") {
+						selectedInfoAppPresenting = AnyApp(base: app)
+					}
+					
+					if app.isSigned {
+						Button(.localized("Install"), systemImage: "square.and.arrow.down") {
+							selectedInstallAppPresenting = AnyApp(base: app)
 						}
-						
-						if app.isSigned {
-							Button(.localized("Install"), systemImage: "square.and.arrow.down") {
-								selectedInstallAppPresenting = AnyApp(base: app)
-							}
-							Button(.localized("Re-sign"), systemImage: "signature") {
-								selectedSigningAppPresenting = AnyApp(base: app)
-							}
-						} else {
-							Button(.localized("Sign"), systemImage: "signature") {
-								selectedSigningAppPresenting = AnyApp(base: app)
-							}
+						Button(.localized("Re-sign"), systemImage: "signature") {
+							selectedSigningAppPresenting = AnyApp(base: app)
 						}
-						
-						Divider()
-						
-						Button(.localized("Delete"), systemImage: "trash", role: .destructive) {
-							Storage.shared.deleteApp(for: app)
+					} else {
+						Button(.localized("Sign"), systemImage: "signature") {
+							selectedSigningAppPresenting = AnyApp(base: app)
 						}
 					}
+					
+					Divider()
+					
+					Button(.localized("Delete"), systemImage: "trash", role: .destructive) {
+						Storage.shared.deleteApp(for: app)
+					}
+				} label: {
+					FRAppIconView(app: app, size: 50)
+						.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+						.shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 1)
+				}
+				.buttonStyle(.plain)
+				.contextMenu {
+					Button(.localized("Get Info"), systemImage: "info.circle") {
+						selectedInfoAppPresenting = AnyApp(base: app)
+					}
+					
+					if app.isSigned {
+						Button(.localized("Install"), systemImage: "square.and.arrow.down") {
+							selectedInstallAppPresenting = AnyApp(base: app)
+						}
+						Button(.localized("Re-sign"), systemImage: "signature") {
+							selectedSigningAppPresenting = AnyApp(base: app)
+						}
+					} else {
+						Button(.localized("Sign"), systemImage: "signature") {
+							selectedSigningAppPresenting = AnyApp(base: app)
+						}
+					}
+					
+					Divider()
+					
+					Button(.localized("Delete"), systemImage: "trash", role: .destructive) {
+						Storage.shared.deleteApp(for: app)
+					}
+				}
 				
 				// Middle: Text Stack
 				VStack(alignment: .leading, spacing: 3) {
@@ -572,34 +598,60 @@ struct LibraryGridCardView: View {
 			}
 		} label: {
 			VStack(spacing: 10) {
-				// App Icon (smaller) - with its own context menu
-				FRAppIconView(app: app, size: 65)
-					.clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
-					.shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 1)
-					.contextMenu {
-						Button(.localized("Get Info"), systemImage: "info.circle") {
-							selectedInfoAppPresenting = AnyApp(base: app)
+				// App Icon (smaller) - tappable with context menu
+				Menu {
+					Button(.localized("Get Info"), systemImage: "info.circle") {
+						selectedInfoAppPresenting = AnyApp(base: app)
+					}
+					
+					if app.isSigned {
+						Button(.localized("Install"), systemImage: "square.and.arrow.down") {
+							selectedInstallAppPresenting = AnyApp(base: app)
 						}
-						
-						if app.isSigned {
-							Button(.localized("Install"), systemImage: "square.and.arrow.down") {
-								selectedInstallAppPresenting = AnyApp(base: app)
-							}
-							Button(.localized("Re-sign"), systemImage: "signature") {
-								selectedSigningAppPresenting = AnyApp(base: app)
-							}
-						} else {
-							Button(.localized("Sign"), systemImage: "signature") {
-								selectedSigningAppPresenting = AnyApp(base: app)
-							}
+						Button(.localized("Re-sign"), systemImage: "signature") {
+							selectedSigningAppPresenting = AnyApp(base: app)
 						}
-						
-						Divider()
-						
-						Button(.localized("Delete"), systemImage: "trash", role: .destructive) {
-							Storage.shared.deleteApp(for: app)
+					} else {
+						Button(.localized("Sign"), systemImage: "signature") {
+							selectedSigningAppPresenting = AnyApp(base: app)
 						}
 					}
+					
+					Divider()
+					
+					Button(.localized("Delete"), systemImage: "trash", role: .destructive) {
+						Storage.shared.deleteApp(for: app)
+					}
+				} label: {
+					FRAppIconView(app: app, size: 65)
+						.clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
+						.shadow(color: .black.opacity(0.2), radius: 3, x: 0, y: 1)
+				}
+				.buttonStyle(.plain)
+				.contextMenu {
+					Button(.localized("Get Info"), systemImage: "info.circle") {
+						selectedInfoAppPresenting = AnyApp(base: app)
+					}
+					
+					if app.isSigned {
+						Button(.localized("Install"), systemImage: "square.and.arrow.down") {
+							selectedInstallAppPresenting = AnyApp(base: app)
+						}
+						Button(.localized("Re-sign"), systemImage: "signature") {
+							selectedSigningAppPresenting = AnyApp(base: app)
+						}
+					} else {
+						Button(.localized("Sign"), systemImage: "signature") {
+							selectedSigningAppPresenting = AnyApp(base: app)
+						}
+					}
+					
+					Divider()
+					
+					Button(.localized("Delete"), systemImage: "trash", role: .destructive) {
+						Storage.shared.deleteApp(for: app)
+					}
+				}
 				
 				// Text Stack
 				VStack(spacing: 3) {

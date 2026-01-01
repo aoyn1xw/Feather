@@ -49,12 +49,14 @@ class ServerInstaller: Identifiable, ObservableObject {
 	}
 	
 	private func _setup() throws {
-		guard let server = try? setupApp(port: port) else {
-			AppLogManager.shared.error("Failed to setup server application on port \(port)", category: "Installation")
-			throw NSError(domain: "ServerInstaller", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to setup server on port \(port)"])
+		do {
+			let server = try setupApp(port: port)
+			self._server = server
+			AppLogManager.shared.debug("Server application setup completed on port \(port)", category: "Installation")
+		} catch {
+			AppLogManager.shared.error("Failed to setup server application on port \(port): \(error.localizedDescription)", category: "Installation")
+			throw NSError(domain: "ServerInstaller", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to setup server on port \(port): \(error.localizedDescription)"])
 		}
-		self._server = server
-		AppLogManager.shared.debug("Server application setup completed on port \(port)", category: "Installation")
 	}
 		
 	private func _configureRoutes() throws {

@@ -54,7 +54,38 @@ struct AppearanceTintColorView: View {
 		("Aqua",			"#00FFAA"),
 		("Cherry",			"#DE3163"),
 		("Mint",			"#98FF98"),
-		("Plum",			"#DDA0DD")
+		("Plum",			"#DDA0DD"),
+		// New color presets
+		("Tangerine",		"#FFA500"),
+		("Seafoam",			"#93E9BE"),
+		("Periwinkle",		"#CCCCFF"),
+		("Burgundy",		"#800020"),
+		("Chartreuse",		"#7FFF00"),
+		("Cobalt",			"#0047AB"),
+		("Mauve",			"#E0B0FF"),
+		("Scarlet",			"#FF2400"),
+		("Slate",			"#708090"),
+		("Jade",			"#00A86B"),
+		("Raspberry",		"#E30B5D"),
+		("Steel Blue",		"#4682B4"),
+		("Orchid",			"#DA70D6"),
+		("Sienna",			"#A0522D"),
+		("Cerulean",		"#007BA7"),
+		("Mustard",			"#FFDB58"),
+		("Pine Green",		"#01796F"),
+		("Apricot",			"#FBCEB1"),
+		("Lilac",			"#C8A2C8"),
+		("Mahogany",		"#C04000"),
+		("Powder Blue",		"#B0E0E6"),
+		("Vermillion",		"#E34234"),
+		("Spring Green",	"#00FF7F"),
+		("Blush",			"#DE5D83"),
+		("Ochre",			"#CC7722"),
+		("Periwinkle",		"#CCCCFF"),
+		("Rust",			"#B7410E"),
+		("Sage",			"#BCB88A"),
+		("Brick Red",		"#CB4154"),
+		("Mint Green",		"#98FF98")
 	]
 
 	@AppStorage("com.apple.SwiftUI.IgnoreSolariumLinkedOnCheck")
@@ -311,187 +342,3 @@ struct CustomColorPickerView: View {
 	}
 }
 
-// MARK: - Gradient Text Configuration View
-struct GradientTextConfigView: View {
-@Environment(\.dismiss) var dismiss
-@ObservedObject private var manager = GradientTextManager.shared
-
-@State private var startColor: Color = .purple
-@State private var endColor: Color = .blue
-
-private let directionOptions: [(name: String, value: String, icon: String)] = [
-("Horizontal", "horizontal", "arrow.left.and.right"),
-("Vertical", "vertical", "arrow.up.and.down"),
-("Diagonal", "diagonal", "arrow.up.left.and.arrow.down.right")
-]
-
-var body: some View {
-NavigationView {
-Form {
-// Enable/Disable Toggle
-Section {
-Toggle(isOn: $manager.isGradientTextEnabled) {
-VStack(alignment: .leading, spacing: 4) {
-Text("Enable Gradient Text")
-.font(.headline)
-Text("Apply gradients to text throughout the app")
-.font(.caption)
-.foregroundStyle(.secondary)
-}
-}
-.tint(.accentColor)
-} header: {
-HStack {
-Image(systemName: "textformat.size")
-.foregroundStyle(Color.accentColor)
-Text("Gradient Text")
-.font(.subheadline)
-.fontWeight(.semibold)
-}
-}
-
-if manager.isGradientTextEnabled {
-// Color Selection
-Section("Colors") {
-ColorPicker("Start Color", selection: $startColor, supportsOpacity: false)
-.onChange(of: startColor) { newValue in
-manager.gradientStartColorHex = newValue.toHex() ?? "#B496DC"
-notifySettingsChanged()
-}
-
-ColorPicker("End Color", selection: $endColor, supportsOpacity: false)
-.onChange(of: endColor) { newValue in
-manager.gradientEndColorHex = newValue.toHex() ?? "#848ef9"
-notifySettingsChanged()
-}
-}
-
-// Direction Selection
-Section("Direction") {
-ForEach(directionOptions, id: \.value) { option in
-Button {
-manager.gradientDirection = option.value
-notifySettingsChanged()
-} label: {
-HStack(spacing: 16) {
-ZStack {
-Circle()
-.fill(
-manager.gradientDirection == option.value
-? Color.accentColor.opacity(0.15)
-: Color.clear
-)
-.frame(width: 40, height: 40)
-
-Image(systemName: option.icon)
-.font(.title3)
-.foregroundStyle(
-manager.gradientDirection == option.value
-? Color.accentColor
-: Color.secondary
-)
-}
-
-Text(option.name)
-.foregroundStyle(.primary)
-
-Spacer()
-
-if manager.gradientDirection == option.value {
-Image(systemName: "checkmark")
-.foregroundStyle(Color.accentColor)
-.font(.headline)
-}
-}
-.padding(.vertical, 8)
-}
-.buttonStyle(.plain)
-}
-}
-
-// Preview
-Section("Preview") {
-VStack(spacing: 16) {
-Text("Sample Gradient Text")
-.font(.title2)
-.fontWeight(.bold)
-.foregroundStyle(
-LinearGradient(
-colors: [startColor, endColor],
-startPoint: manager.gradientStartPoint,
-endPoint: manager.gradientEndPoint
-)
-)
-
-Text("This is how text will appear with gradient enabled")
-.font(.body)
-.foregroundStyle(
-LinearGradient(
-colors: [startColor, endColor],
-startPoint: manager.gradientStartPoint,
-endPoint: manager.gradientEndPoint
-)
-)
-.multilineTextAlignment(.center)
-
-Text("Small text preview")
-.font(.caption)
-.foregroundStyle(
-LinearGradient(
-colors: [startColor, endColor],
-startPoint: manager.gradientStartPoint,
-endPoint: manager.gradientEndPoint
-)
-)
-}
-.frame(maxWidth: .infinity)
-.padding(.vertical, 20)
-}
-
-// Accessibility
-Section {
-Toggle(isOn: $manager.useAccessibilityFallback) {
-VStack(alignment: .leading, spacing: 4) {
-Text("Accessibility Fallback")
-.font(.headline)
-Text("Use solid colors for better readability")
-.font(.caption)
-.foregroundStyle(.secondary)
-}
-}
-.tint(.accentColor)
-.onChange(of: manager.useAccessibilityFallback) { _ in
-notifySettingsChanged()
-}
-} header: {
-HStack {
-Image(systemName: "accessibility")
-.foregroundStyle(.green)
-Text("Accessibility")
-}
-} footer: {
-Text("When enabled, gradient text will be replaced with solid colors for better contrast and readability.")
-}
-}
-}
-.navigationTitle("Gradient Text")
-.navigationBarTitleDisplayMode(.inline)
-.toolbar {
-ToolbarItem(placement: .confirmationAction) {
-Button("Done") {
-dismiss()
-}
-}
-}
-}
-.onAppear {
-startColor = Color(hex: manager.gradientStartColorHex)
-endColor = Color(hex: manager.gradientEndColorHex)
-}
-}
-
-private func notifySettingsChanged() {
-NotificationCenter.default.post(name: .gradientTextSettingsChanged, object: nil)
-}
-}
-}
