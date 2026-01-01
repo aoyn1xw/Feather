@@ -37,6 +37,9 @@ struct SettingsView: View {
 					NavigationLink(destination: AppIconView(currentIcon: $_currentIcon)) {
 						Label(.localized("App Icon"), systemImage: "app.badge")
 					}
+                    NavigationLink(destination: HapticsView()) {
+                        Label(.localized("Haptics"), systemImage: "iphone.radiowaves.left.and.right")
+                    }
                 }
                 
                 NBSection(.localized("Features")) {
@@ -57,6 +60,14 @@ struct SettingsView: View {
                     }
                 } footer: {
                     Text(.localized("Configure the apps way of installing, its zip compression levels, and custom modifications to apps."))
+                }
+                
+                NBSection(.localized("Experimental")) {
+                    NavigationLink(destination: FilesTabSettingsView()) {
+                        Label(.localized("Files Tab"), systemImage: "folder.fill")
+                    }
+                } footer: {
+                    Text(.localized("Enable experimental features like the Files tab for managing .txt files, zip/unzip, plist editing, and more."))
                 }
                 
                 Section {

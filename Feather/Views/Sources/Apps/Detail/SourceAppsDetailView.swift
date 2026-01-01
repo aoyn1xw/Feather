@@ -157,29 +157,11 @@ struct SourceAppsDetailView: View {
 				
 				if let appPermissions = app.appPermissions {
 					NBSection(.localized("Permissions")) {
-						Group {
-							if let entitlements = appPermissions.entitlements {
-								NBTitleWithSubtitleView(
-									title: .localized("Entitlements"),
-									subtitle: entitlements.map(\.name).joined(separator: "\n")
-								)
-							} else {
-								Text(.localized("No Entitlements listed."))
-									.font(.subheadline)
-									.foregroundStyle(.secondary)
-							}
-							if let privacyItems = appPermissions.privacy {
-								ForEach(privacyItems, id: \.self) { item in
-									NBTitleWithSubtitleView(
-										title: item.name,
-										subtitle: item.usageDescription
-									)
-								}
-							} else {
-								Text(.localized("No Privacy Permissions listed."))
-									.font(.subheadline)
-									.foregroundStyle(.secondary)
-							}
+						NavigationLink(destination: PermissionsView(appPermissions: appPermissions)) {
+							NBTitleWithSubtitleView(
+								title: .localized("Permissions"),
+								subtitle: .localized("See which permissions this app requires.")
+							)
 						}
 						.padding()
 						.background(

@@ -160,24 +160,24 @@ private struct AllAppsCardView: View {
 				startPoint: .topLeading,
 				endPoint: .bottomTrailing
 			)
-			.frame(height: 120)
+			.frame(height: 80)
 			
 			// Decorative circles
 			Circle()
 				.fill(Color.white.opacity(0.1))
-				.frame(width: 100, height: 100)
-				.offset(x: 30, y: -30)
+				.frame(width: 60, height: 60)
+				.offset(x: 20, y: -20)
 			
 			Circle()
 				.fill(Color.white.opacity(0.05))
-				.frame(width: 150, height: 150)
-				.offset(x: -50, y: 60)
+				.frame(width: 90, height: 90)
+				.offset(x: -30, y: 40)
 		}
-		.clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 	}
 	
 	private func contentSection(isRegular: Bool) -> some View {
-		HStack(spacing: 18) {
+		HStack(spacing: 14) {
 			iconView
 			
 			textContent
@@ -186,20 +186,20 @@ private struct AllAppsCardView: View {
 			
 			chevronIcon
 		}
-		.padding(.horizontal, isRegular ? 20 : 16)
-		.padding(.bottom, isRegular ? 20 : 16)
-		.padding(.top, 8)
+		.padding(.horizontal, isRegular ? 16 : 14)
+		.padding(.bottom, isRegular ? 16 : 14)
+		.padding(.top, 6)
 	}
 	
 	private var iconView: some View {
 		ZStack {
 			Circle()
 				.fill(Color.white)
-				.frame(width: 70, height: 70)
-				.shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)
+				.frame(width: 56, height: 56)
+				.shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
 			
 			Image(systemName: "app.badge.fill")
-				.font(.system(size: 32))
+				.font(.system(size: 26))
 				.foregroundStyle(
 					LinearGradient(
 						colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
@@ -208,33 +208,33 @@ private struct AllAppsCardView: View {
 					)
 				)
 		}
-		.offset(y: -35)
+		.offset(y: -28)
 	}
 	
 	private var textContent: some View {
-		VStack(alignment: .leading, spacing: 6) {
+		VStack(alignment: .leading, spacing: 4) {
 			Text(.localized("All Apps"))
-				.font(.title2.bold())
+				.font(.title3.bold())
 				.foregroundStyle(.primary)
 			Text(.localized("Browse your complete app collection"))
-				.font(.subheadline)
+				.font(.caption)
 				.foregroundStyle(.secondary)
 			
 			appsBadge
 		}
-		.padding(.top, 8)
+		.padding(.top, 6)
 	}
 	
 	private var appsBadge: some View {
 		HStack(spacing: 4) {
 			Image(systemName: "square.stack.3d.up.fill")
-				.font(.caption)
+				.font(.system(size: 9))
 			Text("\(totalApps) Apps Available")
-				.font(.caption.bold())
+				.font(.system(size: 10, weight: .bold))
 		}
 		.foregroundStyle(Color.accentColor)
-		.padding(.horizontal, 10)
-		.padding(.vertical, 4)
+		.padding(.horizontal, 8)
+		.padding(.vertical, 3)
 		.background(
 			Capsule()
 				.fill(Color.accentColor.opacity(0.1))
@@ -243,18 +243,18 @@ private struct AllAppsCardView: View {
 	
 	private var chevronIcon: some View {
 		Image(systemName: "chevron.right")
-			.font(.title3.bold())
+			.font(.body.bold())
 			.foregroundStyle(.secondary)
-			.padding(.top, 8)
+			.padding(.top, 6)
 	}
 	
 	private var cardBackground: some View {
-		RoundedRectangle(cornerRadius: 20, style: .continuous)
+		RoundedRectangle(cornerRadius: 16, style: .continuous)
 			.fill(Color(uiColor: .secondarySystemGroupedBackground))
 	}
 	
 	private var cardStroke: some View {
-		RoundedRectangle(cornerRadius: 20, style: .continuous)
+		RoundedRectangle(cornerRadius: 16, style: .continuous)
 			.stroke(
 				LinearGradient(
 					colors: [Color.white.opacity(0.5), Color.clear],
