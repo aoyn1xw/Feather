@@ -832,7 +832,7 @@ struct IPAInspectorView: View {
         }
         
         // Extract entitlements (if available)
-        var entitlements: [String: Any]?
+        let entitlements: [String: Any]?
         // Note: Entitlements are usually embedded in the binary, which requires more complex parsing
         
         // Get file structure
