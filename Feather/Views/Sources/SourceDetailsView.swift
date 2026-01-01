@@ -140,13 +140,6 @@ struct SourceDetailsView: View {
 					.font(.title2)
 					.fontWeight(.bold)
 					.foregroundStyle(.primary)
-				
-				if let urlString = source.sourceURL?.absoluteString {
-					Text(urlString)
-						.font(.caption)
-						.foregroundStyle(.secondary)
-						.lineLimit(2)
-				}
 			}
 			
 			Spacer()

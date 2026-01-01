@@ -14,11 +14,11 @@ struct SourcesCellView: View {
 	var body: some View {
 		let isPinned = viewModel.isPinned(source)
 		
-		HStack(spacing: 16) {
+		HStack(spacing: 12) {
 			// Centered layout with enhanced gradients
 			Spacer()
 			
-			VStack(spacing: 12) {
+			VStack(spacing: 10) {
 				FRIconCellView(
 					title: source.name ?? .localized("Unknown"),
 					subtitle: source.sourceURL?.absoluteString ?? "",
@@ -29,7 +29,7 @@ struct SourcesCellView: View {
 				)
 				
 				if isPinned {
-					HStack(spacing: 6) {
+					HStack(spacing: 4) {
 						Image(systemName: "pin.fill")
 							.font(.caption2)
 							.foregroundStyle(.white)
@@ -38,8 +38,8 @@ struct SourcesCellView: View {
 							.fontWeight(.semibold)
 							.foregroundStyle(.white)
 					}
-					.padding(.horizontal, 12)
-					.padding(.vertical, 4)
+					.padding(.horizontal, 10)
+					.padding(.vertical, 3)
 					.background(
 						Capsule()
 							.fill(
@@ -56,11 +56,11 @@ struct SourcesCellView: View {
 			
 			Spacer()
 		}
-		.padding(16)
+		.padding(12)
 		.background(
 			ZStack {
 				// Stronger gradient background
-				RoundedRectangle(cornerRadius: 20, style: .continuous)
+				RoundedRectangle(cornerRadius: 16, style: .continuous)
 					.fill(
 						LinearGradient(
 							colors: [
@@ -74,12 +74,12 @@ struct SourcesCellView: View {
 					)
 				
 				// Glass morphism effect
-				RoundedRectangle(cornerRadius: 20, style: .continuous)
+				RoundedRectangle(cornerRadius: 16, style: .continuous)
 					.fill(.ultraThinMaterial)
 					.opacity(0.3)
 				
 				// Enhanced border
-				RoundedRectangle(cornerRadius: 20, style: .continuous)
+				RoundedRectangle(cornerRadius: 16, style: .continuous)
 					.stroke(
 						LinearGradient(
 							colors: [
@@ -93,8 +93,8 @@ struct SourcesCellView: View {
 						lineWidth: 1.5
 					)
 			}
-			.shadow(color: dominantColor.opacity(0.3), radius: 12, x: 0, y: 6)
-			.shadow(color: dominantColor.opacity(0.15), radius: 4, x: 0, y: 2)
+			.shadow(color: dominantColor.opacity(0.25), radius: 8, x: 0, y: 4)
+			.shadow(color: dominantColor.opacity(0.1), radius: 3, x: 0, y: 2)
 		)
 		.swipeActions(edge: .leading) {
 			Button {
