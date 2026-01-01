@@ -99,14 +99,16 @@ struct SourceAppsView: View {
 				ScrollView {
 					LazyVStack(spacing: 12) {
 						ForEach(_filteredApps, id: \.app.currentUniqueId) { entry in
-							SourceAppCardView(
-								source: entry.source,
-								app: entry.app,
-								useGradients: _useGradients
-							)
-							.onTapGesture {
+							Button {
 								_selectedRoute = SourceAppRoute(source: entry.source, app: entry.app)
+							} label: {
+								SourceAppCardView(
+									source: entry.source,
+									app: entry.app,
+									useGradients: _useGradients
+								)
 							}
+							.buttonStyle(CardButtonStyle())
 						}
 					}
 					.padding(.horizontal, 16)
@@ -250,13 +252,20 @@ extension View {
 	}
 }
 
+// MARK: - CardButtonStyle
+struct CardButtonStyle: ButtonStyle {
+	func makeBody(configuration: Configuration) -> some View {
+		configuration.label
+			.scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+			.animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
+	}
+}
+
 // MARK: - SourceAppCardView
 struct SourceAppCardView: View {
 	let source: ASRepository
 	let app: ASRepository.App
 	let useGradients: Bool
-	
-	@State private var isPressed = false
 	
 	var body: some View {
 		HStack(spacing: 14) {
@@ -302,19 +311,6 @@ struct SourceAppCardView: View {
 					lineWidth: 1
 				)
 		)
-		.shadow(
-			color: Color.black.opacity(useGradients ? 0.08 : 0.04),
-			radius: useGradients ? 8 : 4,
-			x: 0,
-			y: useGradients ? 4 : 2
-		)
-		.scaleEffect(isPressed ? 0.97 : 1.0)
-		.animation(.easeInOut(duration: 0.15), value: isPressed)
-		.simultaneousGesture(
-			DragGesture(minimumDistance: 0)
-				.onChanged { _ in isPressed = true }
-				.onEnded { _ in isPressed = false }
-		)
 	}
 	
 	@ViewBuilder
@@ -357,23 +353,7 @@ struct SourceAppCardView: View {
 	
 	@ViewBuilder
 	private var cardBackground: some View {
-		if useGradients {
-			// Subtle gradient background
-			ZStack {
-				Color(uiColor: .secondarySystemGroupedBackground)
-				
-				LinearGradient(
-					colors: [
-						Color.accentColor.opacity(0.03),
-						Color.clear
-					],
-					startPoint: .topLeading,
-					endPoint: .bottomTrailing
-				)
-			}
-		} else {
-			// Flat color background
-			Color(uiColor: .secondarySystemGroupedBackground)
-		}
+		// Flat color background (glass effects removed)
+		Color(uiColor: .secondarySystemGroupedBackground)
 	}
 }
