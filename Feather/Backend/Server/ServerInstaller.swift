@@ -148,8 +148,11 @@ class ServerInstaller: Identifiable, ObservableObject {
 	private func _installViaIDevice(_ ipaURL: URL) async throws {
 		_updateStatus(.installing)
 
+		// Create a temporary viewModel for IDeviceSwift's InstallationProxy
+		let ideviceViewModel = IDeviceSwift.InstallerStatusViewModel(status: .none, isIdevice: true)
+		
 		// Create InstallationProxy to install via IDevice
-		let installationProxy = InstallationProxy(viewModel: viewModel)
+		let installationProxy = InstallationProxy(viewModel: ideviceViewModel)
 		
 		// Install the app
 		try await installationProxy.install(at: ipaURL)
