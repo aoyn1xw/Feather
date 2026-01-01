@@ -14,6 +14,22 @@ struct SettingsView: View {
     var body: some View {
         NBNavigationView(.localized("Settings")) {
             Form {
+                // CoreSign Header at top
+                Section {
+                    CoreSignHeaderView()
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                        .onTapGesture {
+                            developerTapCount += 1
+                            if developerTapCount >= 7 {
+                                isDeveloperModeEnabled = true
+                                developerTapCount = 0
+                                let generator = UINotificationFeedbackGenerator()
+                                generator.notificationOccurred(.success)
+                            }
+                        }
+                }
+                
                 Section {
                     NavigationLink(destination: AppearanceView()) {
                         Label(.localized("Appearance"), systemImage: "paintbrush")
@@ -63,22 +79,6 @@ struct SettingsView: View {
                     NavigationLink(destination: CreditsView()) {
                         Label(.localized("Credits"), systemImage: "person.3.fill")
                     }
-                }
-
-                // CoreSign Header
-                Section {
-                    CoreSignHeaderView()
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                        .onTapGesture {
-                            developerTapCount += 1
-                            if developerTapCount >= 7 {
-                                isDeveloperModeEnabled = true
-                                developerTapCount = 0
-                                let generator = UINotificationFeedbackGenerator()
-                                generator.notificationOccurred(.success)
-                            }
-                        }
                 }
             }
         }
