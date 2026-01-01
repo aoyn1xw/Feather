@@ -21,6 +21,9 @@ struct AppearanceView: View {
 	@AppStorage("Feather.showNews")
 	private var _showNews: Bool = true
 	
+	@AppStorage("Feather.useGradients")
+	private var _useGradients: Bool = true
+	
 	// MARK: Body
     var body: some View {
 		NBList(.localized("Appearance")) {
@@ -31,6 +34,10 @@ struct AppearanceView: View {
 					}
 				}
 				.pickerStyle(.segmented)
+				
+				Toggle(.localized("Use Gradients"), isOn: $_useGradients)
+			} footer: {
+				Text(.localized("When disabled, the app uses flat system colors only. When enabled, subtle adaptive gradients are allowed."))
 			}
 			
 			NBSection(.localized("Theme")) {

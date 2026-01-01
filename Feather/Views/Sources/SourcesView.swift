@@ -66,33 +66,31 @@ struct SourcesView: View {
 						}
 					}
 					
-					// Files Tab section when enabled
-					if UserDefaults.standard.bool(forKey: "Feather.filesTabEnabled") {
-						NBSection(.localized("Files")) {
-							NavigationLink(destination: FilesView()) {
-								HStack {
-									Image(systemName: "folder.fill")
-										.font(.title3)
-										.foregroundStyle(.blue)
-									
-									VStack(alignment: .leading, spacing: 4) {
-										Text(.localized("File Manager"))
-											.font(.headline)
-										Text(.localized("Manage your files and documents"))
-											.font(.caption)
-											.foregroundStyle(.secondary)
-									}
-									
-									Spacer()
-									
-									Image(systemName: "chevron.right")
-										.font(.body.bold())
+					// File Manager section - always visible
+					NBSection(.localized("File Manager")) {
+						NavigationLink(destination: FilesView()) {
+							HStack {
+								Image(systemName: "folder.fill")
+									.font(.title3)
+									.foregroundStyle(.blue)
+								
+								VStack(alignment: .leading, spacing: 4) {
+									Text(.localized("File Manager"))
+										.font(.headline)
+									Text(.localized("Manage your files and documents"))
+										.font(.caption)
 										.foregroundStyle(.secondary)
 								}
-								.padding(.vertical, 4)
+								
+								Spacer()
+								
+								Image(systemName: "chevron.right")
+									.font(.body.bold())
+									.foregroundStyle(.secondary)
 							}
-							.buttonStyle(.plain)
+							.padding(.vertical, 4)
 						}
+						.buttonStyle(.plain)
 					}
 				}
 			}
@@ -159,6 +157,8 @@ struct SourcesView: View {
 
 // MARK: - AllAppsCardView
 private struct AllAppsCardView: View {
+	@AppStorage("Feather.useGradients") private var _useGradients: Bool = true
+	
 	let horizontalSizeClass: UserInterfaceSizeClass?
 	let totalApps: Int
 	
@@ -167,15 +167,27 @@ private struct AllAppsCardView: View {
 		
 		VStack(spacing: 0) {
 			// Top gradient banner
-			gradientBanner
+			if _useGradients {
+				gradientBanner
+			} else {
+				flatBanner
+			}
 			
 			// Content
 			contentSection(isRegular: isRegular)
 		}
 		.background(cardBackground)
 		.overlay(cardStroke)
-		.shadow(color: Color.accentColor.opacity(0.15), radius: 20, x: 0, y: 8)
+		.shadow(color: _useGradients ? Color.accentColor.opacity(0.15) : Color.black.opacity(0.05), radius: _useGradients ? 20 : 5, x: 0, y: _useGradients ? 8 : 2)
 		.shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 4)
+	}
+	
+	private var flatBanner: some View {
+		ZStack {
+			Color.accentColor.opacity(0.2)
+				.frame(height: 80)
+		}
+		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 	}
 	
 	private var gradientBanner: some View {
@@ -227,15 +239,21 @@ private struct AllAppsCardView: View {
 				.frame(width: 56, height: 56)
 				.shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
 			
-			Image(systemName: "app.badge.fill")
-				.font(.system(size: 26))
-				.foregroundStyle(
-					LinearGradient(
-						colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
-						startPoint: .topLeading,
-						endPoint: .bottomTrailing
+			if _useGradients {
+				Image(systemName: "app.badge.fill")
+					.font(.system(size: 26))
+					.foregroundStyle(
+						LinearGradient(
+							colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						)
 					)
-				)
+			} else {
+				Image(systemName: "app.badge.fill")
+					.font(.system(size: 26))
+					.foregroundStyle(Color.accentColor)
+			}
 		}
 		.offset(y: -28)
 	}
@@ -285,11 +303,17 @@ private struct AllAppsCardView: View {
 	private var cardStroke: some View {
 		RoundedRectangle(cornerRadius: 16, style: .continuous)
 			.stroke(
-				LinearGradient(
-					colors: [Color.white.opacity(0.5), Color.clear],
-					startPoint: .top,
-					endPoint: .bottom
-				),
+				_useGradients ? 
+					LinearGradient(
+						colors: [Color.white.opacity(0.5), Color.clear],
+						startPoint: .top,
+						endPoint: .bottom
+					) :
+					LinearGradient(
+						colors: [Color.primary.opacity(0.1), Color.clear],
+						startPoint: .top,
+						endPoint: .bottom
+					),
 				lineWidth: 1
 			)
 	}

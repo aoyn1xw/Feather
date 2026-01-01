@@ -24,6 +24,7 @@ extension SourceAppsView {
 struct SourceAppsView: View {
 	@AppStorage("Feather.sortOptionRawValue") private var _sortOptionRawValue: String = SortOption.default.rawValue
 	@AppStorage("Feather.sortAscending") private var _sortAscending: Bool = true
+	@AppStorage("Feather.useGradients") private var _useGradients: Bool = true
 	
 	@State private var _sortOption: SortOption = .default
 	@State private var _selectedRoute: SourceAppRoute?
@@ -44,6 +45,50 @@ struct SourceAppsView: View {
 	@ObservedObject var viewModel: SourcesViewModel
 	@State private var _sources: [ASRepository]?
 	
+	// Computed property for all apps with their sources
+	private var _allAppsWithSource: [(source: ASRepository, app: ASRepository.App)] {
+		guard let sources = _sources else { return [] }
+		return sources.flatMap { source in 
+			source.apps.map { (source: source, app: $0) }
+		}
+	}
+	
+	// Filtered and sorted apps
+	private var _filteredApps: [(source: ASRepository, app: ASRepository.App)] {
+		let filtered = _allAppsWithSource.filter { entry in
+			_searchText.isEmpty ||
+			(entry.app.name?.localizedCaseInsensitiveContains(_searchText) ?? false) ||
+			(entry.app.description?.localizedCaseInsensitiveContains(_searchText) ?? false) ||
+			(entry.app.subtitle?.localizedCaseInsensitiveContains(_searchText) ?? false) ||
+			(entry.app.localizedDescription?.localizedCaseInsensitiveContains(_searchText) ?? false)
+		}
+		
+		let sorted: [(source: ASRepository, app: ASRepository.App)]
+		switch _sortOption {
+		case .default:
+			sorted = _sortAscending ? filtered : filtered.reversed()
+		case .date:
+			sorted = filtered.sorted {
+				let d1 = $0.app.currentDate?.date ?? .distantPast
+				let d2 = $1.app.currentDate?.date ?? .distantPast
+				return _sortAscending ? (d1 < d2) : (d1 > d2)
+			}
+		case .name:
+			sorted = filtered.sorted {
+				let n1 = $0.app.name ?? ""
+				let n2 = $1.app.name ?? ""
+				let comparison = n1.localizedCaseInsensitiveCompare(n2) == .orderedAscending
+				return _sortAscending ? comparison : !comparison
+			}
+		}
+		
+		return sorted
+	}
+	
+	private var _totalAppCount: Int {
+		_allAppsWithSource.count
+	}
+	
 	// MARK: Body
 	var body: some View {
 		ZStack {
@@ -51,20 +96,32 @@ struct SourceAppsView: View {
 				let _sources,
 				!_sources.isEmpty
 			{
-				SourceAppsTableRepresentableView(
-					sources: _sources,
-					searchText: $_searchText,
-					sortOption: $_sortOption,
-					sortAscending: $_sortAscending,
-					onSelect: {self._selectedRoute = $0}
-				)
-				.ignoresSafeArea()
+				ScrollView {
+					LazyVStack(spacing: 12) {
+						ForEach(_filteredApps, id: \.app.currentUniqueId) { entry in
+							SourceAppCardView(
+								source: entry.source,
+								app: entry.app,
+								useGradients: _useGradients
+							)
+							.onTapGesture {
+								_selectedRoute = SourceAppRoute(source: entry.source, app: entry.app)
+							}
+						}
+					}
+					.padding(.horizontal, 16)
+					.padding(.vertical, 12)
+				}
 			} else {
 				ProgressView()
 			}
 		}
 		.navigationTitle(_navigationTitle)
-		.searchable(text: $_searchText, placement: .platform())
+		.searchable(
+			text: $_searchText,
+			placement: .navigationBarDrawer(displayMode: .always),
+			prompt: _totalAppCount > 0 ? Text("Search \(_totalAppCount) Apps") : Text("Search Apps")
+		)
 		.toolbarTitleMenu {
 			if
 				let _sources,
@@ -179,8 +236,6 @@ extension SourceAppsView {
 	}
 }
 
-import SwiftUI
-
 extension View {
 	@ViewBuilder
 	func navigationDestinationIfAvailable<Item: Identifiable & Hashable, Destination: View>(
@@ -191,6 +246,134 @@ extension View {
 			self.navigationDestination(item: item, destination: destination)
 		} else {
 			self
+		}
+	}
+}
+
+// MARK: - SourceAppCardView
+struct SourceAppCardView: View {
+	let source: ASRepository
+	let app: ASRepository.App
+	let useGradients: Bool
+	
+	@State private var isPressed = false
+	
+	var body: some View {
+		HStack(spacing: 14) {
+			// App Icon
+			appIcon
+			
+			// App Info
+			VStack(alignment: .leading, spacing: 4) {
+				Text(app.currentName)
+					.font(.system(size: 16, weight: .semibold))
+					.foregroundStyle(.primary)
+					.lineLimit(1)
+				
+				if let version = app.currentVersion {
+					Text("v\(version)")
+						.font(.system(size: 13))
+						.foregroundStyle(.secondary)
+						.lineLimit(1)
+				}
+				
+				if let desc = app.currentDescription ?? app.localizedDescription {
+					Text(desc)
+						.font(.system(size: 12))
+						.foregroundStyle(.secondary)
+						.lineLimit(2)
+				}
+			}
+			
+			Spacer(minLength: 8)
+			
+			// Chevron
+			Image(systemName: "chevron.right")
+				.font(.system(size: 14, weight: .semibold))
+				.foregroundStyle(.tertiary)
+		}
+		.padding(14)
+		.background(cardBackground)
+		.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+		.overlay(
+			RoundedRectangle(cornerRadius: 14, style: .continuous)
+				.strokeBorder(
+					Color.primary.opacity(0.08),
+					lineWidth: 1
+				)
+		)
+		.shadow(
+			color: Color.black.opacity(useGradients ? 0.08 : 0.04),
+			radius: useGradients ? 8 : 4,
+			x: 0,
+			y: useGradients ? 4 : 2
+		)
+		.scaleEffect(isPressed ? 0.97 : 1.0)
+		.animation(.easeInOut(duration: 0.15), value: isPressed)
+		.simultaneousGesture(
+			DragGesture(minimumDistance: 0)
+				.onChanged { _ in isPressed = true }
+				.onEnded { _ in isPressed = false }
+		)
+	}
+	
+	@ViewBuilder
+	private var appIcon: some View {
+		if let iconURL = app.iconURL {
+			AsyncImage(url: iconURL) { phase in
+				switch phase {
+				case .empty:
+					iconPlaceholder
+				case .success(let image):
+					image
+						.resizable()
+						.aspectRatio(contentMode: .fill)
+						.frame(width: 56, height: 56)
+						.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+						.overlay(
+							RoundedRectangle(cornerRadius: 12, style: .continuous)
+								.strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.5)
+						)
+				case .failure:
+					iconPlaceholder
+				@unknown default:
+					iconPlaceholder
+				}
+			}
+		} else {
+			iconPlaceholder
+		}
+	}
+	
+	private var iconPlaceholder: some View {
+		RoundedRectangle(cornerRadius: 12, style: .continuous)
+			.fill(Color.secondary.opacity(0.2))
+			.frame(width: 56, height: 56)
+			.overlay(
+				Image(systemName: "app.fill")
+					.foregroundStyle(.secondary)
+			)
+	}
+	
+	@ViewBuilder
+	private var cardBackground: some View {
+		if useGradients {
+			// Subtle gradient background
+			ZStack {
+				Color(uiColor: .secondarySystemGroupedBackground)
+				
+				LinearGradient(
+					colors: [
+						Color.accentColor.opacity(0.03),
+						Color.clear
+					],
+					startPoint: .topLeading,
+					endPoint: .bottomTrailing
+				)
+			}
+		} else {
+			// Flat color background
+			Color(uiColor: .secondarySystemGroupedBackground)
 		}
 	}
 }
