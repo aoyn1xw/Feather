@@ -21,13 +21,6 @@
 		3371F7322DA9ECDD00281AC6 /* Zip in Frameworks */ = {isa = PBXBuildFile; productRef = 3371F7312DA9ECDD00281AC6 /* Zip */; };
 		3371F7A02DA9EDB100281AC6 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 3371F79F2DA9EDB100281AC6 /* ZIPFoundation */; };
 		33CF13392DB5ACFB0021D4C5 /* SWCompression in Frameworks */ = {isa = PBXBuildFile; productRef = 33CF13382DB5ACFB0021D4C5 /* SWCompression */; };
-		06CB426BBD884463B20192AE /* HapticsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4327B2B8A9C24B26B8AB65EE /* HapticsManager.swift */; };
-		0924C1504D924F5D9AF5C052 /* HapticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C172937CD880465DAF684F3D /* HapticsView.swift */; };
-		FBB4B73478C7412EAFA3E236 /* PermissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F290B5E745324842ABA56DA2 /* PermissionsView.swift */; };
-		A0D5AE17C3BF46AAA0FA01E8 /* ModernImportURLView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 649FCBA6204C445186C4315D /* ModernImportURLView.swift */; };
-		CB59ADBB2B894A98A0C278A9 /* FilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C6E464F523D473D98B5DFF8 /* FilesView.swift */; };
-		60C60DD013B3486FAF9CA621 /* FileEditorViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF213945475148B7ADA32805 /* FileEditorViews.swift */; };
-		1B106840DACF48648441C308 /* FilesTabSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EE9F47847C747EFBBC54188 /* FilesTabSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,13 +37,6 @@
 		336D43972DB7454A00206400 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS18.2.sdk/System/Library/Frameworks/MobileCoreServices.framework; sourceTree = DEVELOPER_DIR; };
 		3379C1B92DA869A1004372DA /* Feather.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Feather.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AABA5D192DB3C87800BFCD2C /* FeatherTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FeatherTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		4327B2B8A9C24B26B8AB65EE /* HapticsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsManager.swift; sourceTree = "<group>"; };
-		C172937CD880465DAF684F3D /* HapticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsView.swift; sourceTree = "<group>"; };
-		F290B5E745324842ABA56DA2 /* PermissionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsView.swift; sourceTree = "<group>"; };
-		649FCBA6204C445186C4315D /* ModernImportURLView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernImportURLView.swift; sourceTree = "<group>"; };
-		0C6E464F523D473D98B5DFF8 /* FilesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesView.swift; sourceTree = "<group>"; };
-		AF213945475148B7ADA32805 /* FileEditorViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileEditorViews.swift; sourceTree = "<group>"; };
-		3EE9F47847C747EFBBC54188 /* FilesTabSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesTabSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -314,13 +300,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				06CB426BBD884463B20192AE /* HapticsManager.swift in Sources */,
-				0924C1504D924F5D9AF5C052 /* HapticsView.swift in Sources */,
-				FBB4B73478C7412EAFA3E236 /* PermissionsView.swift in Sources */,
-				A0D5AE17C3BF46AAA0FA01E8 /* ModernImportURLView.swift in Sources */,
-				CB59ADBB2B894A98A0C278A9 /* FilesView.swift in Sources */,
-				60C60DD013B3486FAF9CA621 /* FileEditorViews.swift in Sources */,
-				1B106840DACF48648441C308 /* FilesTabSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
