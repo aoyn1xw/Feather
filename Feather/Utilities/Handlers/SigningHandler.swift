@@ -171,6 +171,24 @@ final class SigningHandler: NSObject {
 	func clean() async throws {
 		try _fileManager.removeFileIfNeeded(at: _uniqueWorkDir)
 	}
+	
+	// Main sign method that orchestrates the signing process
+	func sign() async throws -> URL {
+		try await copy()
+		try await modify()
+		
+		// Return the signed app URL
+		guard let signedAppPath = try await _getSignedAppURL() else {
+			throw SigningFileHandlerError.appNotFound
+		}
+		
+		return signedAppPath
+	}
+	
+	private func _getSignedAppURL() async throws -> URL? {
+		let signedDir = try await _directory()
+		return _fileManager.getPath(in: signedDir, for: "ipa")
+	}
 }
 
 extension SigningHandler {

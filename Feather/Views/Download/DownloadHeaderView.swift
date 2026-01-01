@@ -19,7 +19,7 @@ struct DownloadHeaderView: View {
 									HStack(spacing: 6) {
 										Image(systemName: "arrow.down.circle.fill")
 											.font(.caption2)
-											.foregroundStyle(.accentColor)
+											.foregroundStyle(Color.accentColor)
 										Text(verbatim: "+\(downloadManager.manualDownloads.count - 1) more")
 											.font(.caption)
 											.fontWeight(.medium)
