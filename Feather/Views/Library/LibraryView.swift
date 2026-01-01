@@ -4,6 +4,8 @@ import NimbleViews
 
 // MARK: - View
 struct LibraryView: View {
+	@AppStorage("Feather.useGradients") private var _useGradients: Bool = true
+	
 	@StateObject var downloadManager = DownloadManager.shared
 	
 	@State private var _selectedInfoAppPresenting: AnyApp?
@@ -326,15 +328,42 @@ struct LibraryView: View {
 							ZStack {
 								Circle()
 									.fill(
-										LinearGradient(
-											colors: _importStatus == .success 
-												? [Color.green.opacity(0.8), Color.green.opacity(0.4)]
+										_useGradients ?
+											(_importStatus == .success 
+												? LinearGradient(
+													colors: [Color.green.opacity(0.8), Color.green.opacity(0.4)],
+													startPoint: .topLeading,
+													endPoint: .bottomTrailing
+												)
 												: _importStatus == .failed
-												? [Color.red.opacity(0.8), Color.red.opacity(0.4)]
-												: [Color.blue.opacity(0.8), Color.blue.opacity(0.4)],
-											startPoint: .topLeading,
-											endPoint: .bottomTrailing
-										)
+												? LinearGradient(
+													colors: [Color.red.opacity(0.8), Color.red.opacity(0.4)],
+													startPoint: .topLeading,
+													endPoint: .bottomTrailing
+												)
+												: LinearGradient(
+													colors: [Color.blue.opacity(0.8), Color.blue.opacity(0.4)],
+													startPoint: .topLeading,
+													endPoint: .bottomTrailing
+												))
+											:
+											(_importStatus == .success
+												? LinearGradient(
+													colors: [Color.green, Color.green],
+													startPoint: .topLeading,
+													endPoint: .bottomTrailing
+												)
+												: _importStatus == .failed
+												? LinearGradient(
+													colors: [Color.red, Color.red],
+													startPoint: .topLeading,
+													endPoint: .bottomTrailing
+												)
+												: LinearGradient(
+													colors: [Color.blue, Color.blue],
+													startPoint: .topLeading,
+													endPoint: .bottomTrailing
+												))
 									)
 									.frame(width: 100, height: 100)
 									.scaleEffect(_showImportAnimation ? 1.0 : 0.5)
@@ -386,14 +415,24 @@ struct LibraryView: View {
 						.background(
 							RoundedRectangle(cornerRadius: 30, style: .continuous)
 								.fill(
-									LinearGradient(
-										colors: [
-											Color(uiColor: .systemBackground),
-											Color(uiColor: .secondarySystemBackground)
-										],
-										startPoint: .topLeading,
-										endPoint: .bottomTrailing
-									)
+									_useGradients ?
+										LinearGradient(
+											colors: [
+												Color(uiColor: .systemBackground),
+												Color(uiColor: .secondarySystemBackground)
+											],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+										:
+										LinearGradient(
+											colors: [
+												Color(uiColor: .systemBackground),
+												Color(uiColor: .systemBackground)
+											],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
 								)
 								.shadow(color: .black.opacity(0.3), radius: 30, x: 0, y: 10)
 						)
