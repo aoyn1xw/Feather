@@ -33,7 +33,7 @@ struct FilesView: View {
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title3)
-                            .foregroundStyle(.accentColor)
+                            .foregroundStyle(.tint)
                     }
                 }
             }
@@ -289,9 +289,9 @@ class FileManagerService: ObservableObject {
     }
     
     func loadFiles() {
-        DispatchQueue.global(qos: .userInitiated).async {
+        DispatchQueue.global(qos: .userInitiated).async { [self] in
             do {
-                let contents = try FileManager.default.contentsOfDirectory(at: currentDirectory, includingPropertiesForKeys: [.isDirectoryKey, .fileSizeKey])
+                let contents = try FileManager.default.contentsOfDirectory(at: self.currentDirectory, includingPropertiesForKeys: [.isDirectoryKey, .fileSizeKey])
                 
                 let files = contents.compactMap { url -> FileItem? in
                     let resourceValues = try? url.resourceValues(forKeys: [.isDirectoryKey, .fileSizeKey])
