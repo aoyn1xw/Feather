@@ -148,15 +148,11 @@ class ServerInstaller: Identifiable, ObservableObject {
 	private func _installViaIDevice(_ ipaURL: URL) async throws {
 		_updateStatus(.installing)
 
-		// Get connected device
-		guard let device = try? IDeviceSwift.lookupFirstDevice() else {
-			throw NSError(domain: "ServerInstaller", code: 1, userInfo: [
-				NSLocalizedDescriptionKey: "No device connected"
-			])
-		}
-
-		// Install via IDevice
-		try device.installApp(ipaURL)
+		// Create InstallationProxy to install via IDevice
+		let installationProxy = InstallationProxy(viewModel: viewModel)
+		
+		// Install the app
+		try await installationProxy.install(at: ipaURL)
 
 		_updateStatus(.completed)
 	}
