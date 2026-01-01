@@ -8,7 +8,6 @@ struct AppearanceTintColorView: View {
 	@AppStorage("Feather.userTintGradientEnd") private var gradientEndHex: String = "#848ef9"
 	
 	@State private var isCustomSheetPresented = false
-	@State private var isGradientTextSheetPresented = false
 	
 	private let tintOptions: [(name: String, hex: String)] = [
 		("Default", 		"#B496DC"),
@@ -35,7 +34,27 @@ struct AppearanceTintColorView: View {
 		("Crimson",			"#DC2F02"),
 		("Sky Blue",		"#48CAE4"),
 		("Emerald",			"#52B788"),
-		("Hot Pink",		"#FF69B4")
+		("Hot Pink",		"#FF69B4"),
+		("Lime Green",		"#32CD32"),
+		("Indigo",			"#4B0082"),
+		("Turquoise",		"#40E0D0"),
+		("Peach",			"#FFDAB9"),
+		("Magenta",			"#FF00FF"),
+		("Amber",			"#FFBF00"),
+		("Rose Gold",		"#B76E79"),
+		("Cyan",			"#00FFFF"),
+		("Salmon",			"#FA8072"),
+		("Violet",			"#8B00FF"),
+		("Gold",			"#FFD700"),
+		("Bronze",			"#CD7F32"),
+		("Silver",			"#C0C0C0"),
+		("Navy",			"#001F3F"),
+		("Maroon",			"#800000"),
+		("Olive",			"#808000"),
+		("Aqua",			"#00FFAA"),
+		("Cherry",			"#DE3163"),
+		("Mint",			"#98FF98"),
+		("Plum",			"#DDA0DD")
 	]
 
 	@AppStorage("com.apple.SwiftUI.IgnoreSolariumLinkedOnCheck")
@@ -54,60 +73,6 @@ struct AppearanceTintColorView: View {
 	// MARK: Body
 	var body: some View {
 		VStack(spacing: 20) {
-			// Gradient Text Configuration Button
-			Button {
-				isGradientTextSheetPresented = true
-			} label: {
-				HStack(spacing: 16) {
-					ZStack {
-						Circle()
-							.fill(
-								LinearGradient(
-									colors: [Color.purple.opacity(0.3), Color.blue.opacity(0.3)],
-									startPoint: .topLeading,
-									endPoint: .bottomTrailing
-								)
-							)
-							.frame(width: 44, height: 44)
-						
-						Image(systemName: "textformat.size")
-							.font(.title3)
-							.foregroundStyle(
-								LinearGradient(
-									colors: [Color.purple, Color.blue],
-									startPoint: .topLeading,
-									endPoint: .bottomTrailing
-								)
-							)
-					}
-					.shadow(color: Color.purple.opacity(0.3), radius: 8, x: 0, y: 4)
-					
-					VStack(alignment: .leading, spacing: 4) {
-						Text("Gradient Text")
-							.font(.headline)
-							.fontWeight(.semibold)
-							.foregroundStyle(.primary)
-						
-						Text("Configure gradient text rendering")
-							.font(.caption)
-							.foregroundStyle(.secondary)
-					}
-					
-					Spacer()
-					
-					Image(systemName: "chevron.right")
-						.font(.caption)
-						.foregroundStyle(.tertiary)
-				}
-				.padding(16)
-				.background(
-					RoundedRectangle(cornerRadius: 16, style: .continuous)
-						.fill(Color(UIColor.secondarySystemGroupedBackground))
-						.shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
-				)
-			}
-			.buttonStyle(.plain)
-			
 			// Tint Color Selection
 			ScrollView(.horizontal, showsIndicators: false) {
 			LazyHGrid(rows: [GridItem(.fixed(100))], spacing: 12) {
@@ -197,9 +162,6 @@ struct AppearanceTintColorView: View {
 				gradientStartHex: $gradientStartHex,
 				gradientEndHex: $gradientEndHex
 			)
-		}
-		.sheet(isPresented: $isGradientTextSheetPresented) {
-			GradientTextConfigView()
 		}
 	}
 }

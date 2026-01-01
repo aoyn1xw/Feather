@@ -206,11 +206,56 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 		_ application: UIApplication,
 		didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
 	) -> Bool {
+		_setupCrashHandler()
 		_createPipeline()
 		_createDocumentsDirectories()
 		ResetView.clearWorkCache()
 		_addDefaultCertificates()
+		
+		// Log app launch
+		AppLogManager.shared.info("Application launched successfully", category: "Lifecycle")
+		
 		return true
+	}
+	
+	private func _setupCrashHandler() {
+		// Set up NSException handler for crash logging
+		NSSetUncaughtExceptionHandler { exception in
+			let crashInfo = """
+			CRASH DETECTED:
+			Name: \(exception.name.rawValue)
+			Reason: \(exception.reason ?? "Unknown")
+			Call Stack: \(exception.callStackSymbols.joined(separator: "\n"))
+			"""
+			
+			AppLogManager.shared.critical(crashInfo, category: "Crash")
+			
+			// Force persist logs immediately
+			if let data = try? JSONEncoder().encode(AppLogManager.shared.logs.suffix(1000)) {
+				UserDefaults.standard.set(data, forKey: "Feather.AppLogs")
+				UserDefaults.standard.synchronize()
+			}
+		}
+		
+		// Set up signal handler for crashes
+		signal(SIGABRT) { signal in
+			AppLogManager.shared.critical("App crashed with SIGABRT signal", category: "Crash")
+		}
+		signal(SIGILL) { signal in
+			AppLogManager.shared.critical("App crashed with SIGILL signal", category: "Crash")
+		}
+		signal(SIGSEGV) { signal in
+			AppLogManager.shared.critical("App crashed with SIGSEGV signal", category: "Crash")
+		}
+		signal(SIGFPE) { signal in
+			AppLogManager.shared.critical("App crashed with SIGFPE signal", category: "Crash")
+		}
+		signal(SIGBUS) { signal in
+			AppLogManager.shared.critical("App crashed with SIGBUS signal", category: "Crash")
+		}
+		signal(SIGPIPE) { signal in
+			AppLogManager.shared.critical("App crashed with SIGPIPE signal", category: "Crash")
+		}
 	}
 	
 	private func _createPipeline() {
