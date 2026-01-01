@@ -51,7 +51,23 @@ final class RemoteSigningHandler: NSObject {
             throw RemoteSigningError.missingProvisioningProfile
         }
         
-        let url = URL(string: "https://sign.ayon1xw.me/sign")!
+        // Get signing API URL based on server method
+        let serverMethod = UserDefaults.standard.integer(forKey: "Feather.serverMethod")
+        let customAPI = UserDefaults.standard.string(forKey: "Feather.customSigningAPI") ?? ""
+        
+        let apiURLString: String
+        if serverMethod == 3 && !customAPI.isEmpty {
+            // Custom API
+            apiURLString = customAPI
+        } else {
+            // Default remote signing API
+            apiURLString = "https://sign.ayon1xw.me/sign"
+        }
+        
+        guard let url = URL(string: apiURLString) else {
+            throw RemoteSigningError.serverError("Invalid API URL")
+        }
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         
@@ -106,6 +122,7 @@ final class RemoteSigningHandler: NSObject {
         }
         
         let decodedResponse = try JSONDecoder().decode(RemoteSigningResponse.self, from: responseData)
-        return decodedResponse.installLink
+        // Use directInstallLink as it contains the itms:// link for installation
+        return decodedResponse.directInstallLink
     }
 }

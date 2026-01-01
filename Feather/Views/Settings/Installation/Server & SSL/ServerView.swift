@@ -43,7 +43,13 @@ extension ServerView {
 struct ServerView: View {
 	@AppStorage("Feather.ipFix") private var _ipFix: Bool = false
 	@AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
-	private let _serverMethods: [String] = [.localized("Fully Local"), .localized("Semi Local"), .localized("Fully Remote")]
+	@AppStorage("Feather.customSigningAPI") private var _customSigningAPI: String = ""
+	private let _serverMethods: [(name: String, description: String)] = [
+		(.localized("Fully Local"), .localized("Signs and installs apps entirely on your device without external servers")),
+		(.localized("Semi Local"), .localized("Signs locally but uses a local server for installation via Wi-Fi")),
+		(.localized("Fully Remote"), .localized("Uses a remote server to sign and provides a direct installation link")),
+		(.localized("Custom"), .localized("Use your own custom API endpoint for remote signing"))
+	]
 	
 	private let _dataService = NBFetchService()
 	private let _serverPackUrl = "https://backloop.dev/pack.json"
@@ -55,12 +61,45 @@ struct ServerView: View {
 		Group {
 			Section {
 				Picker(.localized("Server Type"), systemImage: "server.rack", selection: $_serverMethod) {
-					ForEach(_serverMethods.indices, id: \.description) { index in
-						Text(_serverMethods[index]).tag(index)
+					ForEach(_serverMethods.indices, id: \.self) { index in
+						VStack(alignment: .leading, spacing: 4) {
+							Text(_serverMethods[index].name)
+								.font(.body)
+							Text(_serverMethods[index].description)
+								.font(.caption)
+								.foregroundStyle(.secondary)
+						}
+						.tag(index)
 					}
 				}
+				.pickerStyle(.inline)
+				
 				Toggle(.localized("Only use localhost address"), systemImage: "lifepreserver", isOn: $_ipFix)
 					.disabled(_serverMethod != 1)
+			} footer: {
+				Text(_serverMethods[_serverMethod].description)
+					.font(.caption)
+			}
+			
+			// Custom API Section
+			if _serverMethod == 3 {
+				Section {
+					VStack(alignment: .leading, spacing: 8) {
+						Text(.localized("Custom Signing API URL"))
+							.font(.caption)
+							.foregroundStyle(.secondary)
+						
+						TextField(.localized("https://your-api.com/sign"), text: $_customSigningAPI)
+							.textInputAutocapitalization(.never)
+							.autocorrectionDisabled()
+							.keyboardType(.URL)
+					}
+				} header: {
+					Label(.localized("Custom API Configuration"), systemImage: "link")
+				} footer: {
+					Text(.localized("Enter the URL of your custom signing API. The API should accept multipart/form-data with ipa, p12, mobileprovision files and return a JSON with 'directInstallLink' field."))
+						.font(.caption)
+				}
 			}
 			
 			Section {

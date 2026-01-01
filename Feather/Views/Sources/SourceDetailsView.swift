@@ -7,6 +7,7 @@ import NukeUI
 struct SourceDetailsView: View {
 	@Environment(\.dismiss) var dismiss
 	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
+	@AppStorage("Feather.showNews") private var _showNews: Bool = true
 	@State private var dominantColor: Color = .accentColor
 	@State private var _searchText = ""
 	@State private var _selectedNewsPresenting: ASRepository.News?
@@ -52,8 +53,8 @@ struct SourceDetailsView: View {
 				_searchBar()
 					.padding(.horizontal)
 				
-				// News Section
-				if let news = repository?.news, !news.isEmpty {
+				// News Section - Only show if enabled in settings
+				if _showNews, let news = repository?.news, !news.isEmpty {
 					_newsSection(news: filteredNews.isEmpty && !_searchText.isEmpty ? [] : (filteredNews.isEmpty ? news : filteredNews))
 				}
 				
