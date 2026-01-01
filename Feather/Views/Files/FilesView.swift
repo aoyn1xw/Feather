@@ -289,32 +289,43 @@ class FileManagerService: ObservableObject {
     }
     
     func loadFiles() {
-        do {
-            let contents = try FileManager.default.contentsOfDirectory(at: currentDirectory, includingPropertiesForKeys: [.isDirectoryKey, .fileSizeKey])
-            
-            currentFiles = contents.compactMap { url in
-                let resourceValues = try? url.resourceValues(forKeys: [.isDirectoryKey, .fileSizeKey])
-                let isDirectory = resourceValues?.isDirectory ?? false
-                let fileSize = resourceValues?.fileSize
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                let contents = try FileManager.default.contentsOfDirectory(at: currentDirectory, includingPropertiesForKeys: [.isDirectoryKey, .fileSizeKey])
                 
-                let sizeString: String? = {
-                    if isDirectory {
-                        return nil
-                    }
-                    guard let fileSize = fileSize else { return nil }
-                    return ByteCountFormatter.string(fromByteCount: Int64(fileSize), countStyle: .file)
-                }()
+                let files = contents.compactMap { url -> FileItem? in
+                    let resourceValues = try? url.resourceValues(forKeys: [.isDirectoryKey, .fileSizeKey])
+                    let isDirectory = resourceValues?.isDirectory ?? false
+                    let fileSize = resourceValues?.fileSize
+                    
+                    let sizeString: String? = {
+                        if isDirectory {
+                            return nil
+                        }
+                        guard let fileSize = fileSize else { return nil }
+                        return ByteCountFormatter.string(fromByteCount: Int64(fileSize), countStyle: .file)
+                    }()
+                    
+                    // Get custom icon if exists
+                    let customIcon = UserDefaults.standard.string(forKey: "folder_icon_\(url.path)")
+                    
+                    return FileItem(
+                        name: url.lastPathComponent,
+                        url: url,
+                        isDirectory: isDirectory,
+                        size: sizeString,
+                        customIcon: customIcon
+                    )
+                }.sorted { $0.isDirectory && !$1.isDirectory }
                 
-                return FileItem(
-                    name: url.lastPathComponent,
-                    url: url,
-                    isDirectory: isDirectory,
-                    size: sizeString,
-                    customIcon: nil
-                )
-            }.sorted { !$0.isDirectory && $1.isDirectory }
-        } catch {
-            currentFiles = []
+                DispatchQueue.main.async {
+                    self.currentFiles = files
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.currentFiles = []
+                }
+            }
         }
     }
     

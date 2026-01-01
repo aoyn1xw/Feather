@@ -280,8 +280,8 @@ struct FolderCustomizationView: View {
     }
     
     private func saveCustomization() {
-        // Save icon preference
-        UserDefaults.standard.set(selectedIcon, forKey: "folder_icon_\(folderURL.lastPathComponent)")
+        // Save icon preference using the full path to avoid conflicts
+        UserDefaults.standard.set(selectedIcon, forKey: "folder_icon_\(folderURL.path)")
         HapticsManager.shared.success()
         dismiss()
     }

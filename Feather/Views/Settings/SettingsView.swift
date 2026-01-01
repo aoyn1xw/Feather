@@ -24,8 +24,7 @@ struct SettingsView: View {
                             if developerTapCount >= 7 {
                                 isDeveloperModeEnabled = true
                                 developerTapCount = 0
-                                let generator = UINotificationFeedbackGenerator()
-                                generator.notificationOccurred(.success)
+                                HapticsManager.shared.success()
                             }
                         }
                 }
