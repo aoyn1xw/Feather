@@ -26,12 +26,19 @@ let viewModel = InstallerStatusViewModel(isIdevice: UserDefaults.standard.intege
 self._viewModel = StateObject(wrappedValue: viewModel)
 
 // Try to create the installer safely
+var tempInstaller: ServerInstaller? = nil
+var error: String? = nil
+
 do {
-    self.installer = try ServerInstaller(app: app, viewModel: viewModel)
+    tempInstaller = try ServerInstaller(app: app, viewModel: viewModel)
+    AppLogManager.shared.success("ServerInstaller initialized successfully for \(app.name ?? "Unknown")", category: "Installation")
 } catch {
-    self.installer = nil
-    self._initializationError = error.localizedDescription
+    AppLogManager.shared.error("Failed to initialize ServerInstaller: \(error.localizedDescription)", category: "Installation")
+    error = error.localizedDescription
 }
+
+self.installer = tempInstaller
+self._initializationError = State(initialValue: error)
 }
 
 // MARK: Body
@@ -41,24 +48,8 @@ var body: some View {
         VStack(spacing: 24) {
             ZStack {
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.red.opacity(0.15), Color.red.opacity(0.05)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [Color.red.opacity(0.3), Color.red.opacity(0.1)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1.5
-                            )
-                    )
+                    .fill(Color.red.opacity(0.1))
+                    .frame(height: 180)
                 
                 VStack(spacing: 16) {
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -78,9 +69,7 @@ var body: some View {
                             .padding(.horizontal)
                     }
                 }
-                .padding(20)
             }
-            .frame(height: 180)
             .padding(.horizontal, 20)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -94,49 +83,28 @@ var body: some View {
     } else {
         // Normal installation flow
         VStack(spacing: 24) {
-            // Modern Status Card
+            // Simple Status Card
             ZStack {
-                // Gradient Background
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
                     .fill(
-                        LinearGradient(
-                            colors: viewModel.isCompleted
-                                ? [Color.green.opacity(0.15), Color.green.opacity(0.05)]
-                                : viewModel.status == .broken
-                                ? [Color.red.opacity(0.15), Color.red.opacity(0.05)]
-                                : [Color.accentColor.opacity(0.15), Color.accentColor.opacity(0.05)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
+                        viewModel.isCompleted
+                            ? Color.green.opacity(0.1)
+                            : viewModel.status == .broken
+                            ? Color.red.opacity(0.1)
+                            : Color.accentColor.opacity(0.1)
                     )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .stroke(
-                                LinearGradient(
-                                    colors: viewModel.isCompleted
-                                        ? [Color.green.opacity(0.3), Color.green.opacity(0.1)]
-                                        : viewModel.status == .broken
-                                        ? [Color.red.opacity(0.3), Color.red.opacity(0.1)]
-                                        : [Color.accentColor.opacity(0.3), Color.accentColor.opacity(0.1)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1.5
-                            )
-                    )
+                    .frame(height: 180)
 
                 VStack(spacing: 16) {
                     // Icon & Progress
                     InstallProgressView(app: app, viewModel: viewModel)
-                        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
 
-                    // Modern Status Text with Icon
+                    // Status Text
                     VStack(spacing: 8) {
                         HStack(spacing: 8) {
                             if !viewModel.isCompleted && viewModel.status != .broken {
                                 ProgressView()
                                     .scaleEffect(0.8)
-                                    .tint(.accentColor)
                             } else if viewModel.isCompleted {
                                 Image(systemName: "checkmark.circle.fill")
                                     .font(.title3)
@@ -150,9 +118,7 @@ var body: some View {
                             Text(viewModel.statusLabel)
                                 .font(.headline)
                                 .fontWeight(.bold)
-                                .foregroundStyle(.primary)
                         }
-                        .modifier(ContentTransitionModifier())
 
                         if viewModel.status == .broken {
                             Text(.localized("An error occurred during installation."))
@@ -168,11 +134,8 @@ var body: some View {
                                 .padding(.horizontal)
                         }
                     }
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.statusLabel)
                 }
-                .padding(20)
             }
-            .frame(height: 180)
             .padding(.horizontal, 20)
 
             // Action Button
@@ -188,19 +151,11 @@ var body: some View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
-                    .background(
-                        LinearGradient(
-                            colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                    .background(Color.accentColor)
                     .foregroundStyle(.white)
                     .clipShape(Capsule())
-                    .shadow(color: Color.accentColor.opacity(0.4), radius: 12, x: 0, y: 6)
                 }
                 .padding(.horizontal, 20)
-                .transition(.scale.combined(with: .opacity))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -247,11 +202,14 @@ var body: some View {
      // Check if installer was initialized properly
      guard let installer = installer else {
          AppLogManager.shared.error("Failed to initialize installer for \(app.name ?? "Unknown")", category: "Installation")
-         UIAlertController.showAlertWithOk(
-             title: .localized("Error"),
-             message: .localized("Failed to initialize installer. Please try again.")
-         )
-         dismiss()
+         
+         DispatchQueue.main.async {
+             UIAlertController.showAlertWithOk(
+                 title: .localized("Error"),
+                 message: .localized("Failed to initialize installer. Please try again.")
+             )
+             dismiss()
+         }
          return
      }
      
