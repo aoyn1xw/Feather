@@ -47,7 +47,7 @@ struct DownloadButtonView: View {
 						.rotationEffect(.degrees(-90))
 						.frame(width: 34, height: 34)
 						.shadow(color: Color.accentColor.opacity(0.4), radius: 3, x: 0, y: 2)
-						.animation(.smooth, value: downloadProgress)
+						.animation(animationForPlatform(), value: downloadProgress)
 
 					if downloadProgress >= 0.75 {
 						ZStack {
@@ -189,4 +189,12 @@ struct DownloadButtonView: View {
 			downloadProgress = download.overallProgress
 		}
 	}
+    
+    private func animationForPlatform() -> Animation {
+        if #available(iOS 17.0, *) {
+            return .smooth
+        } else {
+            return .easeInOut(duration: 0.35)
+        }
+    }
 }

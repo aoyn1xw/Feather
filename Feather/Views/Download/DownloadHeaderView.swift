@@ -97,7 +97,7 @@ struct DownloadItemView: View {
 								endPoint: .bottomTrailing
 							)
 						)
-						.symbolEffect(.bounce, value: overallProgress >= 1.0)
+						.modifier(SymbolEffectModifier(trigger: overallProgress >= 1.0))
 				}
 				.shadow(color: Color.accentColor.opacity(0.3), radius: 6, x: 0, y: 3)
 				
@@ -113,7 +113,7 @@ struct DownloadItemView: View {
 							.font(.caption)
 							.fontWeight(.medium)
 							.foregroundColor(.accentColor)
-							.contentTransition(.numericText())
+							.modifier(NumericTextTransitionModifier())
 						
 						if totalBytes > 0 {
 							Text("•")
@@ -122,7 +122,7 @@ struct DownloadItemView: View {
 							Text(verbatim: "\($bytesDownloaded.wrappedValue.formattedByteCount) / \(totalBytes.formattedByteCount)")
 								.font(.caption)
 								.foregroundColor(.secondary)
-								.contentTransition(.numericText())
+								.modifier(NumericTextTransitionModifier())
 						}
 					}
 				}
@@ -165,3 +165,32 @@ struct DownloadItemView: View {
 		: (0.3 * unpackageProgress) + (0.7 * progress)
 	}
 }
+
+// MARK: - Helper ViewModifier for iOS 16 compatibility
+struct SymbolEffectModifier: ViewModifier {
+    let trigger: Bool
+    
+    func body(content: Content) -> some View {
+        if #available(iOS 17.0, *) {
+            content
+                .symbolEffect(.bounce, value: trigger)
+        } else {
+            content
+                .scaleEffect(trigger ? 1.1 : 1.0)
+                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: trigger)
+        }
+    }
+}
+
+struct NumericTextTransitionModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 17.0, *) {
+            content
+                .contentTransition(.numericText())
+        } else {
+            content
+                .animation(.easeInOut(duration: 0.2), value: UUID())
+        }
+    }
+}
+

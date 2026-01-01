@@ -25,10 +25,18 @@ struct FeatherApp: App {
                         UIApplication.shared.isIdleTimerDisabled = false
                     }
             } else if !hasCompletedOnboarding {
-                OnboardingView()
-                    .onAppear {
-                        _setupTheme()
-                    }
+                if #available(iOS 17.0, *) {
+                    OnboardingView()
+                        .onAppear {
+                            _setupTheme()
+                        }
+                } else {
+                    // Fallback for iOS 16
+                    OnboardingViewLegacy()
+                        .onAppear {
+                            _setupTheme()
+                        }
+                }
             } else {
                 VStack {
                     DownloadHeaderView(downloadManager: downloadManager)
@@ -38,7 +46,7 @@ struct FeatherApp: App {
                         .onOpenURL(perform: _handleURL)
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
-                .animation(.smooth, value: downloadManager.manualDownloads.description)
+                .animation(animationForPlatform(), value: downloadManager.manualDownloads.description)
                 .onReceive(NotificationCenter.default.publisher(for: .heartbeatInvalidHost)) { _ in
                     DispatchQueue.main.async {
                         UIAlertController.showAlertWithOk(
@@ -89,6 +97,14 @@ struct FeatherApp: App {
             UIApplication.topViewController()?.view.window?.tintColor = UIColor(SwiftUI.Color(hex: gradientStartHex))
         } else {
             UIApplication.topViewController()?.view.window?.tintColor = UIColor(SwiftUI.Color(hex: UserDefaults.standard.string(forKey: "Feather.userTintColor") ?? "#B496DC"))
+        }
+    }
+    
+    private func animationForPlatform() -> Animation {
+        if #available(iOS 17.0, *) {
+            return .smooth
+        } else {
+            return .easeInOut(duration: 0.35)
         }
     }
 	

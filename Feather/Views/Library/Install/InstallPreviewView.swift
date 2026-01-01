@@ -87,7 +87,7 @@ VStack(spacing: 24) {
                                 .fontWeight(.bold)
                                 .foregroundStyle(.primary)
                         }
-                        .contentTransition(.symbolEffect)
+                        .modifier(ContentTransitionModifier())
 
                         if viewModel.status == .broken {
                             Text(.localized("An error occurred during installation."))
@@ -209,6 +209,19 @@ dismiss()
             return "Ready to install"
         default:
             return "Processing..."
+        }
+    }
+}
+
+// MARK: - Helper ViewModifier for iOS 16 compatibility
+struct ContentTransitionModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 17.0, *) {
+            content
+                .contentTransition(.symbolEffect)
+        } else {
+            content
+                .animation(.easeInOut(duration: 0.2), value: UUID())
         }
     }
 }

@@ -27,7 +27,7 @@ struct SigningView: View {
 	@FetchRequest(
 		entity: CertificatePair.entity(),
 		sortDescriptors: [NSSortDescriptor(keyPath: \CertificatePair.date, ascending: false)],
-		animation: .snappy
+		animation: .easeInOut(duration: 0.35)
 	) private var certificates: FetchedResults<CertificatePair>
 	
 	private func _selectedCert() -> CertificatePair? {
@@ -111,7 +111,7 @@ struct SigningView: View {
 				}
 			}
 			.disabled(_isSigning)
-			.animation(.smooth, value: _isSigning)
+			.animation(animationForPlatform(), value: _isSigning)
             .fullScreenCover(isPresented: $_isSigningProcessPresented) {
                 if #available(iOS 17.0, *) {
                     SigningProcessView(appName: _temporaryOptions.appName ?? app.name ?? "App")
@@ -511,4 +511,12 @@ extension SigningView {
             }
         }
 	}
+    
+    private func animationForPlatform() -> Animation {
+        if #available(iOS 17.0, *) {
+            return .smooth
+        } else {
+            return .easeInOut(duration: 0.35)
+        }
+    }
 }

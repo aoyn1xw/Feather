@@ -53,13 +53,13 @@ struct LibraryView: View {
 	@FetchRequest(
 		entity: Signed.entity(),
 		sortDescriptors: [NSSortDescriptor(keyPath: \Signed.date, ascending: false)],
-		animation: .snappy
+		animation: .easeInOut(duration: 0.35)
 	) private var _signedApps: FetchedResults<Signed>
 	
 	@FetchRequest(
 		entity: Imported.entity(),
 		sortDescriptors: [NSSortDescriptor(keyPath: \Imported.date, ascending: false)],
-		animation: .snappy
+		animation: .easeInOut(duration: 0.35)
 	) private var _importedApps: FetchedResults<Imported>
 	
 	// MARK: Body

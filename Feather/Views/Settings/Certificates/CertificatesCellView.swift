@@ -28,7 +28,7 @@ struct CertificatesCellView: View {
 			_certInfoPill(data: cert)
 		}
 		.frame(height: 80)
-		.contentTransition(.opacity)
+		.modifier(ContentTransitionOpacityModifier())
 		.frame(maxWidth: .infinity, alignment: .leading)
 		.onAppear {
 			withAnimation {
@@ -78,4 +78,17 @@ extension CertificatesCellView {
 		
 		return pills
 	}
+}
+
+// MARK: - Helper ViewModifier for iOS 16 compatibility
+struct ContentTransitionOpacityModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 17.0, *) {
+            content
+                .contentTransition(.opacity)
+        } else {
+            content
+                .animation(.easeInOut(duration: 0.2), value: UUID())
+        }
+    }
 }
