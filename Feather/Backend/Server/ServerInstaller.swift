@@ -149,7 +149,7 @@ class ServerInstaller: Identifiable, ObservableObject {
 		_updateStatus(.installing)
 
 		// Get connected device
-		guard let device = try? IDevice.lookupFirstDevice() else {
+		guard let device = try? IDeviceSwift.lookupFirstDevice() else {
 			throw NSError(domain: "ServerInstaller", code: 1, userInfo: [
 				NSLocalizedDescriptionKey: "No device connected"
 			])

@@ -19,7 +19,7 @@ struct DownloadHeaderView: View {
 									HStack(spacing: 6) {
 										Image(systemName: "arrow.down.circle.fill")
 											.font(.caption2)
-											.foregroundStyle(.accentColor)
+											.foregroundStyle(Color.accentColor)
 										Text(verbatim: "+\(downloadManager.manualDownloads.count - 1) more")
 											.font(.caption)
 											.fontWeight(.medium)
@@ -148,7 +148,7 @@ struct DownloadItemView: View {
 							endPoint: .trailing
 						)
 					)
-					.frame(width: max(6, CGFloat(overallProgress) * UIScreen.main.bounds.width * 0.85), height: 6)
+					.frame(width: progressBarWidth, height: 6)
 					.shadow(color: Color.accentColor.opacity(0.5), radius: 4, x: 0, y: 2)
 					.animation(.spring(response: 0.5, dampingFraction: 0.8), value: overallProgress)
 			}
@@ -163,6 +163,10 @@ struct DownloadItemView: View {
 		download.onlyArchiving
 		? unpackageProgress
 		: (0.3 * unpackageProgress) + (0.7 * progress)
+	}
+	
+	private var progressBarWidth: CGFloat {
+		max(6, CGFloat(overallProgress) * UIScreen.main.bounds.width * 0.85)
 	}
 }
 

@@ -139,7 +139,7 @@ struct SigningProcessView: View {
                     HStack {
                         Image(systemName: "terminal.fill")
                             .font(.caption)
-                            .foregroundStyle(.accentColor)
+                            .foregroundStyle(Color.accentColor)
                         Text("Logs")
                             .font(.caption)
                             .fontWeight(.semibold)

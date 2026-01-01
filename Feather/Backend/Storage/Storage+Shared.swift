@@ -50,6 +50,7 @@ protocol AppInfoPresentable {
 	var identifier: String? { get }
 	var date: Date? { get }
 	var icon: String? { get }
+	var iconURL: URL? { get }
 	var uuid: String? { get }
 	var isSigned: Bool { get }
 	
@@ -57,8 +58,10 @@ protocol AppInfoPresentable {
 
 extension Signed: AppInfoPresentable {
 	var isSigned: Bool { true }
+	var iconURL: URL? { nil }
 }
 
 extension Imported: AppInfoPresentable {
 	var isSigned: Bool { false }
+	var iconURL: URL? { nil }
 }

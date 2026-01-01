@@ -381,7 +381,7 @@ Text("Apply gradients to text throughout the app")
 } header: {
 HStack {
 Image(systemName: "textformat.size")
-.foregroundStyle(.accentColor)
+.foregroundStyle(Color.accentColor)
 Text("Gradient Text")
 .font(.subheadline)
 .fontWeight(.semibold)
@@ -437,7 +437,7 @@ Spacer()
 
 if manager.gradientDirection == option.value {
 Image(systemName: "checkmark")
-.foregroundStyle(.accentColor)
+.foregroundStyle(Color.accentColor)
 .font(.headline)
 }
 }
@@ -532,4 +532,4 @@ private func notifySettingsChanged() {
 NotificationCenter.default.post(name: .gradientTextSettingsChanged, object: nil)
 }
 }
-
+}

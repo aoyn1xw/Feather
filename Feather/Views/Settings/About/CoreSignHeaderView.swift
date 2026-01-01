@@ -4,7 +4,7 @@ import SwiftUI
 /// Changes subtitle when user switches tabs or when app returns to foreground
 struct CoreSignHeaderView: View {
     // MARK: - State
-    @State private var currentSubtitle: LocalizedStringKey = "subtitle.crashouts"
+    @State private var currentSubtitleIndex: Int = 0
     @State private var isAnimating = false
 
     // MARK: - Subtitle Definitions
@@ -24,6 +24,10 @@ struct CoreSignHeaderView: View {
         "subtitle.made_in",
         "subtitle.swiftui"
     ]
+    
+    private var currentSubtitle: LocalizedStringKey {
+        subtitles[currentSubtitleIndex]
+    }
 
     // MARK: - Body
     var body: some View {
@@ -55,7 +59,7 @@ struct CoreSignHeaderView: View {
                             insertion: .move(edge: .bottom).combined(with: .opacity),
                             removal: .move(edge: .top).combined(with: .opacity)
                         ))
-                        .id(currentSubtitle) // Force view recreation on change
+                        .id(currentSubtitleIndex) // Use index which is Hashable
                 }
 
                 Spacer()
@@ -114,21 +118,21 @@ struct CoreSignHeaderView: View {
     private func rotateSubtitle() {
         guard !subtitles.isEmpty else { return }
 
-        // Get a random subtitle different from current
-        var newSubtitle = subtitles.randomElement() ?? subtitles[0]
+        // Get a random subtitle index different from current
+        var newIndex = Int.random(in: 0..<subtitles.count)
 
         // Ensure it's different from current (if we have multiple options)
         if subtitles.count > 1 {
             var attempts = 0
-            while newSubtitle == currentSubtitle && attempts < 10 {
-                newSubtitle = subtitles.randomElement() ?? subtitles[0]
+            while newIndex == currentSubtitleIndex && attempts < 10 {
+                newIndex = Int.random(in: 0..<subtitles.count)
                 attempts += 1
             }
         }
 
         // Animate the change
         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-            currentSubtitle = newSubtitle
+            currentSubtitleIndex = newIndex
         }
     }
 
