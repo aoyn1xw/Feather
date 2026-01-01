@@ -1,6 +1,5 @@
 import Foundation
 import Combine
-import UIKit.UIImpactFeedbackGenerator
 
 class Download: Identifiable, @unchecked Sendable {
 	@Published var progress: Double = 0.0
@@ -134,8 +133,7 @@ extension DownloadManager: URLSessionDownloadDelegate {
 	func handlePachageFile(url: URL, dl: Download) throws {
 		FR.handlePackageFile(url, download: dl) { err in
 			if err != nil {
-				let generator = UINotificationFeedbackGenerator()
-				generator.notificationOccurred(.error)
+				HapticsManager.shared.error()
 			}
 			
 			DispatchQueue.main.async {

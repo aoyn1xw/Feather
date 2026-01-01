@@ -1,7 +1,6 @@
 import CoreData
 import AltSourceKit
 import OSLog
-import UIKit.UIImpactFeedbackGenerator
 
 // MARK: - Class extension: Sources
 extension Storage {
@@ -25,7 +24,6 @@ extension Storage {
 			return
 		}
 		
-		let generator = UIImpactFeedbackGenerator(style: .light)
 		
 		let new = AltSource(context: context)
 		new.name = name
@@ -37,7 +35,7 @@ extension Storage {
 		do {
 			if !deferSave {
 				try context.save()
-				generator.impactOccurred()
+				HapticsManager.shared.impact()
 			}
 			completion(nil)
 		} catch {
@@ -68,7 +66,6 @@ extension Storage {
 		repos: [URL: ASRepository],
 		completion: @escaping (Error?) -> Void
 	) {
-		let generator = UIImpactFeedbackGenerator(style: .light)
 		
 		for (url, repo) in repos {
 			addSource(
@@ -84,7 +81,7 @@ extension Storage {
 		}
 		
 		saveContext()
-		generator.impactOccurred()
+		HapticsManager.shared.impact()
 		completion(nil)
 	}
 

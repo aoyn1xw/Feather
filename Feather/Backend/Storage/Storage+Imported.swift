@@ -1,5 +1,4 @@
 import CoreData
-import UIKit.UIImpactFeedbackGenerator
 
 // MARK: - Class extension: Imported Apps
 extension Storage {
@@ -14,7 +13,6 @@ extension Storage {
 		
 		completion: @escaping (Error?) -> Void
 	) {
-		let generator = UIImpactFeedbackGenerator(style: .light)
 		
 		let new = Imported(context: context)
 		
@@ -28,7 +26,7 @@ extension Storage {
 		new.version = appVersion
 		
 		saveContext()
-		generator.impactOccurred()
+		HapticsManager.shared.impact()
 		completion(nil)
 	}
 }

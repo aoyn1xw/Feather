@@ -108,8 +108,7 @@ struct DylibBlockerView: View {
                 Button {
                     // This button intentionally does nothing
                     // User must relaunch without dylibs
-                    let generator = UINotificationFeedbackGenerator()
-                    generator.notificationOccurred(.error)
+                    HapticsManager.shared.error()
                 } label: {
                     HStack {
                         Image(systemName: "xmark.circle.fill")

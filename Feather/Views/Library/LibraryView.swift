@@ -11,7 +11,6 @@ struct LibraryView: View {
 	@State private var _selectedInstallAppPresenting: AnyApp?
 	@State private var _isImportingPresenting = false
 	@State private var _isDownloadingPresenting = false
-	@State private var _alertDownloadString: String = "" // for _isDownloadingPresenting
 	@State private var _showImportAnimation = false
 	@State private var _importStatus: ImportStatus = .loading
 	@State private var _importedAppName: String = ""
@@ -303,34 +302,29 @@ struct LibraryView: View {
 				)
 				.ignoresSafeArea()
 			}
-			.alert(.localized("Import from URL"), isPresented: $_isDownloadingPresenting) {
-				TextField(.localized("URL"), text: $_alertDownloadString)
-					.textInputAutocapitalization(.never)
-				Button(.localized("Cancel"), role: .cancel) {
-					_alertDownloadString = ""
-				}
-				Button(.localized("OK")) {
-					if let url = URL(string: _alertDownloadString) {
-						// Show loading animation for URL import
-						_importedAppName = url.lastPathComponent
-						_importStatus = .loading
-						withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-							_showImportAnimation = true
-						}
-						
-						let downloadId = "FeatherManualDownload_\(UUID().uuidString)"
-						_ = downloadManager.startDownload(from: url, id: downloadId)
-						
-						// Monitor download completion - dismiss loading after showing it
-						// The actual success/failure will be handled by the download manager
-						// For now, just show the loading state briefly and dismiss
-						DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-							withAnimation(.easeOut(duration: 0.3)) {
-								_showImportAnimation = false
-							}
+			.sheet(isPresented: $_isDownloadingPresenting) {
+				ModernImportURLView { url in
+					// Show loading animation for URL import
+					_importedAppName = url.lastPathComponent
+					_importStatus = .loading
+					withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+						_showImportAnimation = true
+					}
+					
+					let downloadId = "FeatherManualDownload_\(UUID().uuidString)"
+					_ = downloadManager.startDownload(from: url, id: downloadId)
+					
+					// Monitor download completion - dismiss loading after showing it
+					// The actual success/failure will be handled by the download manager
+					// For now, just show the loading state briefly and dismiss
+					DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+						withAnimation(.easeOut(duration: 0.3)) {
+							_showImportAnimation = false
 						}
 					}
 				}
+				.presentationDetents([.medium, .large])
+				.presentationDragIndicator(.visible)
 			}
 			.onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.installApp"))) { _ in
 				if let latest = _signedApps.first {
