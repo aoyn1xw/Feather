@@ -57,24 +57,14 @@ struct SettingsView: View {
                     NavigationLink(destination: BackupRestoreView()) {
                         Label(.localized("Backup & Restore"), systemImage: "externaldrive")
                     }
-                } footer: {
-                    Text(.localized("Configure the apps way of installing, its zip compression levels, and custom modifications to apps."))
-                }
-                
-                NBSection(.localized("Notifications")) {
                     NavigationLink(destination: NotificationsView()) {
                         Label(.localized("Notifications"), systemImage: "bell.badge.fill")
                     }
-                } footer: {
-                    Text(.localized("Receive notifications when apps are successfully signed and ready to install."))
-                }
-                
-                NBSection(.localized("Experimental")) {
                     NavigationLink(destination: FilesTabSettingsView()) {
                         Label(.localized("Files Tab"), systemImage: "folder.fill")
                     }
                 } footer: {
-                    Text(.localized("Enable experimental features like the Files tab for managing .txt files, zip/unzip, plist editing, and more."))
+                    Text(.localized("Configure the apps way of installing, its zip compression levels, custom modifications to apps, and enable experimental features."))
                 }
                 
                 Section {

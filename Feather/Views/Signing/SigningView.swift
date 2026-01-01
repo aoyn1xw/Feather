@@ -450,7 +450,7 @@ extension SigningView {
                 case .success(let installLink):
                     // Send notification if enabled
                     if UserDefaults.standard.bool(forKey: "Feather.notificationsEnabled") {
-                        NotificationManager.shared.sendAppSignedNotification(appName: app.name ?? "App")
+                        NotificationManager.shared.sendAppReadyNotification(appName: app.name ?? "App")
                     }
                     
                     let install = UIAlertAction(title: .localized("Install"), style: .default) { _ in
@@ -507,7 +507,7 @@ extension SigningView {
                     
                     // Send notification if enabled
                     if UserDefaults.standard.bool(forKey: "Feather.notificationsEnabled") {
-                        NotificationManager.shared.sendAppSignedNotification(appName: app.name ?? "App")
+                        NotificationManager.shared.sendAppReadyNotification(appName: app.name ?? "App")
                     }
                     
                     if _temporaryOptions.post_installAppAfterSigned {

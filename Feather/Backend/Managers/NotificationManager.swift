@@ -55,6 +55,14 @@ final class NotificationManager: NSObject, ObservableObject {
     // MARK: - Send Notifications
     
     func sendAppSignedNotification(appName: String) {
+        // Check authorization before sending
+        checkAuthorizationStatus()
+        
+        guard UserDefaults.standard.bool(forKey: "Feather.notificationsEnabled") else {
+            AppLogManager.shared.warning("Notifications are disabled in settings", category: "Notifications")
+            return
+        }
+        
         guard isAuthorized else {
             AppLogManager.shared.warning("Cannot send notification: not authorized", category: "Notifications")
             return
@@ -64,8 +72,10 @@ final class NotificationManager: NSObject, ObservableObject {
         content.title = "Downloaded App"
         content.body = "\(appName) was downloaded successfully. Check the Library tab to sign the app"
         content.sound = .default
-        content.badge = 1
+        content.badge = NSNumber(value: 1)
+        content.categoryIdentifier = "APP_SIGNED"
         
+        // Use a very short trigger to send immediately
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
         let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
         
@@ -74,6 +84,37 @@ final class NotificationManager: NSObject, ObservableObject {
                 AppLogManager.shared.error("Failed to send notification: \(error.localizedDescription)", category: "Notifications")
             } else {
                 AppLogManager.shared.success("Notification sent for app: \(appName)", category: "Notifications")
+            }
+        }
+    }
+    
+    func sendAppReadyNotification(appName: String) {
+        // Check authorization before sending
+        checkAuthorizationStatus()
+        
+        guard UserDefaults.standard.bool(forKey: "Feather.notificationsEnabled") else {
+            return
+        }
+        
+        guard isAuthorized else {
+            return
+        }
+        
+        let content = UNMutableNotificationContent()
+        content.title = "App Ready to Install"
+        content.body = "\(appName) has been signed successfully and is ready to install."
+        content.sound = .default
+        content.badge = NSNumber(value: 1)
+        content.categoryIdentifier = "APP_READY"
+        
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                AppLogManager.shared.error("Failed to send notification: \(error.localizedDescription)", category: "Notifications")
+            } else {
+                AppLogManager.shared.success("Notification sent for app ready: \(appName)", category: "Notifications")
             }
         }
     }

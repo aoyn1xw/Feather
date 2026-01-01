@@ -134,6 +134,14 @@ extension DownloadManager: URLSessionDownloadDelegate {
 		FR.handlePackageFile(url, download: dl) { err in
 			if err != nil {
 				HapticsManager.shared.error()
+				AppLogManager.shared.error("Failed to handle package file: \(err?.localizedDescription ?? "Unknown error")", category: "Download")
+			} else {
+				// Success - send notification if enabled
+				if UserDefaults.standard.bool(forKey: "Feather.notificationsEnabled") {
+					let appName = url.deletingPathExtension().lastPathComponent
+					NotificationManager.shared.sendAppSignedNotification(appName: appName)
+				}
+				AppLogManager.shared.success("Successfully handled package file: \(url.lastPathComponent)", category: "Download")
 			}
 			
 			DispatchQueue.main.async {

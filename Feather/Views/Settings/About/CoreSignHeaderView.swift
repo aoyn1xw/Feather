@@ -65,7 +65,7 @@ struct CoreSignHeaderView: View {
                 Spacer()
 
                 // Version Badge
-                Text("v1.0")
+                Text("v1.0.4")
                     .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(.secondary)
