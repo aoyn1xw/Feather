@@ -17,6 +17,10 @@ struct FilesView: View {
     @State private var showFileInfo = false
     @State private var showMoveSheet = false
     @State private var showChecksumSheet = false
+    @State private var showBatchRenameSheet = false
+    @State private var showCompareSheet = false
+    @State private var compareFile1: FileItem?
+    @State private var compareFile2: FileItem?
     @State private var searchText = ""
     @State private var selectedFile: FileItem?
     @State private var selectedFiles: Set<UUID> = []
@@ -204,6 +208,14 @@ struct FilesView: View {
                     ChecksumCalculatorView(fileURL: file.url)
                 }
             }
+            .sheet(isPresented: $showBatchRenameSheet) {
+                BatchRenameView(files: selectedFilesArray)
+            }
+            .sheet(isPresented: $showCompareSheet) {
+                if let file1 = compareFile1, let file2 = compareFile2 {
+                    FileCompareView(file1: file1, file2: file2)
+                }
+            }
             .sheet(isPresented: $showCertificateQuickAdd) {
                 if let p12 = detectedP12, let provision = detectedMobileprovision {
                     CertificateQuickAddView(p12URL: p12, mobileprovisionURL: provision)
@@ -355,6 +367,31 @@ struct FilesView: View {
                     }
                     
                     Spacer()
+                    
+                    if selectedFiles.count > 1 {
+                        Button {
+                            showBatchRenameSheet = true
+                        } label: {
+                            Label(.localized("Rename"), systemImage: "pencil")
+                        }
+                        
+                        Spacer()
+                    }
+                    
+                    if selectedFiles.count == 2 {
+                        Button {
+                            let files = selectedFilesArray
+                            if files.count == 2 {
+                                compareFile1 = files[0]
+                                compareFile2 = files[1]
+                                showCompareSheet = true
+                            }
+                        } label: {
+                            Label(.localized("Compare"), systemImage: "arrow.left.arrow.right")
+                        }
+                        
+                        Spacer()
+                    }
                     
                     Button {
                         showMoveSheet = true
