@@ -76,197 +76,251 @@ struct SourcesView: View {
 	// MARK: Body
 	var body: some View {
 		NBNavigationView(.localized("Home")) {
-			NBListAdaptable {
-				if !_filteredSources.isEmpty {
-					Section {
-						NavigationLink {
-							SourceAppsView(object: Array(_sources), viewModel: viewModel)
-						} label: {
-							AllAppsCardView(
-								horizontalSizeClass: horizontalSizeClass,
-								totalApps: _sources.reduce(0) { count, source in
-									count + (viewModel.sources[source]?.apps.count ?? 0)
-								}
-							)
-						}
-						.buttonStyle(.plain)
-					}
-					.listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
-					.listRowBackground(Color.clear)
-					
-					NBSection(
-						.localized("Repositories"),
-						secondary: _filteredSources.count.description
-					) {
-						ForEach(_filteredSources) { source in
-							NavigationLink {
-								SourceDetailsView(source: source, viewModel: viewModel)
-							} label: {
-								SourcesCellView(source: source)
-							}
-							.buttonStyle(.plain)
-						}
-					}
-					
-					// File Manager section - always visible
-					NBSection(.localized("File Manager")) {
-						NavigationLink(destination: FilesView()) {
-							HStack {
-								ConditionalImage(systemName: "folder.fill")
-									.font(.title3)
-									.foregroundStyle(.blue)
-								
-								VStack(alignment: .leading, spacing: 4) {
-									Text(.localized("File Manager"))
-										.font(.headline)
-									Text(.localized("Manage your files and documents"))
-										.font(.caption)
-										.foregroundStyle(.secondary)
-								}
-								
-								Spacer()
-								
-								ConditionalImage(systemName: "chevron.right")
-									.font(.body.bold())
-									.foregroundStyle(.secondary)
-							}
-							.padding(.vertical, 4)
-						}
-						.buttonStyle(.plain)
-					}
+			contentList
+				.searchable(text: $_searchText, placement: .platform())
+				.overlay {
+					emptyStateView
 				}
-			}
-			.searchable(text: $_searchText, placement: .platform())
-			.overlay {
-				if _filteredSources.isEmpty {
-					if #available(iOS 17, *) {
-						ContentUnavailableView {
-							ConditionalLabel(title: .localized("No Repositories"), systemImage: "globe.desk.fill")
-						} description: {
-							Text(.localized("Get started by adding your first repository."))
-						} actions: {
-							Button {
-								_isAddingPresenting = true
-							} label: {
-								NBButton(.localized("Add Source"), style: .text)
-							}
-						}
-					}
+				.toolbar {
+					toolbarContent
 				}
-			}
-			.toolbar {
-				NBToolbarButton(
-					systemImage: "line.3.horizontal.decrease.circle",
-					style: .icon,
-					placement: .topBarLeading,
-					isDisabled: false
-				) {
-					_showFilterSheet = true
+				.refreshable {
+					await viewModel.fetchSources(_sources, refresh: true)
 				}
-				
-				NBToolbarButton(
-					systemImage: "plus",
-					style: .icon,
-					placement: .topBarTrailing,
-					isDisabled: _addingSourceLoading
-				) {
-					_isAddingPresenting = true
+				.sheet(isPresented: $_isAddingPresenting) {
+					addSourceSheet
 				}
-			}
-			.refreshable {
-				await viewModel.fetchSources(_sources, refresh: true)
-			}
-			.sheet(isPresented: $_isAddingPresenting) {
-				SourcesAddView()
-					.presentationDetents([.medium, .large])
-					.presentationDragIndicator(.visible)
-			}
-			.sheet(isPresented: $_showFilterSheet) {
-				NavigationView {
-					List {
-						NBSection(.localized("Sort By")) {
-							ForEach(SortOrder.allCases, id: \.self) { order in
-								Button {
-									_sortOrder = order
-								} label: {
-									HStack {
-										Text(order.rawValue)
-											.foregroundStyle(.primary)
-										Spacer()
-										if _sortOrder == order {
-											Image(systemName: "checkmark")
-												.foregroundStyle(.accentColor)
-										}
-									}
-								}
-							}
-						}
-						
-						NBSection(.localized("Filter")) {
-							ForEach(FilterOption.allCases, id: \.self) { option in
-								Button {
-									_filterByPinned = option
-								} label: {
-									HStack {
-										Text(option.rawValue)
-											.foregroundStyle(.primary)
-										Spacer()
-										if _filterByPinned == option {
-											Image(systemName: "checkmark")
-												.foregroundStyle(.accentColor)
-										}
-									}
-								}
-							}
-						}
-						
-						NBSection {
-							Button {
-								_sortOrder = .alphabetical
-								_filterByPinned = .all
-								_searchText = ""
-							} label: {
-								HStack {
-									Spacer()
-									Text(.localized("Reset All Filters"))
-										.foregroundStyle(.red)
-									Spacer()
-								}
-							}
-						}
-					}
-					.navigationTitle(.localized("Filter & Sort"))
-					.navigationBarTitleDisplayMode(.inline)
-					.toolbar {
-						NBToolbarButton(role: .close)
-					}
+				.sheet(isPresented: $_showFilterSheet) {
+					filterSheet
 				}
-				.presentationDetents([.medium, .large])
-				.presentationDragIndicator(.visible)
-			}
 		}
 		.task(id: Array(_sources)) {
 			await viewModel.fetchSources(_sources)
 		}
 		#if !NIGHTLY && !DEBUG
 		.onAppear {
-			guard _shouldStar < 6 else { return }; _shouldStar += 1
-			guard _shouldStar == 6 else { return }
-			
-			let github = UIAlertAction(title: "GitHub", style: .default) { _ in
-				UIApplication.open("https://github.com/khcrysalis/Feather")
-			}
-			
-			let cancel = UIAlertAction(title: .localized("Dismiss"), style: .cancel)
-			
-			UIAlertController.showAlert(
-				title: .localized("Enjoying %@?", arguments: Bundle.main.name),
-				message: .localized("Go to our GitHub and give us a star!"),
-				actions: [github, cancel]
-			)
+			showStarPromptIfNeeded()
 		}
 		#endif
 	}
+	
+	// MARK: - View Components
+	
+	private var contentList: some View {
+		NBListAdaptable {
+			if !_filteredSources.isEmpty {
+				allAppsSection
+				repositoriesSection
+				fileManagerSection
+			}
+		}
+	}
+	
+	private var allAppsSection: some View {
+		Section {
+			NavigationLink {
+				SourceAppsView(object: Array(_sources), viewModel: viewModel)
+			} label: {
+				AllAppsCardView(
+					horizontalSizeClass: horizontalSizeClass,
+					totalApps: _sources.reduce(0) { count, source in
+						count + (viewModel.sources[source]?.apps.count ?? 0)
+					}
+				)
+			}
+			.buttonStyle(.plain)
+		}
+		.listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+		.listRowBackground(Color.clear)
+	}
+	
+	private var repositoriesSection: some View {
+		NBSection(
+			.localized("Repositories"),
+			secondary: _filteredSources.count.description
+		) {
+			ForEach(_filteredSources) { source in
+				NavigationLink {
+					SourceDetailsView(source: source, viewModel: viewModel)
+				} label: {
+					SourcesCellView(source: source)
+				}
+				.buttonStyle(.plain)
+			}
+		}
+	}
+	
+	private var fileManagerSection: some View {
+		NBSection(.localized("File Manager")) {
+			NavigationLink(destination: FilesView()) {
+				fileManagerRow
+			}
+			.buttonStyle(.plain)
+		}
+	}
+	
+	private var fileManagerRow: some View {
+		HStack {
+			ConditionalImage(systemName: "folder.fill")
+				.font(.title3)
+				.foregroundStyle(.blue)
+			
+			VStack(alignment: .leading, spacing: 4) {
+				Text(.localized("File Manager"))
+					.font(.headline)
+				Text(.localized("Manage your files and documents"))
+					.font(.caption)
+					.foregroundStyle(.secondary)
+			}
+			
+			Spacer()
+			
+			ConditionalImage(systemName: "chevron.right")
+				.font(.body.bold())
+				.foregroundStyle(.secondary)
+		}
+		.padding(.vertical, 4)
+	}
+	
+	@ViewBuilder
+	private var emptyStateView: some View {
+		if _filteredSources.isEmpty {
+			if #available(iOS 17, *) {
+				ContentUnavailableView {
+					ConditionalLabel(title: .localized("No Repositories"), systemImage: "globe.desk.fill")
+				} description: {
+					Text(.localized("Get started by adding your first repository."))
+				} actions: {
+					Button {
+						_isAddingPresenting = true
+					} label: {
+						NBButton(.localized("Add Source"), style: .text)
+					}
+				}
+			}
+		}
+	}
+	
+	@ToolbarContentBuilder
+	private var toolbarContent: some ToolbarContent {
+		NBToolbarButton(
+			systemImage: "line.3.horizontal.decrease.circle",
+			style: .icon,
+			placement: .topBarLeading,
+			isDisabled: false
+		) {
+			_showFilterSheet = true
+		}
+		
+		NBToolbarButton(
+			systemImage: "plus",
+			style: .icon,
+			placement: .topBarTrailing,
+			isDisabled: _addingSourceLoading
+		) {
+			_isAddingPresenting = true
+		}
+	}
+	
+	private var addSourceSheet: some View {
+		SourcesAddView()
+			.presentationDetents([.medium, .large])
+			.presentationDragIndicator(.visible)
+	}
+	
+	private var filterSheet: some View {
+		NavigationView {
+			List {
+				sortSection
+				filterSection
+				resetSection
+			}
+			.navigationTitle(.localized("Filter & Sort"))
+			.navigationBarTitleDisplayMode(.inline)
+			.toolbar {
+				NBToolbarButton(role: .close)
+			}
+		}
+		.presentationDetents([.medium, .large])
+		.presentationDragIndicator(.visible)
+	}
+	
+	private var sortSection: some View {
+		NBSection(.localized("Sort By")) {
+			ForEach(SortOrder.allCases, id: \.self) { order in
+				Button {
+					_sortOrder = order
+				} label: {
+					HStack {
+						Text(order.rawValue)
+							.foregroundStyle(.primary)
+						Spacer()
+						if _sortOrder == order {
+							Image(systemName: "checkmark")
+								.foregroundStyle(.accentColor)
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	private var filterSection: some View {
+		NBSection(.localized("Filter")) {
+			ForEach(FilterOption.allCases, id: \.self) { option in
+				Button {
+					_filterByPinned = option
+				} label: {
+					HStack {
+						Text(option.rawValue)
+							.foregroundStyle(.primary)
+						Spacer()
+						if _filterByPinned == option {
+							Image(systemName: "checkmark")
+								.foregroundStyle(.accentColor)
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	private var resetSection: some View {
+		NBSection {
+			Button {
+				_sortOrder = .alphabetical
+				_filterByPinned = .all
+				_searchText = ""
+			} label: {
+				HStack {
+					Spacer()
+					Text(.localized("Reset All Filters"))
+						.foregroundStyle(.red)
+					Spacer()
+				}
+			}
+		}
+	}
+	
+	#if !NIGHTLY && !DEBUG
+	private func showStarPromptIfNeeded() {
+		guard _shouldStar < 6 else { return }
+		_shouldStar += 1
+		guard _shouldStar == 6 else { return }
+		
+		let github = UIAlertAction(title: "GitHub", style: .default) { _ in
+			UIApplication.open("https://github.com/khcrysalis/Feather")
+		}
+		
+		let cancel = UIAlertAction(title: .localized("Dismiss"), style: .cancel)
+		
+		UIAlertController.showAlert(
+			title: .localized("Enjoying %@?", arguments: Bundle.main.name),
+			message: .localized("Go to our GitHub and give us a star!"),
+			actions: [github, cancel]
+		)
+	}
+	#endif
 }
 
 // MARK: - AllAppsCardView
