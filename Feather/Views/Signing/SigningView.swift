@@ -405,6 +405,7 @@ extension SigningView {
 						NavigationLink {
 							SigningEntitlementsView(
 								bindingValue: $_temporaryOptions.appEntitlementsFile
+							)
 						} label: {
 							HStack {
 								Label(.localized("Entitlements") + " (BETA)", systemImage: "lock.shield")
