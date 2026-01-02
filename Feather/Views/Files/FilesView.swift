@@ -330,12 +330,22 @@ struct FilesView: View {
             HStack(spacing: 14) {
                 ZStack {
                     Circle()
-                        .fill(Color.white.opacity(0.2))
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.25),
+                                    Color.white.opacity(0.15)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
                         .frame(width: 50, height: 50)
                     
                     Image(systemName: "person.badge.key.fill")
                         .font(.title2)
                         .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
                 }
                 
                 VStack(alignment: .leading, spacing: 5) {
@@ -350,20 +360,20 @@ struct FilesView: View {
                 
                 Spacer()
                 
-                Image(systemName: "chevron.right")
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.8))
+                Image(systemName: "arrow.right.circle.fill")
+                    .font(.title3)
+                    .foregroundStyle(.white.opacity(0.9))
             }
             .padding(16)
             .background(
                 LinearGradient(
-                    colors: [Color.blue, Color.blue.opacity(0.85)],
-                    startPoint: .leading,
-                    endPoint: .trailing
+                    colors: [Color.blue, Color.blue.opacity(0.8), Color.cyan.opacity(0.7)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
                 )
             )
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .shadow(color: .blue.opacity(0.4), radius: 12, x: 0, y: 6)
             .padding(.horizontal)
             .padding(.vertical, 8)
         }
@@ -378,12 +388,27 @@ struct FilesView: View {
         VStack(spacing: 24) {
             ZStack {
                 Circle()
-                    .fill(Color.accentColor.opacity(0.1))
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.accentColor.opacity(0.15),
+                                Color.accentColor.opacity(0.05)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .frame(width: 100, height: 100)
                 
-                Image(systemName: "folder.badge.plus")
+                Image(systemName: "folder.fill.badge.plus")
                     .font(.system(size: 50))
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
             }
             
             VStack(spacing: 12) {
@@ -401,17 +426,24 @@ struct FilesView: View {
             Button {
                 showDocumentPicker = true
             } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "square.and.arrow.down")
+                HStack(spacing: 10) {
+                    Image(systemName: "square.and.arrow.down.fill")
+                        .font(.headline)
                     Text(.localized("Import Files"))
+                        .font(.headline)
                 }
-                .font(.headline)
                 .foregroundStyle(.white)
                 .padding(.horizontal, 28)
                 .padding(.vertical, 14)
-                .background(Color.accentColor)
+                .background(
+                    LinearGradient(
+                        colors: [Color.accentColor, Color.accentColor.opacity(0.85)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .clipShape(Capsule())
-                .shadow(color: .accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
+                .shadow(color: .accentColor.opacity(0.4), radius: 10, x: 0, y: 6)
             }
         }
     }
@@ -803,16 +835,32 @@ struct FileRowView: View {
     
     var body: some View {
         HStack(spacing: 14) {
-            // Icon with background
+            // Icon with background and gradient
             ZStack {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(file.iconColor.opacity(0.12))
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                file.iconColor.opacity(0.15),
+                                file.iconColor.opacity(0.08)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .frame(width: 48, height: 48)
                 
                 Image(systemName: file.icon)
                     .font(.title3)
-                    .foregroundStyle(file.iconColor)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [file.iconColor, file.iconColor.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
             }
+            .shadow(color: file.iconColor.opacity(0.2), radius: 4, x: 0, y: 2)
             
             VStack(alignment: .leading, spacing: 5) {
                 Text(file.name)
@@ -834,7 +882,7 @@ struct FileRowView: View {
                     
                     if let modDate = file.modificationDate {
                         HStack(spacing: 4) {
-                            Image(systemName: "clock")
+                            Image(systemName: "clock.fill")
                                 .font(.caption2)
                             Text(modDate, style: .relative)
                                 .font(.caption)
@@ -848,7 +896,13 @@ struct FileRowView: View {
             
             if isSelected {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.blue, Color.blue.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .font(.title3)
             } else if file.isDirectory {
                 Image(systemName: "chevron.right")
@@ -870,27 +924,51 @@ struct FileGridItemView: View {
     var body: some View {
         VStack(spacing: 10) {
             ZStack(alignment: .topTrailing) {
-                // Icon container
+                // Icon container with gradient
                 ZStack {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(file.iconColor.opacity(0.12))
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    file.iconColor.opacity(0.15),
+                                    file.iconColor.opacity(0.08)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
                         .frame(width: 100, height: 90)
                     
                     Image(systemName: file.icon)
                         .font(.system(size: 36))
-                        .foregroundStyle(file.iconColor)
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [file.iconColor, file.iconColor.opacity(0.8)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
                 }
+                .shadow(color: file.iconColor.opacity(0.2), radius: 6, x: 0, y: 3)
                 
                 if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.blue)
-                        .font(.title3)
-                        .background(
-                            Circle()
-                                .fill(.white)
-                                .frame(width: 20, height: 20)
-                        )
-                        .offset(x: 8, y: -8)
+                    ZStack {
+                        Circle()
+                            .fill(.white)
+                            .frame(width: 24, height: 24)
+                        
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Color.blue, Color.blue.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .font(.title3)
+                    }
+                    .offset(x: 8, y: -8)
+                    .shadow(color: .blue.opacity(0.3), radius: 4, x: 0, y: 2)
                 }
             }
             
@@ -914,7 +992,7 @@ struct FileGridItemView: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color(UIColor.secondarySystemGroupedBackground))
         )
-        .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 2)
+        .shadow(color: .black.opacity(0.06), radius: 6, x: 0, y: 3)
     }
 }
 
@@ -951,13 +1029,23 @@ struct FileItem: Identifiable, Hashable {
         case "plist":
             return "doc.badge.gearshape.fill"
         case "zip":
-            return "doc.zipper"
+            return "doc.zipper.fill"
         case "json":
-            return "curlybraces"
+            return "curlybraces.square.fill"
         case "xml":
             return "chevron.left.forwardslash.chevron.right"
-        case "ipa":
-            return "app.badge"
+        case "ipa", "tipa":
+            return "app.badge.fill"
+        case "p12":
+            return "key.fill"
+        case "mobileprovision":
+            return "doc.badge.key.fill"
+        case "png", "jpg", "jpeg", "gif":
+            return "photo.fill"
+        case "mp4", "mov":
+            return "film.fill"
+        case "mp3", "wav", "m4a":
+            return "music.note"
         default:
             return "doc.fill"
         }
@@ -979,8 +1067,16 @@ struct FileItem: Identifiable, Hashable {
             return .yellow
         case "xml":
             return .red
-        case "ipa":
+        case "ipa", "tipa":
             return .cyan
+        case "p12", "mobileprovision":
+            return .indigo
+        case "png", "jpg", "jpeg", "gif":
+            return .pink
+        case "mp4", "mov":
+            return .purple
+        case "mp3", "wav", "m4a":
+            return .teal
         default:
             return .gray
         }
@@ -1066,13 +1162,13 @@ class FileManagerService: ObservableObject {
         
         let parent = currentDirectory.deletingLastPathComponent()
         
-        // Check if parent is the base directory or a subdirectory within it
-        // by comparing standardized paths to avoid substring issues
-        let standardizedParent = parent.standardized.path
-        let standardizedBase = baseDirectory.standardized.path
+        // Navigate up as long as the parent is at or within the base directory
+        // Use path comparison to check if parent is within bounds
+        let parentPath = parent.standardized.path
+        let basePath = baseDirectory.standardized.path
         
-        // Navigate up if parent is the base directory OR parent is inside the base directory
-        if parent == baseDirectory || standardizedParent.hasPrefix(standardizedBase + "/") {
+        // Allow navigation if parent equals base OR parent starts with base path
+        if parentPath == basePath || parentPath.hasPrefix(basePath + "/") || parentPath.hasPrefix(basePath) {
             currentDirectory = parent
             loadFiles()
         }

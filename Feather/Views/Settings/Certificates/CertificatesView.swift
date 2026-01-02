@@ -86,8 +86,22 @@ extension CertificatesView {
 				RoundedRectangle(cornerRadius: 14, style: .continuous)
 					.fill(
 						_selectedCertBinding.wrappedValue == index 
-							? Color.accentColor.opacity(0.08)
-							: Color(UIColor.secondarySystemGroupedBackground)
+							? LinearGradient(
+								colors: [
+									Color.accentColor.opacity(0.12),
+									Color.accentColor.opacity(0.06)
+								],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+							: LinearGradient(
+								colors: [
+									Color(UIColor.secondarySystemGroupedBackground),
+									Color(UIColor.secondarySystemGroupedBackground).opacity(0.8)
+								],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
 					)
 			)
 			.overlay(
