@@ -119,7 +119,7 @@ struct ServerView: View {
 				VStack(alignment: .leading, spacing: 12) {
 					HStack {
 						Image(systemName: "link.circle.fill")
-							.foregroundStyle(.accentColor)
+							.foregroundStyle(Color.accentColor)
 							.font(.title3)
 						Text(.localized("Custom Signing API URL"))
 							.font(.subheadline)

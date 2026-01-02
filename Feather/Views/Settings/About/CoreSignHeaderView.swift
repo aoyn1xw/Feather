@@ -125,7 +125,7 @@ struct CoreSignHeaderView: View {
         HStack(spacing: 6) {
             Image(systemName: "checkmark.seal.fill")
                 .font(.caption2)
-                .foregroundStyle(.accentColor)
+                .foregroundStyle(Color.accentColor)
             Text("v1.0.4")
                 .font(.caption)
                 .fontWeight(.semibold)
@@ -155,7 +155,7 @@ struct CoreSignHeaderView: View {
             .padding(.vertical, 8)
             .background(
                 Capsule()
-                    .fill(.accentColor)
+                    .fill(Color.accentColor)
             )
             .shadow(color: .accentColor.opacity(0.4), radius: 6, x: 0, y: 3)
         }
