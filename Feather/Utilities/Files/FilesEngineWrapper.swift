@@ -93,7 +93,7 @@ class FilesEngine {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return nil }
         
-        let rawType = detectFileType(cStr)
+        let rawType = __ObjC.detectFileType(cStr)
         return FileType(rawValue: rawType)
     }
     
@@ -102,7 +102,7 @@ class FilesEngine {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return nil }
         
-        var cInfo = getFileInfo(cStr)
+        var cInfo = __ObjC.getFileInfo(cStr)
         
         let pathStr = withUnsafeBytes(of: &cInfo.path) { ptr in
             String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
@@ -133,7 +133,7 @@ class FilesEngine {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return nil }
         
-        var cHashes = calculateHashes(cStr)
+        var cHashes = __ObjC.calculateHashes(cStr)
         
         let md5Str = withUnsafeBytes(of: &cHashes.md5) { ptr in
             String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
@@ -159,7 +159,7 @@ class FilesEngine {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return nil }
         
-        var cInfo = analyzeIPA(cStr)
+        var cInfo = __ObjC.analyzeIPA(cStr)
         
         let bundleIdStr = withUnsafeBytes(of: &cInfo.bundleId) { ptr in
             String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
@@ -193,7 +193,7 @@ class FilesEngine {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return nil }
         
-        var cInfo = analyzeMachO(cStr)
+        var cInfo = __ObjC.analyzeMachO(cStr)
         
         let archStr = withUnsafeBytes(of: &cInfo.architectures) { ptr in
             String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
@@ -217,11 +217,11 @@ class FilesEngine {
         guard let cStr = cPath else { return nil }
         
         var count: Int32 = 0
-        guard let cArray = scanDirectory(cStr, recursive, &count) else {
+        guard let cArray = __ObjC.scanDirectory(cStr, recursive, &count) else {
             return nil
         }
         
-        defer { freeFileInfoArray(cArray) }
+        defer { __ObjC.freeFileInfoArray(cArray) }
         
         var results: [FileInformation] = []
         for i in 0..<Int(count) {
@@ -260,7 +260,7 @@ class FilesEngine {
         let cPaths = paths.map { ($0 as NSString).utf8String! }
         let cPathArray = cPaths.map { UnsafePointer<Int8>($0) }
         
-        return Int(bulkDelete(cPathArray, Int32(cPathArray.count)))
+        return Int(__ObjC.bulkDelete(cPathArray, Int32(cPathArray.count)))
     }
     
     /// Bulk copy files
@@ -269,7 +269,7 @@ class FilesEngine {
         let cPathArray = cPaths.map { UnsafePointer<Int8>($0) }
         let cDestDir = (destDir as NSString).utf8String!
         
-        return Int(bulkCopy(cPathArray, cDestDir, Int32(cPathArray.count)))
+        return Int(__ObjC.bulkCopy(cPathArray, cDestDir, Int32(cPathArray.count)))
     }
     
     /// Bulk move files
@@ -278,7 +278,7 @@ class FilesEngine {
         let cPathArray = cPaths.map { UnsafePointer<Int8>($0) }
         let cDestDir = (destDir as NSString).utf8String!
         
-        return Int(bulkMove(cPathArray, cDestDir, Int32(cPathArray.count)))
+        return Int(__ObjC.bulkMove(cPathArray, cDestDir, Int32(cPathArray.count)))
     }
     
     /// Validate archive integrity
@@ -286,7 +286,7 @@ class FilesEngine {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return false }
         
-        return validateArchive(cStr)
+        return __ObjC.validateArchive(cStr)
     }
     
     /// Compare two files
@@ -298,7 +298,7 @@ class FilesEngine {
         }
         
         var diffSize: UInt64 = 0
-        let identical = compareFiles(cStr1, cStr2, &diffSize)
+        let identical = __ObjC.compareFiles(cStr1, cStr2, &diffSize)
         
         return (identical, diffSize)
     }
@@ -309,12 +309,12 @@ class FilesEngine {
         let cHash = (expectedHash as NSString).utf8String
         guard let cStr = cPath, let cHashStr = cHash else { return false }
         
-        return checkIntegrity(cStr, cHashStr)
+        return __ObjC.checkIntegrity(cStr, cHashStr)
     }
     
     /// Get last error message
     static func getLastError() -> String? {
-        guard let cError = getLastError() else { return nil }
+        guard let cError = __ObjC.getLastError() else { return nil }
         return String(cString: cError)
     }
 }
