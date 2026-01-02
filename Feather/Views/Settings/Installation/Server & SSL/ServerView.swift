@@ -63,8 +63,13 @@ struct ServerView: View {
 				Picker(.localized("Server Type"), systemImage: "server.rack", selection: $_serverMethod) {
 					ForEach(_serverMethods.indices, id: \.self) { index in
 						VStack(alignment: .leading, spacing: 4) {
-							Text(_serverMethods[index].name)
-								.font(.body)
+							HStack(spacing: 8) {
+								Image(systemName: serverIconForMethod(index))
+									.foregroundStyle(Color.accentColor)
+									.font(.body)
+								Text(_serverMethods[index].name)
+									.font(.body)
+							}
 							Text(_serverMethods[index].description)
 								.font(.caption)
 								.foregroundStyle(.secondary)
@@ -149,6 +154,17 @@ struct ServerView: View {
 					}
 				}
 			}
+		}
+	}
+	
+	// Helper function to return appropriate icon for each server method
+	private func serverIconForMethod(_ index: Int) -> String {
+		switch index {
+		case 0: return "iphone" // Fully Local
+		case 1: return "wifi" // Semi Local
+		case 2: return "cloud" // Fully Remote
+		case 3: return "gearshape.2" // Custom
+		default: return "server.rack"
 		}
 	}
 }

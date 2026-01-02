@@ -49,7 +49,11 @@ struct HapticsView: View {
             hapticsManager.intensity = intensity
             HapticsManager.shared.impact()
         } label: {
-            HStack {
+            HStack(spacing: 12) {
+				Image(systemName: iconForIntensity(intensity))
+					.foregroundStyle(hapticsManager.intensity == intensity ? .tint : .secondary)
+					.font(.body)
+					.frame(width: 24)
                 Text(intensity.title)
                     .foregroundStyle(.primary)
                 Spacer()
@@ -60,4 +64,14 @@ struct HapticsView: View {
             }
         }
     }
+	
+	// Helper function to return appropriate icon for each intensity level
+	private func iconForIntensity(_ intensity: HapticsManager.HapticIntensity) -> String {
+		switch intensity {
+		case .light: return "waveform.path.ecg"
+		case .medium: return "waveform.path.ecg"
+		case .heavy: return "waveform.path.ecg.rectangle"
+		default: return "waveform.path.ecg"
+		}
+	}
 }
