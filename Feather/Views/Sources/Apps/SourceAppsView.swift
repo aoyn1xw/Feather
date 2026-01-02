@@ -268,42 +268,44 @@ struct SourceAppCardView: View {
 	let useGradients: Bool
 	
 	var body: some View {
-		HStack(spacing: 14) {
-			// App Icon
+		HStack(spacing: 12) {
+			// App Icon (smaller)
 			appIcon
 			
-			// App Info
-			VStack(alignment: .leading, spacing: 4) {
+			// App Info (name only, more compact)
+			VStack(alignment: .leading, spacing: 2) {
 				Text(app.currentName)
-					.font(.system(size: 16, weight: .semibold))
+					.font(.system(size: 15, weight: .semibold))
 					.foregroundStyle(.primary)
 					.lineLimit(1)
 				
 				if let version = app.currentVersion {
 					Text("v\(version)")
-						.font(.system(size: 13))
-						.foregroundStyle(.secondary)
-						.lineLimit(1)
-				}
-				
-				if let desc = app.currentDescription ?? app.localizedDescription {
-					Text(desc)
 						.font(.system(size: 12))
 						.foregroundStyle(.secondary)
-						.lineLimit(2)
+						.lineLimit(1)
 				}
 			}
 			
 			Spacer(minLength: 8)
 			
-			// Chevron
-			Image(systemName: "chevron.right")
-				.font(.system(size: 14, weight: .semibold))
-				.foregroundStyle(.tertiary)
+			// Download/Get Button (compact)
+			Button(action: {}) {
+				Text("GET")
+					.font(.system(size: 13, weight: .bold))
+					.foregroundStyle(.white)
+					.padding(.horizontal, 20)
+					.padding(.vertical, 8)
+					.background(
+						Capsule()
+							.fill(Color.accentColor)
+					)
+			}
+			.buttonStyle(.plain)
 		}
-		.padding(14)
+		.padding(10)
 		.background(cardBackground)
-		.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+		.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 	}
 	
 	@ViewBuilder
@@ -317,8 +319,8 @@ struct SourceAppCardView: View {
 					image
 						.resizable()
 						.aspectRatio(contentMode: .fill)
-						.frame(width: 56, height: 56)
-						.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+						.frame(width: 48, height: 48)
+						.clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 				case .failure:
 					iconPlaceholder
 				@unknown default:
@@ -331,9 +333,9 @@ struct SourceAppCardView: View {
 	}
 	
 	private var iconPlaceholder: some View {
-		RoundedRectangle(cornerRadius: 12, style: .continuous)
+		RoundedRectangle(cornerRadius: 10, style: .continuous)
 			.fill(Color.secondary.opacity(0.2))
-			.frame(width: 56, height: 56)
+			.frame(width: 48, height: 48)
 			.overlay(
 				Image(systemName: "app.fill")
 					.foregroundStyle(.secondary)

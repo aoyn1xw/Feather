@@ -6,6 +6,7 @@ struct ModernImportURLView: View {
     @Environment(\.dismiss) var dismiss
     @State private var urlText = ""
     @FocusState private var isTextFieldFocused: Bool
+	@State private var errorMessage: String?
     var onImport: (URL) -> Void
     
     var body: some View {
@@ -79,6 +80,9 @@ struct ModernImportURLView: View {
                                 .onSubmit {
                                     handleImport()
                                 }
+								.onChange(of: urlText) { _ in
+									errorMessage = nil
+								}
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 14)
@@ -88,8 +92,18 @@ struct ModernImportURLView: View {
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(isTextFieldFocused ? Color.accentColor : Color.clear, lineWidth: 2)
+                                .stroke(errorMessage != nil ? Color.red : (isTextFieldFocused ? Color.accentColor : Color.clear), lineWidth: 2)
                         )
+						
+						if let errorMessage = errorMessage {
+							HStack(spacing: 6) {
+								Image(systemName: "exclamationmark.triangle.fill")
+									.font(.caption)
+								Text(errorMessage)
+									.font(.caption)
+							}
+							.foregroundStyle(.red)
+						}
                     }
                     .padding(.horizontal, 24)
                     
@@ -149,7 +163,45 @@ struct ModernImportURLView: View {
     }
     
     private func handleImport() {
-        guard !urlText.isEmpty, let url = URL(string: urlText) else { return }
+		// Clear any previous errors
+		errorMessage = nil
+		
+		// Check if empty
+		guard !urlText.isEmpty else {
+			errorMessage = "Please enter a URL"
+			HapticsManager.shared.error()
+			return
+		}
+		
+		// Check if valid URL format
+		guard let url = URL(string: urlText.trimmingCharacters(in: .whitespacesAndNewlines)) else {
+			errorMessage = "Invalid URL format"
+			HapticsManager.shared.error()
+			return
+		}
+		
+		// Check if it has a scheme (http/https)
+		guard let scheme = url.scheme, ["http", "https"].contains(scheme.lowercased()) else {
+			errorMessage = "URL must start with http:// or https://"
+			HapticsManager.shared.error()
+			return
+		}
+		
+		// Check if it has a host
+		guard url.host != nil else {
+			errorMessage = "Invalid URL - missing host"
+			HapticsManager.shared.error()
+			return
+		}
+		
+		// Check if it ends with .ipa or .tipa
+		let pathExtension = url.pathExtension.lowercased()
+		guard pathExtension == "ipa" || pathExtension == "tipa" else {
+			errorMessage = "URL must point to an .ipa or .tipa file"
+			HapticsManager.shared.error()
+			return
+		}
+		
         HapticsManager.shared.impact()
         onImport(url)
         dismiss()

@@ -10,6 +10,7 @@ struct DeveloperView: View {
     @AppStorage("showLayoutBoundaries") private var showLayoutBoundaries = false
     @AppStorage("slowAnimations") private var slowAnimations = false
     @State private var showResetConfirmation = false
+    @Environment(\.scenePhase) private var scenePhase
     
     var body: some View {
         NBNavigationView("Developer") {
@@ -133,6 +134,12 @@ struct DeveloperView: View {
             }
         } message: {
             Text("This will delete all sources, apps, settings, and certificates. This action cannot be undone.")
+        }
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .background || newPhase == .inactive {
+                // Hide developer mode when app goes to background or becomes inactive
+                UserDefaults.standard.set(false, forKey: "isDeveloperModeEnabled")
+            }
         }
     }
     
