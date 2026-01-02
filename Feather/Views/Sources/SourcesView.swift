@@ -247,7 +247,7 @@ struct SourcesView: View {
 	
 	private var sortSection: some View {
 		NBSection(.localized("Sort By")) {
-			ForEach(SourcesView.SortOrder.allCases, id: \.self) { order in
+			ForEach(Array(SourcesView.SortOrder.allCases), id: \.self) { order in
 				Button {
 					_sortOrder = order
 				} label: {
@@ -267,7 +267,7 @@ struct SourcesView: View {
 	
 	private var filterSection: some View {
 		NBSection(.localized("Filter")) {
-			ForEach(SourcesView.FilterOption.allCases, id: \.self) { option in
+			ForEach(Array(SourcesView.FilterOption.allCases), id: \.self) { option in
 				Button {
 					_filterByPinned = option
 				} label: {
