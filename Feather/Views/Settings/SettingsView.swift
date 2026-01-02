@@ -57,9 +57,6 @@ struct SettingsView: View {
                     NavigationLink(destination: NotificationsView()) {
                         Label(.localized("Notifications"), systemImage: "bell.badge.fill")
                     }
-                    NavigationLink(destination: FilesTabSettingsView()) {
-                        Label(.localized("Files Tab"), systemImage: "folder.fill")
-                    }
                 } footer: {
                     Text(.localized("Configure the apps way of installing, its zip compression levels, custom modifications to apps, and enable experimental features."))
                 }
