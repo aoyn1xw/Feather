@@ -33,115 +33,143 @@ struct CoreSignHeaderView: View {
 
     // MARK: - Body
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 16) {
-                // App Icon
-                if let icon = UIImage(named: "AppIcon") {
-                    Image(uiImage: icon)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 64, height: 64)
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        .shadow(color: .accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
-                } else {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [.accentColor, .accentColor.opacity(0.7)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 64, height: 64)
-                        
-                        Image(systemName: "app.badge")
-                            .font(.system(size: 32, weight: .semibold))
-                            .foregroundStyle(.white)
-                    }
-                    .shadow(color: .accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
-                }
-
-                VStack(alignment: .leading, spacing: 6) {
-                    // Title
-                    Text("CoreSign")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(.primary)
-
-                    // Rotating Subtitle
-                    Text(currentSubtitle)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .bottom).combined(with: .opacity),
-                            removal: .move(edge: .top).combined(with: .opacity)
-                        ))
-                        .id(currentSubtitleIndex)
-                }
-
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 10) {
-                    // Version Badge with modern design
-                    HStack(spacing: 6) {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.caption2)
-                            .foregroundStyle(.accentColor)
-                        Text("v1.0.4")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                    }
-                    .foregroundStyle(.primary)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(Color.accentColor.opacity(0.12))
-                    )
-                    
-                    // Credits Button with modern design
-                    if !hideAboutButton {
-                        Button {
-                            showCredits = true
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: "person.3.fill")
-                                    .font(.caption)
-                                Text(.localized("Credits"))
-                                    .font(.callout)
-                                    .fontWeight(.semibold)
-                            }
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .background(
-                                Capsule()
-                                    .fill(.accentColor)
-                            )
-                            .shadow(color: .accentColor.opacity(0.4), radius: 6, x: 0, y: 3)
-                        }
-                    }
-                }
+        mainContent
+            .onAppear {
+                setupLifecycleObservers()
+                rotateSubtitle()
             }
-            .padding(20)
+            .sheet(isPresented: $showCredits) {
+                CreditsView()
+            }
+    }
+    
+    private var mainContent: some View {
+        VStack(spacing: 0) {
+            headerContent
+                .padding(20)
         }
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color(uiColor: .secondarySystemGroupedBackground))
-                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Color(uiColor: .separator).opacity(0.3), lineWidth: 0.5)
-        )
+        .background(backgroundShape)
+        .overlay(borderShape)
         .padding(.horizontal)
-        .onAppear {
-            setupLifecycleObservers()
-            rotateSubtitle()
+    }
+    
+    private var headerContent: some View {
+        HStack(spacing: 16) {
+            appIcon
+            titleSection
+            Spacer()
+            actionButtons
         }
-        .sheet(isPresented: $showCredits) {
-            CreditsView()
+    }
+    
+    @ViewBuilder
+    private var appIcon: some View {
+        if let icon = UIImage(named: "AppIcon") {
+            Image(uiImage: icon)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 64, height: 64)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .shadow(color: .accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
+        } else {
+            placeholderIcon
         }
+    }
+    
+    private var placeholderIcon: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [.accentColor, .accentColor.opacity(0.7)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 64, height: 64)
+            
+            Image(systemName: "app.badge")
+                .font(.system(size: 32, weight: .semibold))
+                .foregroundStyle(.white)
+        }
+        .shadow(color: .accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
+    }
+    
+    private var titleSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("CoreSign")
+                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .foregroundStyle(.primary)
+            
+            Text(currentSubtitle)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .transition(.asymmetric(
+                    insertion: .move(edge: .bottom).combined(with: .opacity),
+                    removal: .move(edge: .top).combined(with: .opacity)
+                ))
+                .id(currentSubtitleIndex)
+        }
+    }
+    
+    private var actionButtons: some View {
+        VStack(alignment: .trailing, spacing: 10) {
+            versionBadge
+            if !hideAboutButton {
+                creditsButton
+            }
+        }
+    }
+    
+    private var versionBadge: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "checkmark.seal.fill")
+                .font(.caption2)
+                .foregroundStyle(.accentColor)
+            Text("v1.0.4")
+                .font(.caption)
+                .fontWeight(.semibold)
+        }
+        .foregroundStyle(.primary)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(
+            Capsule()
+                .fill(Color.accentColor.opacity(0.12))
+        )
+    }
+    
+    private var creditsButton: some View {
+        Button {
+            showCredits = true
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "person.3.fill")
+                    .font(.caption)
+                Text(.localized("Credits"))
+                    .font(.callout)
+                    .fontWeight(.semibold)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(.accentColor)
+            )
+            .shadow(color: .accentColor.opacity(0.4), radius: 6, x: 0, y: 3)
+        }
+    }
+    
+    private var backgroundShape: some View {
+        RoundedRectangle(cornerRadius: 18, style: .continuous)
+            .fill(Color(uiColor: .secondarySystemGroupedBackground))
+            .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
+    }
+    
+    private var borderShape: some View {
+        RoundedRectangle(cornerRadius: 18, style: .continuous)
+            .stroke(Color(uiColor: .separator).opacity(0.3), lineWidth: 0.5)
     }
 
     // MARK: - Methods

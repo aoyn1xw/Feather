@@ -301,7 +301,7 @@ extension SourceAppsDetailView {
 	}
 	
 	private func _buildPills(from app: ASRepository.App) -> [NBPillItem] {
-		var pills: [NBPillItem] = []
+		let pills: [NBPillItem] = []
 		return pills
 	}
 	

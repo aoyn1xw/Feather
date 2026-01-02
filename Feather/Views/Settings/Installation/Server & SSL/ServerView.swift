@@ -59,129 +59,152 @@ struct ServerView: View {
 	// MARK: Body
 	var body: some View {
 		Group {
+			serverTypeSection
+			
+			customAPISection
+			
+			sslCertificatesSection
+			
+			successAnimationSection
+		}
+	}
+	
+	private var serverTypeSection: some View {
+		Section {
+			Picker(.localized("Server Type"), systemImage: "server.rack", selection: $_serverMethod) {
+				ForEach(_serverMethods.indices, id: \.self) { index in
+					serverMethodItem(at: index)
+				}
+			}
+			.pickerStyle(.inline)
+			
+			Toggle(.localized("Only use localhost address"), systemImage: "lifepreserver", isOn: $_ipFix)
+				.disabled(_serverMethod != 1)
+		} footer: {
+			Text(_serverMethods[_serverMethod].description)
+				.font(.caption)
+		}
+	}
+	
+	@ViewBuilder
+	private func serverMethodItem(at index: Int) -> some View {
+		VStack(alignment: .leading, spacing: 6) {
+			HStack(spacing: 10) {
+				ZStack {
+					Circle()
+						.fill(Color.accentColor.opacity(0.12))
+						.frame(width: 32, height: 32)
+					Image(systemName: serverIconForMethod(index))
+						.foregroundStyle(Color.accentColor)
+						.font(.system(size: 14, weight: .semibold))
+				}
+				Text(_serverMethods[index].name)
+					.font(.body)
+					.fontWeight(.medium)
+			}
+			Text(_serverMethods[index].description)
+				.font(.caption)
+				.foregroundStyle(.secondary)
+				.padding(.leading, 42)
+		}
+		.padding(.vertical, 6)
+		.tag(index)
+	}
+	
+	@ViewBuilder
+	private var customAPISection: some View {
+		// Custom API Section
+		if _serverMethod == 3 {
 			Section {
-				Picker(.localized("Server Type"), systemImage: "server.rack", selection: $_serverMethod) {
-					ForEach(_serverMethods.indices, id: \.self) { index in
-						VStack(alignment: .leading, spacing: 6) {
-							HStack(spacing: 10) {
-								ZStack {
-									Circle()
-										.fill(Color.accentColor.opacity(0.12))
-										.frame(width: 32, height: 32)
-									Image(systemName: serverIconForMethod(index))
-										.foregroundStyle(Color.accentColor)
-										.font(.system(size: 14, weight: .semibold))
-								}
-								Text(_serverMethods[index].name)
-									.font(.body)
-									.fontWeight(.medium)
-							}
-							Text(_serverMethods[index].description)
-								.font(.caption)
-								.foregroundStyle(.secondary)
-								.padding(.leading, 42)
-						}
-						.padding(.vertical, 6)
-						.tag(index)
-					}
-				}
-				.pickerStyle(.inline)
-				
-				Toggle(.localized("Only use localhost address"), systemImage: "lifepreserver", isOn: $_ipFix)
-					.disabled(_serverMethod != 1)
-			} footer: {
-				Text(_serverMethods[_serverMethod].description)
-					.font(.caption)
-			}
-			
-			// Custom API Section
-			if _serverMethod == 3 {
-				Section {
-					VStack(alignment: .leading, spacing: 12) {
-						HStack {
-							Image(systemName: "link.circle.fill")
-								.foregroundStyle(.accentColor)
-								.font(.title3)
-							Text(.localized("Custom Signing API URL"))
-								.font(.subheadline)
-								.fontWeight(.semibold)
-						}
-						
-						TextField(.localized("https://your-api.com/sign"), text: $_customSigningAPI)
-							.textInputAutocapitalization(.never)
-							.autocorrectionDisabled()
-							.keyboardType(.URL)
-							.padding(12)
-							.background(
-								RoundedRectangle(cornerRadius: 10)
-									.fill(Color(UIColor.tertiarySystemGroupedBackground))
-							)
-					}
-					.padding(.vertical, 4)
-				} header: {
-					Label(.localized("Custom API Configuration"), systemImage: "gearshape.2.fill")
-				} footer: {
-					Text(.localized("Enter the URL of your custom signing API. The API should accept multipart/form-data with ipa, p12, mobileprovision files and return a JSON with 'directInstallLink' field."))
-						.font(.caption)
-				}
-			}
-			
-			Section {
-				Button(.localized("Update SSL Certificates"), systemImage: "arrow.down.doc") {
-					FR.downloadSSLCertificates(from: _serverPackUrl) { success in
-						DispatchQueue.main.async {
-							if success {
-								withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-									_showSuccessAnimation = true
-								}
-								DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-									withAnimation(.easeOut(duration: 0.3)) {
-										_showSuccessAnimation = false
-									}
-								}
-							} else {
-								UIAlertController.showAlertWithOk(
-									title: .localized("SSL Certificates"),
-									message: .localized("Failed to download, check your internet connection and try again.")
-								)
-							}
-						}
-					}
-				}
-			} header: {
-				Label(.localized("SSL Certificates"), systemImage: "lock.shield.fill")
-			} footer: {
-				Text(.localized("Download the latest SSL certificates for secure connections"))
-					.font(.caption)
-			}
-			
-			if _showSuccessAnimation {
-				Section {
+				VStack(alignment: .leading, spacing: 12) {
 					HStack {
-						Spacer()
-						VStack(spacing: 12) {
-							ZStack {
-								Circle()
-									.fill(Color.green.opacity(0.15))
-									.frame(width: 80, height: 80)
-								
-								Image(systemName: "checkmark.circle.fill")
-									.font(.system(size: 50))
-									.foregroundStyle(.green)
-							}
-							.scaleEffect(_showSuccessAnimation ? 1.0 : 0.5)
-							.opacity(_showSuccessAnimation ? 1.0 : 0.0)
-							.animation(.spring(response: 0.6, dampingFraction: 0.7), value: _showSuccessAnimation)
-							
-							Text(.localized("SSL certificates updated successfully!"))
-								.font(.headline)
-								.foregroundStyle(.green)
-								.opacity(_showSuccessAnimation ? 1.0 : 0.0)
-								.animation(.easeIn(duration: 0.3).delay(0.2), value: _showSuccessAnimation)
-						}
-						.padding(.vertical, 20)
-						Spacer()
+						Image(systemName: "link.circle.fill")
+							.foregroundStyle(.accentColor)
+							.font(.title3)
+						Text(.localized("Custom Signing API URL"))
+							.font(.subheadline)
+							.fontWeight(.semibold)
 					}
+					
+					TextField(.localized("https://your-api.com/sign"), text: $_customSigningAPI)
+						.textInputAutocapitalization(.never)
+						.autocorrectionDisabled()
+						.keyboardType(.URL)
+						.padding(12)
+						.background(
+							RoundedRectangle(cornerRadius: 10)
+								.fill(Color(UIColor.tertiarySystemGroupedBackground))
+						)
+				}
+				.padding(.vertical, 4)
+			} header: {
+				Label(.localized("Custom API Configuration"), systemImage: "gearshape.2.fill")
+			} footer: {
+				Text(.localized("Enter the URL of your custom signing API. The API should accept multipart/form-data with ipa, p12, mobileprovision files and return a JSON with 'directInstallLink' field."))
+					.font(.caption)
+			}
+		}
+	}
+	
+	private var sslCertificatesSection: some View {
+		Section {
+			Button(.localized("Update SSL Certificates"), systemImage: "arrow.down.doc") {
+				FR.downloadSSLCertificates(from: _serverPackUrl) { success in
+					DispatchQueue.main.async {
+						if success {
+							withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+								_showSuccessAnimation = true
+							}
+							DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+								withAnimation(.easeOut(duration: 0.3)) {
+									_showSuccessAnimation = false
+								}
+							}
+						} else {
+							UIAlertController.showAlertWithOk(
+								title: .localized("SSL Certificates"),
+								message: .localized("Failed to download, check your internet connection and try again.")
+							)
+						}
+					}
+				}
+			}
+		} header: {
+			Label(.localized("SSL Certificates"), systemImage: "lock.shield.fill")
+		} footer: {
+			Text(.localized("Download the latest SSL certificates for secure connections"))
+				.font(.caption)
+		}
+	}
+	
+	@ViewBuilder
+	private var successAnimationSection: some View {
+		if _showSuccessAnimation {
+			Section {
+				HStack {
+					Spacer()
+					VStack(spacing: 12) {
+						ZStack {
+							Circle()
+								.fill(Color.green.opacity(0.15))
+								.frame(width: 80, height: 80)
+							
+							Image(systemName: "checkmark.circle.fill")
+								.font(.system(size: 50))
+								.foregroundStyle(.green)
+						}
+						.scaleEffect(_showSuccessAnimation ? 1.0 : 0.5)
+						.opacity(_showSuccessAnimation ? 1.0 : 0.0)
+						.animation(.spring(response: 0.6, dampingFraction: 0.7), value: _showSuccessAnimation)
+						
+						Text(.localized("SSL certificates updated successfully!"))
+							.font(.headline)
+							.foregroundStyle(.green)
+							.opacity(_showSuccessAnimation ? 1.0 : 0.0)
+							.animation(.easeIn(duration: 0.3).delay(0.2), value: _showSuccessAnimation)
+					}
+					.padding(.vertical, 20)
+					Spacer()
 				}
 			}
 		}
