@@ -13,15 +13,57 @@ struct SourcesView: View {
 	@State private var _isAddingPresenting = false
 	@State private var _addingSourceLoading = false
 	@State private var _searchText = ""
+	@State private var _showFilterSheet = false
+	@State private var _sortOrder: SortOrder = .alphabetical
+	@State private var _filterByPinned: FilterOption = .all
+	
+	enum SortOrder: String, CaseIterable {
+		case alphabetical = "A-Z"
+		case recentlyAdded = "Recently Added"
+		case appCount = "Most Apps"
+	}
+	
+	enum FilterOption: String, CaseIterable {
+		case all = "All"
+		case pinned = "Pinned Only"
+		case unpinned = "Unpinned Only"
+	}
 	
 	private var _filteredSources: [AltSource] {
-		let filtered = _sources.filter { _searchText.isEmpty || ($0.name?.localizedCaseInsensitiveContains(_searchText) ?? false) }
+		// Apply search filter
+		var filtered = _sources.filter { 
+			_searchText.isEmpty || ($0.name?.localizedCaseInsensitiveContains(_searchText) ?? false) 
+		}
+		
+		// Apply pinned filter
+		switch _filterByPinned {
+		case .pinned:
+			filtered = filtered.filter { viewModel.isPinned($0) }
+		case .unpinned:
+			filtered = filtered.filter { !viewModel.isPinned($0) }
+		case .all:
+			break
+		}
+		
+		// Apply sorting
 		return filtered.sorted { s1, s2 in
-			let p1 = viewModel.isPinned(s1)
-			let p2 = viewModel.isPinned(s2)
-			if p1 && !p2 { return true }
-			if !p1 && p2 { return false }
-			return (s1.name ?? "") < (s2.name ?? "")
+			switch _sortOrder {
+			case .alphabetical:
+				let p1 = viewModel.isPinned(s1)
+				let p2 = viewModel.isPinned(s2)
+				if p1 && !p2 { return true }
+				if !p1 && p2 { return false }
+				return (s1.name ?? "") < (s2.name ?? "")
+			case .recentlyAdded:
+				// Assuming newer sources have later object IDs or we can use a timestamp if available
+				// For now, sort by name descending as a proxy for "recently added"
+				return (s1.name ?? "") > (s2.name ?? "")
+			case .appCount:
+				let count1 = viewModel.sources[s1]?.apps.count ?? 0
+				let count2 = viewModel.sources[s2]?.apps.count ?? 0
+				if count1 != count2 { return count1 > count2 }
+				return (s1.name ?? "") < (s2.name ?? "")
+			}
 		}
 	}
 	
@@ -114,6 +156,15 @@ struct SourcesView: View {
 			}
 			.toolbar {
 				NBToolbarButton(
+					systemImage: "line.3.horizontal.decrease.circle",
+					style: .icon,
+					placement: .topBarLeading,
+					isDisabled: false
+				) {
+					_showFilterSheet = true
+				}
+				
+				NBToolbarButton(
 					systemImage: "plus",
 					style: .icon,
 					placement: .topBarTrailing,
@@ -129,6 +180,69 @@ struct SourcesView: View {
 				SourcesAddView()
 					.presentationDetents([.medium, .large])
 					.presentationDragIndicator(.visible)
+			}
+			.sheet(isPresented: $_showFilterSheet) {
+				NavigationView {
+					List {
+						NBSection(.localized("Sort By")) {
+							ForEach(SortOrder.allCases, id: \.self) { order in
+								Button {
+									_sortOrder = order
+								} label: {
+									HStack {
+										Text(order.rawValue)
+											.foregroundStyle(.primary)
+										Spacer()
+										if _sortOrder == order {
+											Image(systemName: "checkmark")
+												.foregroundStyle(.accentColor)
+										}
+									}
+								}
+							}
+						}
+						
+						NBSection(.localized("Filter")) {
+							ForEach(FilterOption.allCases, id: \.self) { option in
+								Button {
+									_filterByPinned = option
+								} label: {
+									HStack {
+										Text(option.rawValue)
+											.foregroundStyle(.primary)
+										Spacer()
+										if _filterByPinned == option {
+											Image(systemName: "checkmark")
+												.foregroundStyle(.accentColor)
+										}
+									}
+								}
+							}
+						}
+						
+						NBSection {
+							Button {
+								_sortOrder = .alphabetical
+								_filterByPinned = .all
+								_searchText = ""
+							} label: {
+								HStack {
+									Spacer()
+									Text(.localized("Reset All Filters"))
+										.foregroundStyle(.red)
+									Spacer()
+								}
+							}
+						}
+					}
+					.navigationTitle(.localized("Filter & Sort"))
+					.navigationBarTitleDisplayMode(.inline)
+					.toolbar {
+						NBToolbarButton(role: .close)
+					}
+				}
+				.presentationDetents([.medium, .large])
+				.presentationDragIndicator(.visible)
 			}
 		}
 		.task(id: Array(_sources)) {

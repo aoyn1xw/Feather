@@ -42,32 +42,46 @@ struct SourceDetailsView: View {
 	
 	// MARK: Body
 	var body: some View {
-		ScrollView {
-			VStack(spacing: 20) {
-				// Source Header Card
-				_sourceHeader()
-					.padding(.horizontal)
-					.padding(.top, 8)
-				
-				// Search Bar
-				_searchBar()
-					.padding(.horizontal)
-				
-				// News Section - Only show if enabled in settings
-				if _showNews, let news = repository?.news, !news.isEmpty {
-					_newsSection(news: filteredNews.isEmpty && !_searchText.isEmpty ? [] : (filteredNews.isEmpty ? news : filteredNews))
+		ZStack {
+			// Full gradient background
+			LinearGradient(
+				colors: [
+					dominantColor.opacity(0.15),
+					dominantColor.opacity(0.08),
+					Color(UIColor.systemGroupedBackground),
+					dominantColor.opacity(0.05)
+				],
+				startPoint: .topLeading,
+				endPoint: .bottomTrailing
+			)
+			.ignoresSafeArea()
+			
+			ScrollView {
+				VStack(spacing: 20) {
+					// Source Header Card
+					_sourceHeader()
+						.padding(.horizontal)
+						.padding(.top, 8)
+					
+					// Search Bar
+					_searchBar()
+						.padding(.horizontal)
+					
+					// News Section - Only show if enabled in settings
+					if _showNews, let news = repository?.news, !news.isEmpty {
+						_newsSection(news: filteredNews.isEmpty && !_searchText.isEmpty ? [] : (filteredNews.isEmpty ? news : filteredNews))
+					}
+					
+					// Apps Section
+					if let apps = repository?.apps, !apps.isEmpty {
+						_appsSection(apps: filteredApps.isEmpty && !_searchText.isEmpty ? [] : filteredApps)
+					}
 				}
-				
-				// Apps Section
-				if let apps = repository?.apps, !apps.isEmpty {
-					_appsSection(apps: filteredApps.isEmpty && !_searchText.isEmpty ? [] : filteredApps)
-				}
+				.padding(.bottom, 20)
 			}
-			.padding(.bottom, 20)
 		}
 		.navigationTitle("Source Details")
 		.navigationBarTitleDisplayMode(.inline)
-		.background(Color(UIColor.systemGroupedBackground))
 		.onAppear {
 			if let repo = viewModel.sources[source] {
 				repository = repo
@@ -508,15 +522,27 @@ struct SourceDetailsView: View {
 			.fill(
 				LinearGradient(
 					colors: [
-						Color(UIColor.secondarySystemGroupedBackground),
-						Color(UIColor.secondarySystemGroupedBackground).opacity(0.6),
-						dominantColor.opacity(0.15)
+						dominantColor.opacity(0.25),
+						dominantColor.opacity(0.15),
+						Color(UIColor.secondarySystemGroupedBackground).opacity(0.8),
+						dominantColor.opacity(0.1)
 					],
 					startPoint: .topLeading,
 					endPoint: .bottomTrailing
 				)
 			)
-			.shadow(color: dominantColor.opacity(0.2), radius: shadowRadius, x: 0, y: 4)
+			.overlay(
+				RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+					.stroke(
+						LinearGradient(
+							colors: [dominantColor.opacity(0.4), dominantColor.opacity(0.2)],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						),
+						lineWidth: 1.5
+					)
+			)
+			.shadow(color: dominantColor.opacity(0.3), radius: shadowRadius, x: 0, y: 4)
 	}
 	
 	private func subtleGradient(cornerRadius: CGFloat) -> some View {
@@ -524,21 +550,26 @@ struct SourceDetailsView: View {
 			.fill(
 				LinearGradient(
 					colors: [
-						Color(UIColor.secondarySystemBackground),
-						Color(UIColor.secondarySystemBackground).opacity(0.8),
-						dominantColor.opacity(0.08)
+						dominantColor.opacity(0.15),
+						Color(UIColor.secondarySystemBackground).opacity(0.9),
+						dominantColor.opacity(0.1)
 					],
 					startPoint: .topLeading,
 					endPoint: .bottomTrailing
 				)
+			)
+			.overlay(
+				RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+					.stroke(dominantColor.opacity(0.2), lineWidth: 1)
 			)
 	}
 	
 	private func verticalGradient() -> LinearGradient {
 		LinearGradient(
 			colors: [
+				dominantColor.opacity(0.12),
 				Color(UIColor.secondarySystemGroupedBackground),
-				Color(UIColor.tertiarySystemGroupedBackground).opacity(0.6)
+				Color(UIColor.tertiarySystemGroupedBackground).opacity(0.8)
 			],
 			startPoint: .top,
 			endPoint: .bottom
