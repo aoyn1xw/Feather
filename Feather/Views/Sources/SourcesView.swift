@@ -257,7 +257,7 @@ struct SourcesView: View {
 						Spacer()
 						if _sortOrder == order {
 							Image(systemName: "checkmark")
-								.foregroundStyle(.accentColor)
+								.foregroundStyle(.tint)
 						}
 					}
 				}
@@ -277,7 +277,7 @@ struct SourcesView: View {
 						Spacer()
 						if _filterByPinned == option {
 							Image(systemName: "checkmark")
-								.foregroundStyle(.accentColor)
+								.foregroundStyle(.tint)
 						}
 					}
 				}
