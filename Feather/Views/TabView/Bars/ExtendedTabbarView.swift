@@ -9,7 +9,10 @@ import NukeUI
 struct ExtendedTabbarView: View {
 	@Environment(\.horizontalSizeClass) var horizontalSizeClass
 	@AppStorage("Feather.tabCustomization") var customization = TabViewCustomization()
-	@AppStorage("Feather.filesTabEnabled") private var filesTabEnabled = false
+	@AppStorage("Feather.tabBar.home") private var showHome = true
+	@AppStorage("Feather.tabBar.library") private var showLibrary = true
+	@AppStorage("Feather.tabBar.files") private var showFiles = true
+	@AppStorage("Feather.tabBar.guides") private var showGuides = true
 	@StateObject var viewModel = SourcesViewModel.shared
 	
 	@State private var _isAddingPresenting = false
@@ -19,22 +22,23 @@ struct ExtendedTabbarView: View {
 		sortDescriptors: [NSSortDescriptor(keyPath: \AltSource.name, ascending: true)],
 		animation: .easeInOut(duration: 0.35)
 	) private var _sources: FetchedResults<AltSource>
+	
+	var visibleTabs: [TabEnum] {
+		var tabs: [TabEnum] = []
+		if showHome { tabs.append(.home) }
+		if showLibrary { tabs.append(.library) }
+		if showFiles { tabs.append(.files) }
+		if showGuides { tabs.append(.guides) }
+		tabs.append(.settings) // Always show settings
+		return tabs
+	}
 		
 	var body: some View {
 		TabView {
-			ForEach(TabEnum.defaultTabs, id: \.hashValue) { tab in
+			ForEach(visibleTabs, id: \.hashValue) { tab in
 				Tab(tab.title, systemImage: tab.icon) {
 					TabEnum.view(for: tab)
 				}
-			}
-			
-			ForEach(TabEnum.customizableTabs, id: \.hashValue) { tab in
-				Tab(tab.title, systemImage: tab.icon) {
-					TabEnum.view(for: tab)
-				}
-				.customizationID("tab.\(tab.rawValue)")
-				.defaultVisibility(.visible, for: .tabBar)
-				.customizationBehavior(.reorderable, for: .tabBar, .sidebar)
 			}
 			
 			TabSection("Sources") {
@@ -69,7 +73,6 @@ struct ExtendedTabbarView: View {
 		}
 		.tabViewStyle(.sidebarAdaptable)
 		.tabViewCustomization($customization)
-		.id(filesTabEnabled) // Force refresh when files tab setting changes
 		.sheet(isPresented: $_isAddingPresenting) {
 			SourcesAddView()
 				.presentationDetents([.medium, .large])

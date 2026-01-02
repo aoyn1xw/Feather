@@ -74,6 +74,14 @@ struct AppearanceView: View {
 				Text(.localized("Customize status bar with SF Symbols, text, colors, and more"))
 			}
 			
+			NBSection(.localized("Tab Bar")) {
+				NavigationLink(destination: TabBarCustomizationView()) {
+					Label(.localized("Tab Bar Customization"), systemImage: "square.split.bottomrightquarter")
+				}
+			} footer: {
+				Text(.localized("Show or hide tabs from the tab bar. Settings cannot be hidden."))
+			}
+			
 			if #available(iOS 19.0, *) {
 				NBSection(.localized("Experiments")) {
 					Toggle(.localized("Enable Liquid Glass"), isOn: $_ignoreSolariumLinkedOnCheck)
