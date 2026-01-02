@@ -304,13 +304,6 @@ struct SourceAppCardView: View {
 		.padding(14)
 		.background(cardBackground)
 		.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-		.overlay(
-			RoundedRectangle(cornerRadius: 14, style: .continuous)
-				.strokeBorder(
-					Color.primary.opacity(0.08),
-					lineWidth: 1
-				)
-		)
 	}
 	
 	@ViewBuilder
@@ -326,10 +319,6 @@ struct SourceAppCardView: View {
 						.aspectRatio(contentMode: .fill)
 						.frame(width: 56, height: 56)
 						.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-						.overlay(
-							RoundedRectangle(cornerRadius: 12, style: .continuous)
-								.strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.5)
-						)
 				case .failure:
 					iconPlaceholder
 				@unknown default:

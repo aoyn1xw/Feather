@@ -581,7 +581,7 @@ struct LibraryCardView: View {
 						.padding(.vertical, 8)
 						.background(
 							Capsule()
-								.fill(app.isSigned ? Color.green : Color.blue)
+								.fill(app.isSigned ? Color.green : Color.accentColor)
 						)
 				}
 				.buttonStyle(.plain)
@@ -722,7 +722,7 @@ struct LibraryGridCardView: View {
 					.padding(.vertical, 6)
 					.background(
 						Capsule()
-							.fill(app.isSigned ? Color.green : Color.blue)
+							.fill(app.isSigned ? Color.green : Color.accentColor)
 					)
 			}
 			.frame(maxWidth: .infinity)
