@@ -5,10 +5,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <cstring>
+#include <cstdarg>
 #include <sstream>
 #include <iomanip>
-#include <openssl/md5.h>
-#include <openssl/sha.h>
+#include <CommonCrypto/CommonDigest.h>
 #include <mach-o/loader.h>
 #include <mach-o/fat.h>
 #include <compression.h>
@@ -201,42 +201,42 @@ HashResult calculateHashes(const char* filePath) {
         return result;
     }
     
-    MD5_CTX md5Context;
-    SHA_CTX sha1Context;
-    SHA256_CTX sha256Context;
+    CC_MD5_CTX md5Context;
+    CC_SHA1_CTX sha1Context;
+    CC_SHA256_CTX sha256Context;
     
-    MD5_Init(&md5Context);
-    SHA1_Init(&sha1Context);
-    SHA256_Init(&sha256Context);
+    CC_MD5_Init(&md5Context);
+    CC_SHA1_Init(&sha1Context);
+    CC_SHA256_Init(&sha256Context);
     
     char buffer[8192];
     while (file.read(buffer, sizeof(buffer)) || file.gcount() > 0) {
         size_t count = file.gcount();
-        MD5_Update(&md5Context, buffer, count);
-        SHA1_Update(&sha1Context, buffer, count);
-        SHA256_Update(&sha256Context, buffer, count);
+        CC_MD5_Update(&md5Context, buffer, count);
+        CC_SHA1_Update(&sha1Context, buffer, count);
+        CC_SHA256_Update(&sha256Context, buffer, count);
     }
     
     file.close();
     
-    unsigned char md5[MD5_DIGEST_LENGTH];
-    unsigned char sha1[SHA_DIGEST_LENGTH];
-    unsigned char sha256[SHA256_DIGEST_LENGTH];
+    unsigned char md5[CC_MD5_DIGEST_LENGTH];
+    unsigned char sha1[CC_SHA1_DIGEST_LENGTH];
+    unsigned char sha256[CC_SHA256_DIGEST_LENGTH];
     
-    MD5_Final(md5, &md5Context);
-    SHA1_Final(sha1, &sha1Context);
-    SHA256_Final(sha256, &sha256Context);
+    CC_MD5_Final(md5, &md5Context);
+    CC_SHA1_Final(sha1, &sha1Context);
+    CC_SHA256_Final(sha256, &sha256Context);
     
     // Convert to hex strings
-    for (int i = 0; i < MD5_DIGEST_LENGTH; i++) {
+    for (int i = 0; i < CC_MD5_DIGEST_LENGTH; i++) {
         sprintf(result.md5 + (i * 2), "%02x", md5[i]);
     }
     
-    for (int i = 0; i < SHA_DIGEST_LENGTH; i++) {
+    for (int i = 0; i < CC_SHA1_DIGEST_LENGTH; i++) {
         sprintf(result.sha1 + (i * 2), "%02x", sha1[i]);
     }
     
-    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+    for (int i = 0; i < CC_SHA256_DIGEST_LENGTH; i++) {
         sprintf(result.sha256 + (i * 2), "%02x", sha256[i]);
     }
     

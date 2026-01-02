@@ -102,14 +102,26 @@ class FilesEngine {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return nil }
         
-        let cInfo = FilesEngine.getFileInfo(cStr)
+        var cInfo = FilesEngine.getFileInfo(cStr)
+        
+        let pathStr = withUnsafeBytes(of: &cInfo.path) { ptr in
+            String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
+        }
+        
+        let nameStr = withUnsafeBytes(of: &cInfo.name) { ptr in
+            String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
+        }
+        
+        let magicStr = withUnsafeBytes(of: &cInfo.magicSignature) { ptr in
+            String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
+        }
         
         return FileInformation(
-            path: String(cString: &cInfo.path.0),
-            name: String(cString: &cInfo.name.0),
+            path: pathStr,
+            name: nameStr,
             type: FileType(rawValue: cInfo.type) ?? .unknown,
             size: cInfo.size,
-            magicSignature: String(cString: &cInfo.magicSignature.0),
+            magicSignature: magicStr,
             isDirectory: cInfo.isDirectory,
             isExecutable: cInfo.isExecutable,
             isSigned: cInfo.isSigned
@@ -121,12 +133,24 @@ class FilesEngine {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return nil }
         
-        let cHashes = FilesEngine.calculateHashes(cStr)
+        var cHashes = FilesEngine.calculateHashes(cStr)
+        
+        let md5Str = withUnsafeBytes(of: &cHashes.md5) { ptr in
+            String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
+        }
+        
+        let sha1Str = withUnsafeBytes(of: &cHashes.sha1) { ptr in
+            String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
+        }
+        
+        let sha256Str = withUnsafeBytes(of: &cHashes.sha256) { ptr in
+            String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
+        }
         
         return HashInformation(
-            md5: String(cString: &cHashes.md5.0),
-            sha1: String(cString: &cHashes.sha1.0),
-            sha256: String(cString: &cHashes.sha256.0)
+            md5: md5Str,
+            sha1: sha1Str,
+            sha256: sha256Str
         )
     }
     
@@ -135,13 +159,29 @@ class FilesEngine {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return nil }
         
-        let cInfo = FilesEngine.analyzeIPA(cStr)
+        var cInfo = FilesEngine.analyzeIPA(cStr)
+        
+        let bundleIdStr = withUnsafeBytes(of: &cInfo.bundleId) { ptr in
+            String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
+        }
+        
+        let versionStr = withUnsafeBytes(of: &cInfo.version) { ptr in
+            String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
+        }
+        
+        let minOSStr = withUnsafeBytes(of: &cInfo.minOSVersion) { ptr in
+            String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
+        }
+        
+        let displayNameStr = withUnsafeBytes(of: &cInfo.displayName) { ptr in
+            String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
+        }
         
         return IPAInformation(
-            bundleId: String(cString: &cInfo.bundleId.0),
-            version: String(cString: &cInfo.version.0),
-            minOSVersion: String(cString: &cInfo.minOSVersion.0),
-            displayName: String(cString: &cInfo.displayName.0),
+            bundleId: bundleIdStr,
+            version: versionStr,
+            minOSVersion: minOSStr,
+            displayName: displayNameStr,
             hasProvisioning: cInfo.hasProvisioning,
             isSigned: cInfo.isSigned,
             numberOfExecutables: Int(cInfo.numberOfExecutables)
@@ -153,14 +193,18 @@ class FilesEngine {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return nil }
         
-        let cInfo = FilesEngine.analyzeMachO(cStr)
+        var cInfo = FilesEngine.analyzeMachO(cStr)
+        
+        let archStr = withUnsafeBytes(of: &cInfo.architectures) { ptr in
+            String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
+        }
         
         return MachOInformation(
             isValid: cInfo.isValid,
             is64Bit: cInfo.is64Bit,
             isArm64e: cInfo.isArm64e,
             architectureCount: Int(cInfo.architectureCount),
-            architectures: String(cString: &cInfo.architectures.0),
+            architectures: archStr,
             hasEncryption: cInfo.hasEncryption,
             isPIE: cInfo.isPIE,
             numberOfLoadCommands: Int(cInfo.numberOfLoadCommands)
@@ -181,13 +225,26 @@ class FilesEngine {
         
         var results: [FileInformation] = []
         for i in 0..<Int(count) {
-            let cInfo = cArray[i]
+            var cInfo = cArray[i]
+            
+            let pathStr = withUnsafeBytes(of: &cInfo.path) { ptr in
+                String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
+            }
+            
+            let nameStr = withUnsafeBytes(of: &cInfo.name) { ptr in
+                String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
+            }
+            
+            let magicStr = withUnsafeBytes(of: &cInfo.magicSignature) { ptr in
+                String(cString: ptr.baseAddress!.assumingMemoryBound(to: CChar.self))
+            }
+            
             let info = FileInformation(
-                path: String(cString: &cInfo.path.0),
-                name: String(cString: &cInfo.name.0),
+                path: pathStr,
+                name: nameStr,
                 type: FileType(rawValue: cInfo.type) ?? .unknown,
                 size: cInfo.size,
-                magicSignature: String(cString: &cInfo.magicSignature.0),
+                magicSignature: magicStr,
                 isDirectory: cInfo.isDirectory,
                 isExecutable: cInfo.isExecutable,
                 isSigned: cInfo.isSigned
