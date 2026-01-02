@@ -48,12 +48,14 @@ enum TabEnum: String, CaseIterable, Hashable {
 		return [
 			.home,
 			.library,
+			.files,
+			.guides,
 			.settings
 		]
 	}
 	
 	static var customizableTabs: [TabEnum] {
-		var tabs = [TabEnum.certificates, TabEnum.files, TabEnum.guides]
-		return tabs
+		// No customizable tabs anymore - all are default
+		return []
 	}
 }
