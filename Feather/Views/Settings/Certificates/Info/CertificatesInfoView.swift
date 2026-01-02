@@ -14,57 +14,76 @@ struct CertificatesInfoView: View {
 		NBNavigationView(cert.nickname ?? "", displayMode: .inline) {
 			Form {
 				Section {} header: {
-					VStack(spacing: 16) {
-						// Enhanced certificate image with depth
+					VStack(spacing: 20) {
+						// Enhanced certificate image with modern depth
 						ZStack {
-							// Glow effect
+							// Outer glow
 							Circle()
 								.fill(
 									RadialGradient(
 										colors: [
-											Color.accentColor.opacity(0.2),
+											Color.accentColor.opacity(0.15),
 											Color.accentColor.opacity(0.05),
 											Color.clear
 										],
 										center: .center,
-										startRadius: 50,
-										endRadius: 100
+										startRadius: 60,
+										endRadius: 120
 									)
 								)
-								.frame(width: 140, height: 140)
+								.frame(width: 160, height: 160)
 							
-							// Shadow layer
-							Image("Cert")
-								.resizable()
-								.scaledToFit()
-								.frame(width: 107, height: 107)
-								.opacity(0.3)
-								.blur(radius: 5)
-								.offset(y: 5)
-							
-							// Main image
-							Image("Cert")
-								.resizable()
-								.scaledToFit()
-								.frame(width: 107, height: 107)
-								.shadow(color: .black.opacity(0.3), radius: 12, x: 0, y: 6)
+							// Certificate image container
+							ZStack {
+								// Background circle
+								Circle()
+									.fill(Color(UIColor.secondarySystemGroupedBackground))
+									.frame(width: 120, height: 120)
+								
+								// Main image
+								Image("Cert")
+									.resizable()
+									.scaledToFit()
+									.frame(width: 100, height: 100)
+							}
+							.shadow(color: .black.opacity(0.15), radius: 15, x: 0, y: 8)
 						}
 						.frame(maxWidth: .infinity, alignment: .center)
 						
-						VStack(spacing: 4) {
+						VStack(spacing: 8) {
 							Text(cert.nickname ?? "Certificate")
-								.font(.headline)
+								.font(.title3)
 								.fontWeight(.bold)
 								.foregroundStyle(.primary)
 							
 							if let data = data {
-								Text(data.TeamName)
-									.font(.caption)
-									.foregroundStyle(.secondary)
+								VStack(spacing: 4) {
+									Text(data.TeamName)
+										.font(.subheadline)
+										.foregroundStyle(.secondary)
+									
+									// Status indicator
+									HStack(spacing: 6) {
+										Circle()
+											.fill(cert.revoked ? Color.red : Color.green)
+											.frame(width: 8, height: 8)
+										Text(cert.revoked ? "Revoked" : "Active")
+											.font(.caption)
+											.foregroundStyle(cert.revoked ? .red : .green)
+											.fontWeight(.semibold)
+									}
+									.padding(.horizontal, 12)
+									.padding(.vertical, 6)
+									.background(
+										Capsule()
+											.fill((cert.revoked ? Color.red : Color.green).opacity(0.12))
+									)
+									.padding(.top, 4)
+								}
 							}
 						}
 					}
-					.padding(.vertical, 8)
+					.padding(.vertical, 12)
 				}
 				
 				if let data {

@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ExperimentalFilesView: View {
+    @StateObject private var fileManager = FileManagerService.shared
     @State private var selectedFolder: FileFolder = .all
     
     enum FileFolder: String, CaseIterable {
@@ -15,6 +16,29 @@ struct ExperimentalFilesView: View {
         case archives = "Archives"
         case signed = "Signed"
         case unsigned = "Unsigned"
+    }
+    
+    private func getFilesForFolder(_ folder: FileFolder) -> [FileItem] {
+        switch folder {
+        case .all:
+            return fileManager.currentFiles
+        case .archives:
+            return fileManager.currentFiles.filter { $0.url.pathExtension.lowercased() == "zip" }
+        case .signed:
+            // Files that might be signed IPAs or similar
+            return fileManager.currentFiles.filter { ["ipa", "app"].contains($0.url.pathExtension.lowercased()) }
+        case .unsigned:
+            // Other files
+            return fileManager.currentFiles.filter { 
+                !["zip", "ipa", "app"].contains($0.url.pathExtension.lowercased()) && !$0.isDirectory 
+            }
+        }
+    }
+    
+    private var totalSize: Int64 {
+        fileManager.currentFiles.reduce(0) { total, file in
+            total + Int64(file.sizeInBytes ?? 0)
+        }
     }
     
     var body: some View {
@@ -29,11 +53,11 @@ struct ExperimentalFilesView: View {
                     )
                     
                     // Quick Stats
-                    ExperimentalQuickStats()
+                    ExperimentalQuickStats(totalFiles: fileManager.currentFiles.count, storageUsed: totalSize)
                     
                     // Folder Sections
                     ForEach(FileFolder.allCases, id: \.self) { folder in
-                        ExperimentalFolderSection(folder: folder)
+                        ExperimentalFolderSection(folder: folder, files: getFilesForFolder(folder), fileManager: fileManager)
                     }
                 }
                 .padding(.bottom, 100)
@@ -46,17 +70,20 @@ struct ExperimentalFilesView: View {
 
 // MARK: - Quick Stats
 struct ExperimentalQuickStats: View {
+    let totalFiles: Int
+    let storageUsed: Int64
+    
     var body: some View {
         HStack(spacing: ExperimentalUITheme.Spacing.md) {
             ExperimentalStatCard(
                 icon: "doc.fill",
-                value: "42",
+                value: "\(totalFiles)",
                 label: "Total Files"
             )
             
             ExperimentalStatCard(
                 icon: "archivebox.fill",
-                value: "128 MB",
+                value: ByteCountFormatter.string(fromByteCount: storageUsed, countStyle: .file),
                 label: "Storage Used"
             )
         }
@@ -105,6 +132,8 @@ struct ExperimentalStatCard: View {
 // MARK: - Folder Section
 struct ExperimentalFolderSection: View {
     let folder: ExperimentalFilesView.FileFolder
+    let files: [FileItem]
+    @ObservedObject var fileManager: FileManagerService
     
     var body: some View {
         VStack(alignment: .leading, spacing: ExperimentalUITheme.Spacing.md) {
@@ -115,25 +144,51 @@ struct ExperimentalFolderSection: View {
                 
                 Spacer()
                 
-                Text("\(Int.random(in: 3...12)) items")
+                Text("\(files.count) items")
                     .font(ExperimentalUITheme.Typography.caption)
                     .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
             }
             .padding(.horizontal, ExperimentalUITheme.Spacing.md)
             
-            VStack(spacing: ExperimentalUITheme.Spacing.sm) {
-                ForEach(0..<3) { index in
-                    ExperimentalFileRow(index: index, folder: folder)
+            if files.isEmpty {
+                Text("No files in this category")
+                    .font(ExperimentalUITheme.Typography.body)
+                    .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                    .padding(.horizontal, ExperimentalUITheme.Spacing.md)
+                    .padding(.vertical, ExperimentalUITheme.Spacing.sm)
+            } else {
+                VStack(spacing: ExperimentalUITheme.Spacing.sm) {
+                    ForEach(files.prefix(3)) { file in
+                        NavigationLink(destination: fileDetailSheet(for: file)) {
+                            ExperimentalFileRow(file: file, folder: folder)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
+                .padding(.horizontal, ExperimentalUITheme.Spacing.md)
             }
-            .padding(.horizontal, ExperimentalUITheme.Spacing.md)
+        }
+    }
+    
+    @ViewBuilder
+    private func fileDetailSheet(for file: FileItem) -> some View {
+        if file.isDirectory {
+            FolderCustomizationView(folderURL: file.url)
+        } else if file.url.pathExtension.lowercased() == "plist" {
+            PlistEditorView(fileURL: file.url)
+        } else if file.url.pathExtension.lowercased() == "json" {
+            JSONViewerView(fileURL: file.url)
+        } else if ["txt", "text", "md", "log", "swift", "py", "js", "ts", "html", "css", "xml", "yml", "yaml"].contains(file.url.pathExtension.lowercased()) {
+            TextViewerView(fileURL: file.url)
+        } else {
+            HexEditorView(fileURL: file.url)
         }
     }
 }
 
 // MARK: - File Row
 struct ExperimentalFileRow: View {
-    let index: Int
+    let file: FileItem
     let folder: ExperimentalFilesView.FileFolder
     
     var body: some View {
@@ -151,22 +206,21 @@ struct ExperimentalFileRow: View {
             
             // File Info
             VStack(alignment: .leading, spacing: 4) {
-                Text("File_\(index + 1).ipa")
+                Text(file.name)
                     .font(ExperimentalUITheme.Typography.callout)
                     .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
+                    .lineLimit(1)
                 
-                Text("\(Int.random(in: 5...50)) MB")
+                Text(file.size ?? "Unknown size")
                     .font(ExperimentalUITheme.Typography.caption)
                     .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
             }
             
             Spacer()
             
-            Button(action: {}) {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(ExperimentalUITheme.Colors.textTertiary)
-            }
+            Image(systemName: "chevron.right")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(ExperimentalUITheme.Colors.textTertiary)
         }
         .padding(ExperimentalUITheme.Spacing.sm)
         .background(
@@ -176,11 +230,20 @@ struct ExperimentalFileRow: View {
     }
     
     var fileIcon: String {
+        if file.isDirectory {
+            return "folder.fill"
+        }
         switch folder {
         case .archives: return "archivebox.fill"
         case .signed: return "checkmark.seal.fill"
         case .unsigned: return "doc.fill"
-        default: return "doc.zipper"
+        default: 
+            let ext = file.url.pathExtension.lowercased()
+            switch ext {
+            case "zip": return "doc.zipper"
+            case "ipa", "app": return "app.badge"
+            default: return "doc.fill"
+            }
         }
     }
 }

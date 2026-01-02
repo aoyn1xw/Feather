@@ -10,16 +10,43 @@ struct HexEditorView: View {
     
     var body: some View {
         NBNavigationView(.localized("Hex Editor"), displayMode: .inline) {
-            VStack(spacing: 0) {
-                if isLoading {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                } else {
-                    ScrollView {
-                        Text(hexContent)
-                            .font(.system(.caption, design: .monospaced))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding()
+            ZStack {
+                Color(UIColor.systemGroupedBackground)
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    if isLoading {
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                            Text("Loading file...")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 0) {
+                                // File info header
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(fileURL.lastPathComponent)
+                                        .font(.headline)
+                                        .foregroundStyle(.primary)
+                                    Text("\(hexContent.split(separator: "\n").count) lines")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color(UIColor.secondarySystemGroupedBackground))
+                                
+                                // Hex content
+                                Text(hexContent)
+                                    .font(.system(.caption, design: .monospaced))
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding()
+                                    .textSelection(.enabled)
+                            }
+                        }
                     }
                 }
             }

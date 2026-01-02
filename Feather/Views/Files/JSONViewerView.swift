@@ -15,39 +15,101 @@ struct JSONViewerView: View {
     
     var body: some View {
         NBNavigationView(.localized("JSON Viewer"), displayMode: .inline) {
-            VStack(spacing: 0) {
-                if let error = validationError {
-                    HStack {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.red)
-                        Text(error)
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                        Spacer()
-                    }
-                    .padding()
-                    .background(Color.red.opacity(0.1))
-                }
+            ZStack {
+                Color(UIColor.systemGroupedBackground)
+                    .ignoresSafeArea()
                 
-                if isLoading {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                } else {
-                    if isEditing {
-                        TextEditor(text: $jsonContent)
-                            .font(.system(.body, design: .monospaced))
-                            .padding()
-                            .focused($isTextEditorFocused)
-                            .onChange(of: jsonContent) { _ in
-                                validateJSON()
+                VStack(spacing: 0) {
+                    // Validation error banner
+                    if let error = validationError {
+                        HStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.orange)
+                                .font(.body)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Invalid JSON")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.orange)
+                                Text(error)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
+                            Spacer()
+                        }
+                        .padding(16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.orange.opacity(0.1))
+                        )
+                        .padding()
+                    }
+                    
+                    // Loading state
+                    if isLoading {
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                            Text("Loading JSON...")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
                     } else {
-                        ScrollView {
-                            Text(jsonContent)
+                        // File info header
+                        if !isEditing {
+                            VStack(spacing: 8) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(fileURL.lastPathComponent)
+                                            .font(.headline)
+                                            .foregroundStyle(.primary)
+                                        HStack(spacing: 8) {
+                                            HStack(spacing: 4) {
+                                                Image(systemName: "curlybraces")
+                                                    .font(.caption2)
+                                                Text("JSON File")
+                                            }
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                            
+                                            if validationError == nil {
+                                                Text("•")
+                                                    .foregroundStyle(.secondary)
+                                                HStack(spacing: 4) {
+                                                    Image(systemName: "checkmark.circle.fill")
+                                                        .font(.caption2)
+                                                    Text("Valid")
+                                                }
+                                                .font(.caption)
+                                                .foregroundStyle(.green)
+                                            }
+                                        }
+                                    }
+                                    Spacer()
+                                }
+                                .padding(.horizontal)
+                                .padding(.vertical, 12)
+                            }
+                            .background(Color(UIColor.secondarySystemGroupedBackground))
+                        }
+                        
+                        // Content
+                        if isEditing {
+                            TextEditor(text: $jsonContent)
                                 .font(.system(.body, design: .monospaced))
-                                .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding()
-                                .textSelection(.enabled)
+                                .focused($isTextEditorFocused)
+                                .onChange(of: jsonContent) { _ in
+                                    validateJSON()
+                                }
+                        } else {
+                            ScrollView {
+                                Text(jsonContent)
+                                    .font(.system(.body, design: .monospaced))
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding()
+                                    .textSelection(.enabled)
+                            }
                         }
                     }
                 }
