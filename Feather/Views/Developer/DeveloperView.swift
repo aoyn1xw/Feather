@@ -624,22 +624,22 @@ struct IPAInspectorView: View {
                 }
                 
                 Section(header: Text("Basic Information")) {
-                    InfoRow(label: "File Name", value: info.fileName)
-                    InfoRow(label: "File Size", value: info.fileSize)
+                    DeveloperInfoRow(label: "File Name", value: info.fileName)
+                    DeveloperInfoRow(label: "File Size", value: info.fileSize)
                     if let bundleID = info.bundleID {
-                        InfoRow(label: "Bundle ID", value: bundleID)
+                        DeveloperInfoRow(label: "Bundle ID", value: bundleID)
                     }
                     if let displayName = info.displayName {
-                        InfoRow(label: "App Name", value: displayName)
+                        DeveloperInfoRow(label: "App Name", value: displayName)
                     }
                     if let version = info.version {
-                        InfoRow(label: "Version", value: version)
+                        DeveloperInfoRow(label: "Version", value: version)
                     }
                     if let buildNumber = info.buildNumber {
-                        InfoRow(label: "Build Number", value: buildNumber)
+                        DeveloperInfoRow(label: "Build Number", value: buildNumber)
                     }
                     if let minVersion = info.minIOSVersion {
-                        InfoRow(label: "Min iOS", value: minVersion)
+                        DeveloperInfoRow(label: "Min iOS", value: minVersion)
                     }
                 }
                 
@@ -647,16 +647,16 @@ struct IPAInspectorView: View {
                 if let provisioning = info.provisioning {
                     Section(header: Text("Provisioning Profile")) {
                         if let teamName = provisioning.teamName {
-                            InfoRow(label: "Team Name", value: teamName)
+                            DeveloperInfoRow(label: "Team Name", value: teamName)
                         }
                         if let teamID = provisioning.teamID {
-                            InfoRow(label: "Team ID", value: teamID)
+                            DeveloperInfoRow(label: "Team ID", value: teamID)
                         }
                         if let appIDName = provisioning.appIDName {
-                            InfoRow(label: "App ID Name", value: appIDName)
+                            DeveloperInfoRow(label: "App ID Name", value: appIDName)
                         }
                         if let expirationDate = provisioning.expirationDate {
-                            InfoRow(
+                            DeveloperInfoRow(
                                 label: "Expires",
                                 value: {
                                     let formatter = DateFormatter()
@@ -1061,7 +1061,7 @@ struct IPAInspectorView: View {
 
 // MARK: - Supporting Views
 
-struct InfoRow: View {
+struct DeveloperInfoRow: View {
     let label: String
     let value: String
     
