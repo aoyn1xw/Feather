@@ -98,15 +98,15 @@ struct QuickInspectView: View {
             
             GroupBox {
                 VStack(spacing: 10) {
-                    InfoRow(label: .localized("Type"), value: info.type.displayName)
-                    InfoRow(label: .localized("Size"), value: ByteCountFormatter.string(fromByteCount: Int64(info.size), countStyle: .file))
-                    InfoRow(label: .localized("Path"), value: info.path)
+                    QuickInfoRow(label: .localized("Type"), value: info.type.displayName)
+                    QuickInfoRow(label: .localized("Size"), value: ByteCountFormatter.string(fromByteCount: Int64(info.size), countStyle: .file))
+                    QuickInfoRow(label: .localized("Path"), value: info.path)
                     
                     if !info.magicSignature.isEmpty && info.magicSignature.trimmingCharacters(in: .whitespaces) != "" {
-                        InfoRow(label: .localized("Magic Bytes"), value: info.magicSignature)
+                        QuickInfoRow(label: .localized("Magic Bytes"), value: info.magicSignature)
                     }
                     
-                    InfoRow(label: .localized("Executable"), value: info.isExecutable ? "Yes" : "No")
+                    QuickInfoRow(label: .localized("Executable"), value: info.isExecutable ? "Yes" : "No")
                 }
             }
         }
@@ -138,13 +138,13 @@ struct QuickInspectView: View {
             
             GroupBox {
                 VStack(spacing: 10) {
-                    InfoRow(label: .localized("Bundle ID"), value: ipa.bundleId)
-                    InfoRow(label: .localized("Version"), value: ipa.version)
-                    InfoRow(label: .localized("Min OS"), value: ipa.minOSVersion)
-                    InfoRow(label: .localized("Display Name"), value: ipa.displayName)
-                    InfoRow(label: .localized("Signed"), value: ipa.isSigned ? "Yes" : "No")
-                    InfoRow(label: .localized("Has Provisioning"), value: ipa.hasProvisioning ? "Yes" : "No")
-                    InfoRow(label: .localized("Executables"), value: "\(ipa.numberOfExecutables)")
+                    QuickInfoRow(label: .localized("Bundle ID"), value: ipa.bundleId)
+                    QuickInfoRow(label: .localized("Version"), value: ipa.version)
+                    QuickInfoRow(label: .localized("Min OS"), value: ipa.minOSVersion)
+                    QuickInfoRow(label: .localized("Display Name"), value: ipa.displayName)
+                    QuickInfoRow(label: .localized("Signed"), value: ipa.isSigned ? "Yes" : "No")
+                    QuickInfoRow(label: .localized("Has Provisioning"), value: ipa.hasProvisioning ? "Yes" : "No")
+                    QuickInfoRow(label: .localized("Executables"), value: "\(ipa.numberOfExecutables)")
                 }
             }
         }
@@ -159,13 +159,13 @@ struct QuickInspectView: View {
             
             GroupBox {
                 VStack(spacing: 10) {
-                    InfoRow(label: .localized("Valid"), value: macho.isValid ? "Yes" : "No")
-                    InfoRow(label: .localized("Architecture"), value: macho.architectures)
-                    InfoRow(label: .localized("64-bit"), value: macho.is64Bit ? "Yes" : "No")
-                    InfoRow(label: .localized("ARM64e"), value: macho.isArm64e ? "Yes" : "No")
-                    InfoRow(label: .localized("PIE"), value: macho.isPIE ? "Yes" : "No")
-                    InfoRow(label: .localized("Encrypted"), value: macho.hasEncryption ? "Yes" : "No")
-                    InfoRow(label: .localized("Load Commands"), value: "\(macho.numberOfLoadCommands)")
+                    QuickInfoRow(label: .localized("Valid"), value: macho.isValid ? "Yes" : "No")
+                    QuickInfoRow(label: .localized("Architecture"), value: macho.architectures)
+                    QuickInfoRow(label: .localized("64-bit"), value: macho.is64Bit ? "Yes" : "No")
+                    QuickInfoRow(label: .localized("ARM64e"), value: macho.isArm64e ? "Yes" : "No")
+                    QuickInfoRow(label: .localized("PIE"), value: macho.isPIE ? "Yes" : "No")
+                    QuickInfoRow(label: .localized("Encrypted"), value: macho.hasEncryption ? "Yes" : "No")
+                    QuickInfoRow(label: .localized("Load Commands"), value: "\(macho.numberOfLoadCommands)")
                 }
             }
         }
@@ -209,8 +209,8 @@ struct QuickInspectView: View {
     }
 }
 
-// MARK: - InfoRow
-private struct InfoRow: View {
+// MARK: - QuickInfoRow
+private struct QuickInfoRow: View {
     let label: String
     let value: String
     
