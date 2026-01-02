@@ -67,6 +67,13 @@ class HapticsManager: ObservableObject {
         generator.impactOccurred()
     }
     
+    func softImpact() {
+        guard isEnabled else { return }
+        let generator = UIImpactFeedbackGenerator(style: .soft)
+        generator.prepare()
+        generator.impactOccurred()
+    }
+    
     func success() {
         guard isEnabled else { return }
         let generator = UINotificationFeedbackGenerator()

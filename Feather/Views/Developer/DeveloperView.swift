@@ -1209,7 +1209,7 @@ struct FeatureFlagsView: View {
     
     var body: some View {
         List {
-            Section(header: Text("UI & Experience")) {
+            Section {
                 Toggle("Experimental UI", isOn: Binding(
                     get: { experimentalUI },
                     set: { newValue in
@@ -1226,16 +1226,22 @@ struct FeatureFlagsView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+            } header: {
+                Text("UI & Experience")
             } footer: {
                 Text("The Experimental UI is a complete redesign of the app's interface. This feature is still under development and may cause bugs.")
             }
             
-            Section(header: Text("Performance")) {
+            Section {
                 Toggle("Enhanced Animations", isOn: $enhancedAnimations)
+            } header: {
+                Text("Performance")
             }
             
-            Section(header: Text("Signing")) {
+            Section {
                 Toggle("Advanced Signing Options", isOn: $advancedSigning)
+            } header: {
+                Text("Signing")
             }
         }
         .navigationTitle("Feature Flags")
