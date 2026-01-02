@@ -44,8 +44,10 @@ class GuideParser {
                 continue
             }
             
-            // Parse list items
-            if line.hasPrefix("- ") || line.hasPrefix("* ") || line.hasPrefix("+ ") {
+            // Parse list items (including nested)
+            if line.hasPrefix("- ") || line.hasPrefix("* ") || line.hasPrefix("+ ") ||
+               line.hasPrefix("  - ") || line.hasPrefix("  * ") || line.hasPrefix("  + ") ||
+               line.hasPrefix("    - ") || line.hasPrefix("    * ") || line.hasPrefix("    + ") {
                 let listItem = parseListItem(line)
                 elements.append(listItem)
                 i += 1
@@ -53,15 +55,17 @@ class GuideParser {
             }
             
             // Parse numbered lists
-            if let match = line.range(of: #"^\d+\.\s"#, options: .regularExpression) {
+            if let match = line.range(of: #"^\s*\d+\.\s"#, options: .regularExpression) {
+                let level = countLeadingSpaces(line) / 2
                 let text = String(line[match.upperBound...])
-                elements.append(.listItem(text: text))
+                let content = parseInlineContent(text)
+                elements.append(.listItem(level: level, content: content))
                 i += 1
                 continue
             }
             
-            // Parse images
-            if line.contains("![") {
+            // Parse images (standalone)
+            if line.trimmingCharacters(in: .whitespaces).hasPrefix("![") {
                 if let image = parseImage(line) {
                     elements.append(image)
                     i += 1
@@ -69,22 +73,27 @@ class GuideParser {
                 }
             }
             
-            // Parse links (standalone)
-            if line.hasPrefix("[") && line.contains("](") {
-                if let link = parseLink(line) {
-                    elements.append(link)
-                    i += 1
-                    continue
-                }
+            // Default: treat as paragraph with inline content
+            let content = parseInlineContent(line)
+            if !content.isEmpty {
+                elements.append(.paragraph(content: content))
             }
-            
-            // Default: treat as paragraph
-            let paragraph = parseParagraph(line)
-            elements.append(paragraph)
             i += 1
         }
         
         return ParsedGuideContent(elements: elements)
+    }
+    
+    private static func countLeadingSpaces(_ line: String) -> Int {
+        var count = 0
+        for char in line {
+            if char == " " {
+                count += 1
+            } else {
+                break
+            }
+        }
+        return count
     }
     
     private static func parseHeading(_ line: String) -> GuideElement? {
@@ -130,46 +139,144 @@ class GuideParser {
     
     private static func parseBlockquote(_ line: String) -> GuideElement {
         let text = line.dropFirst().trimmingCharacters(in: .whitespaces)
-        return .blockquote(text: String(text))
+        let content = parseInlineContent(String(text))
+        return .blockquote(content: content)
     }
     
     private static func parseListItem(_ line: String) -> GuideElement {
         var text = line
+        var level = 0
+        
+        // Count leading spaces for nested lists
+        let leadingSpaces = countLeadingSpaces(text)
+        level = leadingSpaces / 2
+        
+        // Remove leading spaces
+        text = text.trimmingCharacters(in: .whitespaces)
+        
+        // Remove list marker
         if text.hasPrefix("- ") || text.hasPrefix("* ") || text.hasPrefix("+ ") {
             text = String(text.dropFirst(2))
         }
-        return .listItem(text: text)
+        
+        let content = parseInlineContent(text)
+        return .listItem(level: level, content: content)
+    }
+    
+    // Parse inline content (text with embedded links, accent:// references, etc.)
+    private static func parseInlineContent(_ text: String) -> [InlineContent] {
+        var result: [InlineContent] = []
+        var currentText = ""
+        var i = text.startIndex
+        
+        while i < text.endIndex {
+            // Check for image syntax (skip it in inline content)
+            if text[i] == "!" && i < text.index(before: text.endIndex) && text[text.index(after: i)] == "[" {
+                // Find the end of the image
+                if let endBracket = text.range(of: "](", range: i..<text.endIndex),
+                   let endParen = text.range(of: ")", range: endBracket.upperBound..<text.endIndex) {
+                    // Skip the entire image
+                    i = endParen.upperBound
+                    continue
+                }
+            }
+            
+            // Check for link syntax
+            if text[i] == "[" {
+                // Save any accumulated text
+                if !currentText.isEmpty {
+                    result.append(.text(currentText))
+                    currentText = ""
+                }
+                
+                // Find the matching ] and (
+                if let closeBracket = findMatchingBracket(in: text, start: i),
+                   closeBracket < text.endIndex,
+                   text[closeBracket] == "]" {
+                    
+                    let nextIndex = text.index(after: closeBracket)
+                    if nextIndex < text.endIndex && text[nextIndex] == "(" {
+                        // Found a link
+                        if let closeParen = text.range(of: ")", range: nextIndex..<text.endIndex) {
+                            let linkText = String(text[text.index(after: i)..<closeBracket])
+                            let urlStart = text.index(after: nextIndex)
+                            var url = String(text[urlStart..<closeParen.lowerBound]).trimmingCharacters(in: .whitespaces)
+                            
+                            // Clean up URLs with broken brackets or extra spaces
+                            url = url.replacingOccurrences(of: " ", with: "")
+                            url = url.replacingOccurrences(of: "[", with: "")
+                            url = url.replacingOccurrences(of: "]", with: "")
+                            
+                            // Check if URL uses accent:// scheme
+                            if url.hasPrefix("accent://") {
+                                result.append(.accentLink(url: url, text: linkText))
+                            } else {
+                                result.append(.link(url: url, text: linkText))
+                            }
+                            
+                            i = closeParen.upperBound
+                            continue
+                        }
+                    }
+                }
+                
+                // Not a valid link, treat as text
+                currentText.append(text[i])
+                i = text.index(after: i)
+            } else {
+                currentText.append(text[i])
+                i = text.index(after: i)
+            }
+        }
+        
+        // Add any remaining text
+        if !currentText.isEmpty {
+            // Check if the text contains accent:// (as plain text reference)
+            if currentText.contains("accent://") {
+                result.append(.accentText(currentText))
+            } else {
+                result.append(.text(currentText))
+            }
+        }
+        
+        return result.isEmpty ? [.text(text)] : result
+    }
+    
+    private static func findMatchingBracket(in text: String, start: String.Index) -> String.Index? {
+        var depth = 0
+        var i = start
+        
+        while i < text.endIndex {
+            if text[i] == "[" {
+                depth += 1
+            } else if text[i] == "]" {
+                depth -= 1
+                if depth == 0 {
+                    return i
+                }
+            }
+            i = text.index(after: i)
+        }
+        
+        return nil
     }
     
     private static func parseImage(_ line: String) -> GuideElement? {
         // Pattern: ![alt text](url)
-        guard let altStart = line.range(of: "!["),
-              let altEnd = line.range(of: "](", range: altStart.upperBound..<line.endIndex),
-              let urlEnd = line.range(of: ")", range: altEnd.upperBound..<line.endIndex) else {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        guard let altStart = trimmed.range(of: "!["),
+              let altEnd = trimmed.range(of: "](", range: altStart.upperBound..<trimmed.endIndex),
+              let urlEnd = trimmed.range(of: ")", range: altEnd.upperBound..<trimmed.endIndex) else {
             return nil
         }
         
-        let altText = String(line[altStart.upperBound..<altEnd.lowerBound])
-        let url = String(line[altEnd.upperBound..<urlEnd.lowerBound])
+        let altText = String(trimmed[altStart.upperBound..<altEnd.lowerBound])
+        var url = String(trimmed[altEnd.upperBound..<urlEnd.lowerBound])
+        
+        // Clean up URL
+        url = url.trimmingCharacters(in: .whitespaces)
+        url = url.replacingOccurrences(of: " ", with: "")
         
         return .image(url: url, altText: altText)
-    }
-    
-    private static func parseLink(_ line: String) -> GuideElement? {
-        // Pattern: [text](url)
-        guard let textStart = line.range(of: "["),
-              let textEnd = line.range(of: "](", range: textStart.upperBound..<line.endIndex),
-              let urlEnd = line.range(of: ")", range: textEnd.upperBound..<line.endIndex) else {
-            return nil
-        }
-        
-        let text = String(line[textStart.upperBound..<textEnd.lowerBound])
-        let url = String(line[textEnd.upperBound..<urlEnd.lowerBound])
-        
-        return .link(url: url, text: text)
-    }
-    
-    private static func parseParagraph(_ line: String) -> GuideElement {
-        return .paragraph(text: line)
     }
 }

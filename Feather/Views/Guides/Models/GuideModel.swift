@@ -47,31 +47,52 @@ struct ParsedGuideContent {
     var elements: [GuideElement]
 }
 
+// Inline content segment (text or link)
+enum InlineContent: Identifiable {
+    case text(String)
+    case link(url: String, text: String)
+    case accentText(String)  // Text that should use accent color
+    case accentLink(url: String, text: String)  // Link with accent color
+    
+    var id: String {
+        switch self {
+        case .text(let text):
+            return "text-\(text.hashValue)"
+        case .link(let url, let text):
+            return "link-\(url.hashValue)-\(text.hashValue)"
+        case .accentText(let text):
+            return "accent-text-\(text.hashValue)"
+        case .accentLink(let url, let text):
+            return "accent-link-\(url.hashValue)-\(text.hashValue)"
+        }
+    }
+}
+
 enum GuideElement: Identifiable {
     case heading(level: Int, text: String)
-    case paragraph(text: String)
+    case paragraph(content: [InlineContent])
     case codeBlock(language: String?, code: String)
     case image(url: String, altText: String?)
     case link(url: String, text: String)
-    case listItem(text: String)
-    case blockquote(text: String)
+    case listItem(level: Int, content: [InlineContent])
+    case blockquote(content: [InlineContent])
     
     var id: String {
         switch self {
         case .heading(let level, let text):
             return "heading-\(level)-\(text.hashValue)"
-        case .paragraph(let text):
-            return "paragraph-\(text.hashValue)"
+        case .paragraph(let content):
+            return "paragraph-\(content.map { $0.id }.joined().hashValue)"
         case .codeBlock(let language, let code):
             return "code-\(language ?? "none")-\(code.hashValue)"
         case .image(let url, _):
             return "image-\(url.hashValue)"
         case .link(let url, let text):
             return "link-\(url)-\(text.hashValue)"
-        case .listItem(let text):
-            return "list-\(text.hashValue)"
-        case .blockquote(let text):
-            return "quote-\(text.hashValue)"
+        case .listItem(let level, let content):
+            return "list-\(level)-\(content.map { $0.id }.joined().hashValue)"
+        case .blockquote(let content):
+            return "quote-\(content.map { $0.id }.joined().hashValue)"
         }
     }
 }

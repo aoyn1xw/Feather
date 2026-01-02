@@ -8,6 +8,18 @@ struct GuideDetailView: View {
     @State private var parsedContent: ParsedGuideContent?
     @State private var isLoading = true
     @State private var errorMessage: String?
+    @AppStorage("Feather.userTintColor") private var selectedColorHex: String = "#B496DC"
+    @AppStorage("Feather.userTintColorType") private var colorType: String = "solid"
+    @AppStorage("Feather.userTintGradientStart") private var gradientStartHex: String = "#B496DC"
+    @AppStorage("Feather.userTintGradientEnd") private var gradientEndHex: String = "#848ef9"
+    
+    var accentColor: Color {
+        if colorType == "gradient" {
+            return Color(hex: gradientStartHex)
+        } else {
+            return Color(hex: selectedColorHex)
+        }
+    }
     
     var body: some View {
         ScrollView {
@@ -82,8 +94,8 @@ struct GuideDetailView: View {
         case .heading(let level, let text):
             renderHeading(level: level, text: text)
             
-        case .paragraph(let text):
-            renderParagraph(text: text)
+        case .paragraph(let content):
+            renderParagraph(content: content)
             
         case .codeBlock(let language, let code):
             renderCodeBlock(language: language, code: code)
@@ -94,11 +106,11 @@ struct GuideDetailView: View {
         case .link(let url, let text):
             renderLink(url: url, text: text)
             
-        case .listItem(let text):
-            renderListItem(text: text)
+        case .listItem(let level, let content):
+            renderListItem(level: level, content: content)
             
-        case .blockquote(let text):
-            renderBlockquote(text: text)
+        case .blockquote(let content):
+            renderBlockquote(content: content)
         }
     }
     
@@ -121,11 +133,56 @@ struct GuideDetailView: View {
         }
     }
     
-    private func renderParagraph(text: String) -> some View {
-        Text(parseInlineMarkdown(text))
-            .font(.body)
-            .foregroundStyle(.primary)
+    private func renderParagraph(content: [InlineContent]) -> some View {
+        renderInlineContent(content)
             .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    @ViewBuilder
+    private func renderInlineContent(_ content: [InlineContent]) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 0) {
+            ForEach(content) { segment in
+                switch segment {
+                case .text(let text):
+                    Text(parseInlineMarkdown(text))
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                    
+                case .link(let url, let text):
+                    if let validURL = URL(string: url) {
+                        Link(destination: validURL) {
+                            Text(text)
+                                .font(.body)
+                                .foregroundStyle(.blue)
+                                .underline()
+                        }
+                    } else {
+                        Text(text)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                case .accentText(let text):
+                    Text(parseInlineMarkdown(text))
+                        .font(.body)
+                        .foregroundStyle(accentColor)
+                    
+                case .accentLink(let url, let text):
+                    if let validURL = URL(string: url) {
+                        Link(destination: validURL) {
+                            Text(text)
+                                .font(.body)
+                                .foregroundStyle(accentColor)
+                                .underline()
+                        }
+                    } else {
+                        Text(text)
+                            .font(.body)
+                            .foregroundStyle(accentColor)
+                    }
+                }
+            }
+        }
     }
     
     private func renderCodeBlock(language: String?, code: String) -> some View {
@@ -158,9 +215,10 @@ struct GuideDetailView: View {
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: .infinity)
                     .cornerRadius(8)
             case .failure:
-                VStack {
+                VStack(spacing: 8) {
                     Image(systemName: "photo")
                         .font(.largeTitle)
                         .foregroundStyle(.secondary)
@@ -168,10 +226,11 @@ struct GuideDetailView: View {
                         Text(alt)
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: 200)
+                .frame(minHeight: 150)
                 .background(Color.secondary.opacity(0.1))
                 .cornerRadius(8)
             @unknown default:
@@ -192,35 +251,34 @@ struct GuideDetailView: View {
                             .foregroundStyle(.blue)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             )
         } else {
             return AnyView(
                 Text(text)
                     .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             )
         }
     }
     
-    private func renderListItem(text: String) -> some View {
+    private func renderListItem(level: Int, content: [InlineContent]) -> some View {
         HStack(alignment: .top, spacing: 8) {
             Text("•")
                 .foregroundStyle(.secondary)
-            Text(parseInlineMarkdown(text))
-                .font(.body)
-                .foregroundStyle(.primary)
+                .frame(width: 16)
+            renderInlineContent(content)
         }
-        .padding(.leading, 8)
+        .padding(.leading, CGFloat(level) * 20)
     }
     
-    private func renderBlockquote(text: String) -> some View {
-        HStack(spacing: 12) {
+    private func renderBlockquote(content: [InlineContent]) -> some View {
+        HStack(alignment: .top, spacing: 12) {
             Rectangle()
                 .fill(Color.blue.opacity(0.5))
                 .frame(width: 4)
             
-            Text(parseInlineMarkdown(text))
-                .font(.body)
-                .foregroundStyle(.secondary)
+            renderInlineContent(content)
                 .italic()
         }
         .padding(.vertical, 8)
