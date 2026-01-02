@@ -990,8 +990,10 @@ class FileManagerService: ObservableObject {
     
     func navigateUp() {
         let parent = currentDirectory.deletingLastPathComponent()
-        // Only navigate up if parent is at or within the base directory
-        if parent.path.starts(with: baseDirectory.path) || parent.path == baseDirectory.deletingLastPathComponent().path {
+        // Only navigate up if we're not at the base directory
+        // and the parent is at or within the base directory
+        if currentDirectory != baseDirectory && 
+           (parent == baseDirectory || parent.path.starts(with: baseDirectory.path)) {
             currentDirectory = parent
             loadFiles()
         }
