@@ -35,6 +35,11 @@ struct FilesView: View {
     @State private var showCertificateQuickAdd = false
     @State private var detectedP12: URL?
     @State private var detectedMobileprovision: URL?
+    @State private var showBulkActionsMenu = false
+    @State private var showSearchReplaceSheet = false
+    @State private var copiedFiles: [FileItem] = []
+    @State private var showPermissionsSheet = false
+    @State private var showTemplatesSheet = false
     
     enum LayoutMode {
         case list, grid
@@ -115,6 +120,16 @@ struct FilesView: View {
                 }
                 
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    // Bulk actions menu when in selection mode
+                    if isSelectionMode && !selectedFiles.isEmpty {
+                        Menu {
+                            bulkActionMenuItems
+                        } label: {
+                            Image(systemName: "square.on.square")
+                                .font(.title3)
+                        }
+                    }
+                    
                     Menu {
                         Button {
                             layoutMode = layoutMode == .list ? .grid : .list
@@ -220,6 +235,19 @@ struct FilesView: View {
                 if let p12 = detectedP12, let provision = detectedMobileprovision {
                     CertificateQuickAddView(p12URL: p12, mobileprovisionURL: provision)
                 }
+            }
+            .sheet(isPresented: $showSearchReplaceSheet) {
+                if let file = selectedFilesArray.first, !file.isDirectory {
+                    SearchReplaceView(fileURL: file.url)
+                }
+            }
+            .sheet(isPresented: $showPermissionsSheet) {
+                if let file = selectedFilesArray.first {
+                    FilePermissionsView(fileURL: file.url)
+                }
+            }
+            .sheet(isPresented: $showTemplatesSheet) {
+                FileTemplatesView(directoryURL: fileManager.currentDirectory)
             }
             .alert(.localized("Rename File"), isPresented: $showRenameAlert) {
                 TextField(.localized("New Name"), text: $renameText)
@@ -356,71 +384,76 @@ struct FilesView: View {
             }
         }
         .environment(\.editMode, isSelectionMode ? .constant(.active) : .constant(.inactive))
-        .toolbar {
-            if isSelectionMode && !selectedFiles.isEmpty {
-                ToolbarItemGroup(placement: .bottomBar) {
-                    Button {
-                        shareURLs = selectedFilesArray.map { $0.url }
-                        showShareSheet = true
-                    } label: {
-                        Label(.localized("Share"), systemImage: "square.and.arrow.up")
-                    }
-                    
-                    Spacer()
-                    
-                    if selectedFiles.count > 1 {
-                        Button {
-                            showBatchRenameSheet = true
-                        } label: {
-                            Label(.localized("Rename"), systemImage: "pencil")
-                        }
-                        
-                        Spacer()
-                    }
-                    
-                    if selectedFiles.count == 2 {
-                        Button {
-                            let files = selectedFilesArray
-                            if files.count == 2 {
-                                compareFile1 = files[0]
-                                compareFile2 = files[1]
-                                showCompareSheet = true
-                            }
-                        } label: {
-                            Label(.localized("Compare"), systemImage: "arrow.left.arrow.right")
-                        }
-                        
-                        Spacer()
-                    }
-                    
-                    Button {
-                        showMoveSheet = true
-                    } label: {
-                        Label(.localized("Move"), systemImage: "folder")
-                    }
-                    
-                    Spacer()
-                    
-                    Button {
-                        showZipSheet = true
-                    } label: {
-                        Label(.localized("Zip"), systemImage: "doc.zipper")
-                    }
-                    
-                    Spacer()
-                    
-                    Button(role: .destructive) {
-                        for id in selectedFiles {
-                            if let file = fileManager.currentFiles.first(where: { $0.id == id }) {
-                                fileManager.deleteFile(file)
-                            }
-                        }
-                        selectedFiles.removeAll()
-                    } label: {
-                        Label(.localized("Delete"), systemImage: "trash")
-                    }
+    }
+    
+    @ViewBuilder
+    private var bulkActionMenuItems: some View {
+        Button {
+            shareURLs = selectedFilesArray.map { $0.url }
+            showShareSheet = true
+        } label: {
+            Label(.localized("Share"), systemImage: "square.and.arrow.up")
+        }
+        
+        if selectedFiles.count > 1 {
+            Button {
+                showBatchRenameSheet = true
+            } label: {
+                Label(.localized("Batch Rename"), systemImage: "pencil")
+            }
+        }
+        
+        if selectedFiles.count == 2 {
+            Button {
+                let files = selectedFilesArray
+                if files.count == 2 {
+                    compareFile1 = files[0]
+                    compareFile2 = files[1]
+                    showCompareSheet = true
+                }
+            } label: {
+                Label(.localized("Compare"), systemImage: "arrow.left.arrow.right")
+            }
+        }
+        
+        Button {
+            showMoveSheet = true
+        } label: {
+            Label(.localized("Move"), systemImage: "folder")
+        }
+        
+        Button {
+            copiedFiles = selectedFilesArray
+            HapticsManager.shared.success()
+        } label: {
+            Label(.localized("Copy"), systemImage: "doc.on.doc")
+        }
+        
+        if !copiedFiles.isEmpty {
+            Button {
+                pasteFiles()
+            } label: {
+                Label(.localized("Paste"), systemImage: "doc.on.clipboard")
+            }
+        }
+        
+        Button {
+            showZipSheet = true
+        } label: {
+            Label(.localized("Zip"), systemImage: "doc.zipper")
+        }
+        
+        Divider()
+        
+        Button(role: .destructive) {
+            for id in selectedFiles {
+                if let file = fileManager.currentFiles.first(where: { $0.id == id }) {
+                    fileManager.deleteFile(file)
                 }
             }
+            selectedFiles.removeAll()
+        } label: {
+            Label(.localized("Delete"), systemImage: "trash")
         }
     }
     
@@ -509,6 +542,23 @@ struct FilesView: View {
             Label(.localized("Folder"), systemImage: "folder.badge.plus")
         }
         
+        Button {
+            HapticsManager.shared.impact()
+            showTemplatesSheet = true
+        } label: {
+            Label(.localized("From Template"), systemImage: "doc.badge.plus")
+        }
+        
+        if !copiedFiles.isEmpty {
+            Divider()
+            
+            Button {
+                pasteFiles()
+            } label: {
+                Label(.localized("Paste Files"), systemImage: "doc.on.clipboard.fill")
+            }
+        }
+        
         if !selectedFiles.isEmpty || fileManager.currentFiles.contains(where: { $0.url.pathExtension == "zip" }) {
             Divider()
             
@@ -530,6 +580,14 @@ struct FilesView: View {
                 }
             }
         }
+    }
+    
+    private func pasteFiles() {
+        for file in copiedFiles {
+            fileManager.duplicateFile(file, toDirectory: fileManager.currentDirectory)
+        }
+        copiedFiles.removeAll()
+        HapticsManager.shared.success()
     }
     
     @ViewBuilder
@@ -567,6 +625,13 @@ struct FilesView: View {
         }
         
         Button {
+            selectedFiles = [file.id]
+            showPermissionsSheet = true
+        } label: {
+            Label(.localized("Permissions"), systemImage: "lock.shield")
+        }
+        
+        Button {
             fileToRename = file
             renameText = file.name
             showRenameAlert = true
@@ -578,6 +643,13 @@ struct FilesView: View {
             fileManager.duplicateFile(file)
         } label: {
             Label(.localized("Duplicate"), systemImage: "doc.on.doc")
+        }
+        
+        Button {
+            copiedFiles = [file]
+            HapticsManager.shared.success()
+        } label: {
+            Label(.localized("Copy"), systemImage: "doc.on.doc.fill")
         }
         
         Button {
@@ -596,6 +668,15 @@ struct FilesView: View {
         
         if !file.isDirectory {
             Divider()
+            
+            if ["txt", "text", "md", "log", "swift", "py", "js", "ts", "html", "css", "xml", "yml", "yaml"].contains(file.url.pathExtension.lowercased()) {
+                Button {
+                    selectedFiles = [file.id]
+                    showSearchReplaceSheet = true
+                } label: {
+                    Label(.localized("Search & Replace"), systemImage: "magnifyingglass")
+                }
+            }
             
             Button {
                 selectedFiles = [file.id]
@@ -668,11 +749,13 @@ struct FileRowView: View {
             
             if file.isDirectory {
                 Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.blue)
             }
         }
         .padding(.vertical, 4)
+        .contentShape(Rectangle())
     }
 }
 
@@ -882,17 +965,18 @@ class FileManagerService: ObservableObject {
         }
     }
     
-    func duplicateFile(_ file: FileItem) {
+    func duplicateFile(_ file: FileItem, toDirectory destinationDir: URL? = nil) {
+        let targetDir = destinationDir ?? file.url.deletingLastPathComponent()
         let nameWithoutExt = file.url.deletingPathExtension().lastPathComponent
         let ext = file.url.pathExtension
         let baseName = ext.isEmpty ? nameWithoutExt : "\(nameWithoutExt).\(ext)"
         
         var counter = 1
-        var newURL = file.url.deletingLastPathComponent().appendingPathComponent("Copy of \(baseName)")
+        var newURL = targetDir.appendingPathComponent("Copy of \(baseName)")
         
         while FileManager.default.fileExists(atPath: newURL.path) {
             counter += 1
-            newURL = file.url.deletingLastPathComponent().appendingPathComponent("Copy \(counter) of \(baseName)")
+            newURL = targetDir.appendingPathComponent("Copy \(counter) of \(baseName)")
         }
         
         do {
