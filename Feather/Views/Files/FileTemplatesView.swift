@@ -373,7 +373,7 @@ struct FileTemplatesView: View {
         
         // Check if file already exists
         if FileManager.default.fileExists(atPath: fileURL.path) {
-            errorMessage = "A file with this name already exists"
+            errorMessage = String(localized: "A file with this name already exists")
             HapticsManager.shared.error()
             return
         }
@@ -384,7 +384,7 @@ struct FileTemplatesView: View {
             FileManagerService.shared.loadFiles()
             dismiss()
         } catch {
-            errorMessage = "Failed to create file: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to create file") + ": \(error.localizedDescription)"
             HapticsManager.shared.error()
             AppLogManager.shared.error("Failed to create file from template: \(error.localizedDescription)", category: "Files")
         }

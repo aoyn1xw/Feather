@@ -228,8 +228,10 @@ struct TextViewerView: View {
     
     private func scheduleAutoSave() {
         autoSaveTimer?.invalidate()
-        autoSaveTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
-            saveContentSilently()
+        DispatchQueue.main.async {
+            self.autoSaveTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
+                self.saveContentSilently()
+            }
         }
     }
     

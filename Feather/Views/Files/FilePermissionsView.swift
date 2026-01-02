@@ -160,7 +160,7 @@ struct FilePermissionsView: View {
             isExecutable = FileManager.default.isExecutableFile(atPath: fileURL.path)
             
         } catch {
-            errorMessage = "Failed to load permissions: \(error.localizedDescription)"
+            errorMessage = String(localized: "Failed to load permissions") + ": \(error.localizedDescription)"
             AppLogManager.shared.error("Failed to load file permissions: \(error.localizedDescription)", category: "Files")
         }
     }

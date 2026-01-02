@@ -172,7 +172,7 @@ struct SearchReplaceView: View {
     private func saveChanges() {
         do {
             guard let data = fileContent.data(using: .utf8) else {
-                throw NSError(domain: "SearchReplace", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to encode content"])
+                throw NSError(domain: "SearchReplace", code: -1, userInfo: [NSLocalizedDescriptionKey: String(localized: "Failed to encode content")])
             }
             
             try data.write(to: fileURL, options: .atomic)
