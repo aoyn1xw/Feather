@@ -140,6 +140,7 @@ struct CertificatesInfoView: View {
 					
 					if let data {
 						_infoSection(data: data)
+						_ppqAlertSection(data: data)
 						_entitlementsSection(data: data)
 						_miscSection(data: data)
 					}
@@ -182,6 +183,177 @@ struct CertificatesInfoView: View {
 
 // MARK: - Extension: View
 extension CertificatesInfoView {
+	@ViewBuilder
+	private func _ppqAlertSection(data: Certificate) -> some View {
+		Section {
+			if data.PPQCheck == true {
+				// Red alert for PPQ certificate
+				VStack(alignment: .leading, spacing: 12) {
+					HStack(spacing: 12) {
+						ZStack {
+							Circle()
+								.fill(
+									LinearGradient(
+										colors: [Color.red.opacity(0.2), Color.red.opacity(0.1)],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
+								.frame(width: 44, height: 44)
+							
+							Image(systemName: "exclamationmark.triangle.fill")
+								.font(.title3)
+								.foregroundStyle(Color.red)
+						}
+						
+						VStack(alignment: .leading, spacing: 4) {
+							Text(.localized("PPQ Certificate"))
+								.font(.headline)
+								.fontWeight(.bold)
+								.foregroundStyle(.primary)
+							
+							Text(.localized("This certificate has PPQ, please use PPQ Protection to avoid Apple revoking this certificate."))
+								.font(.subheadline)
+								.foregroundStyle(.secondary)
+								.fixedSize(horizontal: false, vertical: true)
+						}
+					}
+					.padding(16)
+					
+					Button {
+						showPPQInfoDialog()
+					} label: {
+						HStack {
+							Image(systemName: "questionmark.circle.fill")
+								.font(.body)
+							Text(.localized("What is PPQ?"))
+								.font(.subheadline)
+								.fontWeight(.semibold)
+							Spacer()
+							Image(systemName: "chevron.right")
+								.font(.caption)
+						}
+						.foregroundStyle(.white)
+						.padding(.horizontal, 16)
+						.padding(.vertical, 12)
+						.background(
+							RoundedRectangle(cornerRadius: 10, style: .continuous)
+								.fill(Color.red.opacity(0.8))
+						)
+					}
+					.padding(.horizontal, 16)
+					.padding(.bottom, 12)
+				}
+				.background(
+					RoundedRectangle(cornerRadius: 14, style: .continuous)
+						.fill(
+							LinearGradient(
+								colors: [Color.red.opacity(0.15), Color.red.opacity(0.08)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+				)
+				.overlay(
+					RoundedRectangle(cornerRadius: 14, style: .continuous)
+						.stroke(Color.red.opacity(0.4), lineWidth: 1.5)
+				)
+				.shadow(color: Color.red.opacity(0.2), radius: 10, x: 0, y: 4)
+				.listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+				.listRowBackground(Color.clear)
+			} else {
+				// Green card for PPQ-less certificate
+				VStack(alignment: .leading, spacing: 12) {
+					HStack(spacing: 12) {
+						ZStack {
+							Circle()
+								.fill(
+									LinearGradient(
+										colors: [Color.green.opacity(0.2), Color.green.opacity(0.1)],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
+								.frame(width: 44, height: 44)
+							
+							Image(systemName: "checkmark.shield.fill")
+								.font(.title3)
+								.foregroundStyle(Color.green)
+						}
+						
+						VStack(alignment: .leading, spacing: 4) {
+							Text(.localized("PPQ-Less Certificate"))
+								.font(.headline)
+								.fontWeight(.bold)
+								.foregroundStyle(.primary)
+							
+							Text(.localized("This certificate does not have PPQ. You can keep the Bundle ID the same to get benefits like push notifications."))
+								.font(.subheadline)
+								.foregroundStyle(.secondary)
+								.fixedSize(horizontal: false, vertical: true)
+						}
+					}
+					.padding(16)
+					
+					Button {
+						showPPQInfoDialog()
+					} label: {
+						HStack {
+							Image(systemName: "questionmark.circle.fill")
+								.font(.body)
+							Text(.localized("What is PPQ?"))
+								.font(.subheadline)
+								.fontWeight(.semibold)
+							Spacer()
+							Image(systemName: "chevron.right")
+								.font(.caption)
+						}
+						.foregroundStyle(.white)
+						.padding(.horizontal, 16)
+						.padding(.vertical, 12)
+						.background(
+							RoundedRectangle(cornerRadius: 10, style: .continuous)
+								.fill(Color.green.opacity(0.8))
+						)
+					}
+					.padding(.horizontal, 16)
+					.padding(.bottom, 12)
+				}
+				.background(
+					RoundedRectangle(cornerRadius: 14, style: .continuous)
+						.fill(
+							LinearGradient(
+								colors: [Color.green.opacity(0.15), Color.green.opacity(0.08)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+				)
+				.overlay(
+					RoundedRectangle(cornerRadius: 14, style: .continuous)
+						.stroke(Color.green.opacity(0.4), lineWidth: 1.5)
+				)
+				.shadow(color: Color.green.opacity(0.2), radius: 10, x: 0, y: 4)
+				.listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+				.listRowBackground(Color.clear)
+			}
+		}
+	}
+	
+	private func showPPQInfoDialog() {
+		let alert = UIAlertController(
+			title: .localized("What is PPQ?"),
+			message: .localized("PPQ is a check Apple has added to certificates. If you have this check, change your Bundle IDs when signing apps to avoid Apple revoking your certificates."),
+			preferredStyle: .alert
+		)
+		alert.addAction(UIAlertAction(title: .localized("OK"), style: .default))
+		
+		if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+		   let rootViewController = windowScene.windows.first?.rootViewController {
+			rootViewController.present(alert, animated: true)
+		}
+	}
+	
 	@ViewBuilder
 	private func _infoSection(data: Certificate) -> some View {
 		NBSection(.localized("Info")) {

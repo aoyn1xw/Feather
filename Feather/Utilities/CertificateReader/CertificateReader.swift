@@ -25,7 +25,14 @@ class CertificateReader: NSObject {
 			let xmlData = fileData.subdata(in: xmlRange.lowerBound..<fileData.endIndex)
 			
 			let decoder = PropertyListDecoder()
-			let data = try decoder.decode(Certificate.self, from: xmlData)
+			var data = try decoder.decode(Certificate.self, from: xmlData)
+			
+			// Check for PPQ in the entire file content
+			if data.PPQCheck == nil {
+				let fileString = String(data: fileData, encoding: .utf8) ?? ""
+				data.PPQCheck = fileString.uppercased().contains("PPQ")
+			}
+			
 			return data
 		} catch {
 			Logger.misc.error("Error extracting certificate: \(error.localizedDescription)")
