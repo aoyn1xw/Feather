@@ -14,6 +14,12 @@ extension Storage {
 		return FileManager.default.getPath(in: url, for: "app")
 	}
 	
+	func getAppIconFile(for app: AppInfoPresentable) -> URL? {
+		guard let appDirectory = getAppDirectory(for: app),
+			  let iconFileName = app.icon else { return nil }
+		return appDirectory.appendingPathComponent(iconFileName)
+	}
+	
 	func deleteApp(for app: AppInfoPresentable) {
 		do {
 			if let url = getUuidDirectory(for: app) {
