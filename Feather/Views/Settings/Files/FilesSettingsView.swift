@@ -147,7 +147,7 @@ struct FilesSettingsView: View {
                 }
                 
                 // MARK: - Reset Section
-                NBSection {
+                NBSection(.localized("Reset")) {
                     Button {
                         resetToDefaults()
                     } label: {
