@@ -182,18 +182,22 @@ struct GuideDetailView: View {
     
     private func renderLink(url: String, text: String) -> some View {
         if let validURL = URL(string: url) {
-            Link(destination: validURL) {
-                HStack {
-                    Text(text)
-                        .foregroundStyle(.blue)
-                    Image(systemName: "arrow.up.right.square")
-                        .font(.caption)
-                        .foregroundStyle(.blue)
+            return AnyView(
+                Link(destination: validURL) {
+                    HStack {
+                        Text(text)
+                            .foregroundStyle(.blue)
+                        Image(systemName: "arrow.up.right.square")
+                            .font(.caption)
+                            .foregroundStyle(.blue)
+                    }
                 }
-            }
+            )
         } else {
-            Text(text)
-                .foregroundStyle(.secondary)
+            return AnyView(
+                Text(text)
+                    .foregroundStyle(.secondary)
+            )
         }
     }
     
