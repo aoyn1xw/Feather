@@ -148,7 +148,7 @@ struct SourceDetailsView: View {
 					Divider()
 					
 					HStack {
-						if let identifier = repo.identifier {
+						if let identifier = repo.id {
 							VStack(alignment: .leading, spacing: 4) {
 								Text("Identifier")
 									.font(.caption2)
@@ -308,7 +308,7 @@ struct SourceDetailsView: View {
 					HStack(spacing: 4) {
 						Image(systemName: "calendar")
 							.font(.caption2)
-						Text(formatNewsDate(date))
+						Text(formatNewsDate(date.date))
 							.font(.caption2)
 					}
 					.foregroundStyle(.secondary)
