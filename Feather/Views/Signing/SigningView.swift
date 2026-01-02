@@ -550,7 +550,7 @@ extension SigningView {
 								UIApplication.shared.open(url)
 							}
 						}
-							let copy = UIAlertAction(title: .localized("Copy Link"), style: .default) { _ in
+						let copy = UIAlertAction(title: .localized("Copy Link"), style: .default) { _ in
 							UIPasteboard.general.string = installLink
 						}
 						let cancel = UIAlertAction(title: .localized("Cancel"), style: .cancel)
