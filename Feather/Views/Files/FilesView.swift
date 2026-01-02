@@ -105,9 +105,16 @@ struct FilesView: View {
                 ToolbarItemGroup(placement: .navigationBarLeading) {
                     if fileManager.currentDirectory != fileManager.baseDirectory {
                         Button {
-                            fileManager.navigateUp()
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                fileManager.navigateUp()
+                            }
                         } label: {
-                            Image(systemName: "chevron.left")
+                            HStack(spacing: 4) {
+                                Image(systemName: "chevron.left")
+                                    .font(.body.weight(.semibold))
+                                Text("Back")
+                                    .font(.body)
+                            }
                         }
                     }
                     
@@ -320,14 +327,21 @@ struct FilesView: View {
             detectCertificateFiles()
             showCertificateQuickAdd = true
         } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "person.badge.key.fill")
-                    .font(.title2)
-                    .foregroundStyle(.white)
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(Color.white.opacity(0.2))
+                        .frame(width: 50, height: 50)
+                    
+                    Image(systemName: "person.badge.key.fill")
+                        .font(.title2)
+                        .foregroundStyle(.white)
+                }
                 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 5) {
                     Text(.localized("Certificate Files Detected"))
                         .font(.headline)
+                        .fontWeight(.semibold)
                         .foregroundStyle(.white)
                     Text(.localized("Tap to add certificate"))
                         .font(.caption)
@@ -337,17 +351,21 @@ struct FilesView: View {
                 Spacer()
                 
                 Image(systemName: "chevron.right")
-                    .font(.body)
-                    .foregroundStyle(.white.opacity(0.7))
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.8))
             }
-            .padding()
+            .padding(16)
             .background(
                 LinearGradient(
-                    colors: [Color.blue, Color.blue.opacity(0.8)],
+                    colors: [Color.blue, Color.blue.opacity(0.85)],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+            .padding(.horizontal)
+            .padding(.vertical, 8)
         }
         .buttonStyle(.plain)
     }
@@ -357,34 +375,43 @@ struct FilesView: View {
     }
     
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "folder.badge.plus")
-                .font(.system(size: 60))
-                .foregroundStyle(.secondary)
+        VStack(spacing: 24) {
+            ZStack {
+                Circle()
+                    .fill(Color.accentColor.opacity(0.1))
+                    .frame(width: 100, height: 100)
+                
+                Image(systemName: "folder.badge.plus")
+                    .font(.system(size: 50))
+                    .foregroundStyle(Color.accentColor)
+            }
             
-            Text(.localized("No Files"))
-                .font(.title2)
-                .fontWeight(.bold)
-            
-            Text(.localized("Import files or create new content"))
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
+            VStack(spacing: 12) {
+                Text(.localized("No Files"))
+                    .font(.title2)
+                    .fontWeight(.bold)
+                
+                Text(.localized("Import files or create new content"))
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+            }
             
             Button {
                 showDocumentPicker = true
             } label: {
-                HStack {
+                HStack(spacing: 8) {
                     Image(systemName: "square.and.arrow.down")
                     Text(.localized("Import Files"))
                 }
                 .font(.headline)
                 .foregroundStyle(.white)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 12)
+                .padding(.horizontal, 28)
+                .padding(.vertical, 14)
                 .background(Color.accentColor)
                 .clipShape(Capsule())
+                .shadow(color: .accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
             }
         }
     }
@@ -393,6 +420,7 @@ struct FilesView: View {
         List(selection: isSelectionMode ? $selectedFiles : .constant(Set<UUID>())) {
             ForEach(filteredFiles) { file in
                 FileRowView(file: file, isSelected: selectedFiles.contains(file.id))
+                    .listRowBackground(Color(UIColor.secondarySystemGroupedBackground))
                     .contentShape(Rectangle())
                     .onTapGesture {
                         handleFileTap(file)
@@ -435,6 +463,7 @@ struct FilesView: View {
                     }
             }
         }
+        .listStyle(.insetGrouped)
         .environment(\.editMode, isSelectionMode ? .constant(.active) : .constant(.inactive))
     }
     
@@ -773,40 +802,62 @@ struct FileRowView: View {
     var isSelected: Bool = false
     
     var body: some View {
-        HStack(spacing: 12) {
-            if isSelected {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.blue)
+        HStack(spacing: 14) {
+            // Icon with background
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(file.iconColor.opacity(0.12))
+                    .frame(width: 48, height: 48)
+                
+                Image(systemName: file.icon)
                     .font(.title3)
+                    .foregroundStyle(file.iconColor)
             }
             
-            Image(systemName: file.icon)
-                .font(.title2)
-                .foregroundStyle(file.iconColor)
-                .frame(width: 40)
-            
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 5) {
                 Text(file.name)
                     .font(.body)
+                    .fontWeight(.medium)
                     .foregroundStyle(.primary)
+                    .lineLimit(2)
                 
-                if let size = file.size {
-                    Text(size)
-                        .font(.caption)
+                HStack(spacing: 8) {
+                    if let size = file.size {
+                        HStack(spacing: 4) {
+                            Image(systemName: "doc.fill")
+                                .font(.caption2)
+                            Text(size)
+                                .font(.caption)
+                        }
                         .foregroundStyle(.secondary)
+                    }
+                    
+                    if let modDate = file.modificationDate {
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock")
+                                .font(.caption2)
+                            Text(modDate, style: .relative)
+                                .font(.caption)
+                        }
+                        .foregroundStyle(.secondary)
+                    }
                 }
             }
             
             Spacer()
             
-            if file.isDirectory {
-                Image(systemName: "chevron.right")
-                    .font(.body)
-                    .fontWeight(.semibold)
+            if isSelected {
+                Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(.blue)
+                    .font(.title3)
+            } else if file.isDirectory {
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.tertiary)
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
         .contentShape(Rectangle())
     }
 }
@@ -817,32 +868,53 @@ struct FileGridItemView: View {
     var isSelected: Bool = false
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 10) {
             ZStack(alignment: .topTrailing) {
-                Image(systemName: file.icon)
-                    .font(.system(size: 40))
-                    .foregroundStyle(file.iconColor)
-                    .frame(width: 100, height: 80)
+                // Icon container
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(file.iconColor.opacity(0.12))
+                        .frame(width: 100, height: 90)
+                    
+                    Image(systemName: file.icon)
+                        .font(.system(size: 36))
+                        .foregroundStyle(file.iconColor)
+                }
                 
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.blue)
                         .font(.title3)
+                        .background(
+                            Circle()
+                                .fill(.white)
+                                .frame(width: 20, height: 20)
+                        )
                         .offset(x: 8, y: -8)
                 }
             }
             
-            Text(file.name)
-                .font(.caption)
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
-                .frame(width: 100)
+            VStack(spacing: 4) {
+                Text(file.name)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .frame(width: 100)
+                
+                if let size = file.size {
+                    Text(size)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
         }
-        .padding(8)
+        .padding(10)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemGray6))
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
         )
+        .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 2)
     }
 }
 

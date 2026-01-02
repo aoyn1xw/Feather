@@ -15,86 +15,44 @@ struct SourcesCellView: View {
 		let isPinned = viewModel.isPinned(source)
 		
 		HStack(spacing: 12) {
-			// Centered layout with enhanced gradients
-			Spacer()
-			
-			VStack(spacing: 10) {
-				FRIconCellView(
-					title: source.name ?? .localized("Unknown"),
-					subtitle: source.sourceURL?.absoluteString ?? "",
-					iconUrl: source.iconURL,
-					onColorExtracted: { color in
-						dominantColor = color
-					}
-				)
-				
-				if isPinned {
-					HStack(spacing: 4) {
-						Image(systemName: "pin.fill")
-							.font(.caption2)
-							.foregroundStyle(.white)
-						Text("Pinned")
-							.font(.caption2)
-							.fontWeight(.semibold)
-							.foregroundStyle(.white)
-					}
-					.padding(.horizontal, 10)
-					.padding(.vertical, 3)
-					.background(
-						Capsule()
-							.fill(
-								LinearGradient(
-									colors: [Color.orange, Color.orange.opacity(0.8)],
-									startPoint: .leading,
-									endPoint: .trailing
-								)
-							)
-					)
-					.shadow(color: Color.orange.opacity(0.3), radius: 4, x: 0, y: 2)
+			// Icon and content
+			FRIconCellView(
+				title: source.name ?? .localized("Unknown"),
+				subtitle: source.sourceURL?.absoluteString ?? "",
+				iconUrl: source.iconURL,
+				onColorExtracted: { color in
+					dominantColor = color
 				}
-			}
+			)
 			
 			Spacer()
-		}
-		.padding(12)
-		.background(
-			ZStack {
-				// Stronger gradient background
-				RoundedRectangle(cornerRadius: 16, style: .continuous)
-					.fill(
-						LinearGradient(
-							colors: [
-								dominantColor.opacity(0.3),
-								dominantColor.opacity(0.15),
-								dominantColor.opacity(0.05)
-							],
-							startPoint: .topLeading,
-							endPoint: .bottomTrailing
-						)
-					)
-				
-				// Glass morphism effect
-				RoundedRectangle(cornerRadius: 16, style: .continuous)
-					.fill(.ultraThinMaterial)
-					.opacity(0.3)
-				
-				// Enhanced border
-				RoundedRectangle(cornerRadius: 16, style: .continuous)
-					.stroke(
-						LinearGradient(
-							colors: [
-								dominantColor.opacity(0.5),
-								dominantColor.opacity(0.2),
-								Color.clear
-							],
-							startPoint: .topLeading,
-							endPoint: .bottomTrailing
-						),
-						lineWidth: 1.5
-					)
+			
+			if isPinned {
+				HStack(spacing: 4) {
+					Image(systemName: "pin.fill")
+						.font(.caption2)
+						.foregroundStyle(dominantColor)
+					Text("Pinned")
+						.font(.caption2)
+						.fontWeight(.semibold)
+						.foregroundStyle(dominantColor)
+				}
+				.padding(.horizontal, 10)
+				.padding(.vertical, 4)
+				.background(
+					Capsule()
+						.fill(dominantColor.opacity(0.12))
+				)
 			}
-			.shadow(color: dominantColor.opacity(0.25), radius: 8, x: 0, y: 4)
-			.shadow(color: dominantColor.opacity(0.1), radius: 3, x: 0, y: 2)
+		}
+		.padding(16)
+		.background(
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
+				.fill(Color(UIColor.secondarySystemGroupedBackground))
+		)
+		.overlay(
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
+				.stroke(Color(UIColor.separator).opacity(0.5), lineWidth: 0.5)
 		)
 		.swipeActions(edge: .leading) {
 			Button {
@@ -102,7 +60,7 @@ struct SourcesCellView: View {
 			} label: {
 				Label(isPinned ? "Unpin" : "Pin", systemImage: isPinned ? "pin.slash.fill" : "pin.fill")
 			}
-			.tint(.orange)
+			.tint(dominantColor)
 		}
 		.swipeActions(edge: .trailing) {
 			_actions(for: source)

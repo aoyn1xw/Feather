@@ -9,6 +9,31 @@ struct FileInfoView: View {
     var body: some View {
         NBNavigationView(.localized("File Info"), displayMode: .inline) {
             Form {
+                // File icon and name header
+                Section {
+                    HStack {
+                        Spacer()
+                        VStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(file.iconColor.opacity(0.15))
+                                    .frame(width: 80, height: 80)
+                                
+                                Image(systemName: file.icon)
+                                    .font(.system(size: 36))
+                                    .foregroundStyle(file.iconColor)
+                            }
+                            
+                            Text(file.name)
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.vertical, 8)
+                        Spacer()
+                    }
+                }
+                
                 Section {
                     InfoRow(label: .localized("Name"), value: file.name)
                     InfoRow(label: .localized("Type"), value: file.isDirectory ? .localized("Folder") : file.url.pathExtension.uppercased())
@@ -63,14 +88,15 @@ struct InfoRow: View {
     let value: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(label)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .fontWeight(.medium)
             Text(value)
                 .font(.body)
                 .textSelection(.enabled)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
     }
 }

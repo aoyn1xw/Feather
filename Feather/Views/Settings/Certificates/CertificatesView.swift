@@ -81,40 +81,46 @@ extension CertificatesView {
 			CertificatesCellView(
 				cert: cert
 			)
-			.padding(16)
+			.padding(18)
 			.background(
-				ZStack {
-					RoundedRectangle(cornerRadius: 18, style: .continuous)
-						.fill(
-							LinearGradient(
-								colors: [
-									Color.accentColor.opacity(_selectedCertBinding.wrappedValue == index ? 0.15 : 0.05),
-									Color.accentColor.opacity(_selectedCertBinding.wrappedValue == index ? 0.08 : 0.02)
-								],
-								startPoint: .topLeading,
-								endPoint: .bottomTrailing
-							)
-						)
-					RoundedRectangle(cornerRadius: 18, style: .continuous)
-						.stroke(
-							LinearGradient(
-								colors: [
-									Color.accentColor.opacity(_selectedCertBinding.wrappedValue == index ? 0.5 : 0.15),
-									Color.clear
-								],
-								startPoint: .topLeading,
-								endPoint: .bottomTrailing
-							),
-							lineWidth: _selectedCertBinding.wrappedValue == index ? 2 : 1
-						)
-				}
+				RoundedRectangle(cornerRadius: 14, style: .continuous)
+					.fill(
+						_selectedCertBinding.wrappedValue == index 
+							? Color.accentColor.opacity(0.08)
+							: Color(UIColor.secondarySystemGroupedBackground)
+					)
+			)
+			.overlay(
+				RoundedRectangle(cornerRadius: 14, style: .continuous)
+					.stroke(
+						_selectedCertBinding.wrappedValue == index 
+							? Color.accentColor.opacity(0.5)
+							: Color(UIColor.separator).opacity(0.3),
+						lineWidth: _selectedCertBinding.wrappedValue == index ? 2 : 0.5
+					)
 			)
 			.shadow(
-				color: _selectedCertBinding.wrappedValue == index ? Color.accentColor.opacity(0.3) : Color.black.opacity(0.05),
-				radius: _selectedCertBinding.wrappedValue == index ? 12 : 4,
+				color: _selectedCertBinding.wrappedValue == index 
+					? Color.accentColor.opacity(0.25) 
+					: Color.black.opacity(0.04),
+				radius: _selectedCertBinding.wrappedValue == index ? 10 : 6,
 				x: 0,
-				y: _selectedCertBinding.wrappedValue == index ? 6 : 2
+				y: _selectedCertBinding.wrappedValue == index ? 4 : 2
 			)
+			.overlay(alignment: .topTrailing) {
+				if _selectedCertBinding.wrappedValue == index {
+					ZStack {
+						Circle()
+							.fill(Color.accentColor)
+							.frame(width: 28, height: 28)
+						Image(systemName: "checkmark")
+							.font(.system(size: 12, weight: .bold))
+							.foregroundStyle(.white)
+					}
+					.offset(x: 8, y: -8)
+					.shadow(color: .accentColor.opacity(0.4), radius: 4, x: 0, y: 2)
+				}
+			}
 			.contextMenu {
 				_contextActions(for: cert)
 				if cert.isDefault != true {

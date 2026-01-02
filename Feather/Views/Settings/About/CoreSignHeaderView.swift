@@ -33,32 +33,39 @@ struct CoreSignHeaderView: View {
 
     // MARK: - Body
     var body: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 12) {
-                // App Icon instead of SF Symbol
+        VStack(spacing: 0) {
+            HStack(spacing: 16) {
+                // App Icon
                 if let icon = UIImage(named: "AppIcon") {
                     Image(uiImage: icon)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: 56, height: 56)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .frame(width: 64, height: 64)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .shadow(color: .accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
                 } else {
-                    Image(systemName: "app.badge")
-                        .font(.system(size: 32, weight: .semibold))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.accentColor, .accentColor.opacity(0.7)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [.accentColor, .accentColor.opacity(0.7)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
-                        )
+                            .frame(width: 64, height: 64)
+                        
+                        Image(systemName: "app.badge")
+                            .font(.system(size: 32, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    .shadow(color: .accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     // Title
                     Text("CoreSign")
-                        .font(.title2)
-                        .fontWeight(.bold)
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundStyle(.primary)
 
                     // Rotating Subtitle
@@ -69,59 +76,63 @@ struct CoreSignHeaderView: View {
                             insertion: .move(edge: .bottom).combined(with: .opacity),
                             removal: .move(edge: .top).combined(with: .opacity)
                         ))
-                        .id(currentSubtitleIndex) // Use index which is Hashable
+                        .id(currentSubtitleIndex)
                 }
 
                 Spacer()
                 
-                VStack(alignment: .trailing, spacing: 8) {
-                    // Version Badge
-                    Text("v1.0.4")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(
-                            Capsule()
-                                .fill(Color.accentColor.opacity(0.15))
-                        )
+                VStack(alignment: .trailing, spacing: 10) {
+                    // Version Badge with modern design
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.accentColor)
+                        Text("v1.0.4")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                    }
+                    .foregroundStyle(.primary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Color.accentColor.opacity(0.12))
+                    )
                     
-                    // Credits Button
+                    // Credits Button with modern design
                     if !hideAboutButton {
                         Button {
                             showCredits = true
                         } label: {
-                            HStack(spacing: 4) {
+                            HStack(spacing: 6) {
                                 Image(systemName: "person.3.fill")
-                                    .font(.caption2)
-                                Text(.localized("Credits"))
                                     .font(.caption)
+                                Text(.localized("Credits"))
+                                    .font(.callout)
                                     .fontWeight(.semibold)
                             }
                             .foregroundStyle(.white)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
                             .background(
-                                LinearGradient(
-                                    colors: [.accentColor, .accentColor.opacity(0.8)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
+                                Capsule()
+                                    .fill(.accentColor)
                             )
-                            .clipShape(Capsule())
-                            .shadow(color: .accentColor.opacity(0.3), radius: 4, x: 0, y: 2)
+                            .shadow(color: .accentColor.opacity(0.4), radius: 6, x: 0, y: 3)
                         }
                     }
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(20)
         }
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(Color(uiColor: .secondarySystemGroupedBackground))
-                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(Color(uiColor: .separator).opacity(0.3), lineWidth: 0.5)
         )
         .padding(.horizontal)
         .onAppear {

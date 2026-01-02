@@ -62,18 +62,26 @@ struct ServerView: View {
 			Section {
 				Picker(.localized("Server Type"), systemImage: "server.rack", selection: $_serverMethod) {
 					ForEach(_serverMethods.indices, id: \.self) { index in
-						VStack(alignment: .leading, spacing: 4) {
-							HStack(spacing: 8) {
-								Image(systemName: serverIconForMethod(index))
-									.foregroundStyle(Color.accentColor)
-									.font(.body)
+						VStack(alignment: .leading, spacing: 6) {
+							HStack(spacing: 10) {
+								ZStack {
+									Circle()
+										.fill(Color.accentColor.opacity(0.12))
+										.frame(width: 32, height: 32)
+									Image(systemName: serverIconForMethod(index))
+										.foregroundStyle(Color.accentColor)
+										.font(.system(size: 14, weight: .semibold))
+								}
 								Text(_serverMethods[index].name)
 									.font(.body)
+									.fontWeight(.medium)
 							}
 							Text(_serverMethods[index].description)
 								.font(.caption)
 								.foregroundStyle(.secondary)
+								.padding(.leading, 42)
 						}
+						.padding(.vertical, 6)
 						.tag(index)
 					}
 				}
@@ -89,18 +97,29 @@ struct ServerView: View {
 			// Custom API Section
 			if _serverMethod == 3 {
 				Section {
-					VStack(alignment: .leading, spacing: 8) {
-						Text(.localized("Custom Signing API URL"))
-							.font(.caption)
-							.foregroundStyle(.secondary)
+					VStack(alignment: .leading, spacing: 12) {
+						HStack {
+							Image(systemName: "link.circle.fill")
+								.foregroundStyle(.accentColor)
+								.font(.title3)
+							Text(.localized("Custom Signing API URL"))
+								.font(.subheadline)
+								.fontWeight(.semibold)
+						}
 						
 						TextField(.localized("https://your-api.com/sign"), text: $_customSigningAPI)
 							.textInputAutocapitalization(.never)
 							.autocorrectionDisabled()
 							.keyboardType(.URL)
+							.padding(12)
+							.background(
+								RoundedRectangle(cornerRadius: 10)
+									.fill(Color(UIColor.tertiarySystemGroupedBackground))
+							)
 					}
+					.padding(.vertical, 4)
 				} header: {
-					Label(.localized("Custom API Configuration"), systemImage: "link")
+					Label(.localized("Custom API Configuration"), systemImage: "gearshape.2.fill")
 				} footer: {
 					Text(.localized("Enter the URL of your custom signing API. The API should accept multipart/form-data with ipa, p12, mobileprovision files and return a JSON with 'directInstallLink' field."))
 						.font(.caption)
@@ -129,19 +148,30 @@ struct ServerView: View {
 						}
 					}
 				}
+			} header: {
+				Label(.localized("SSL Certificates"), systemImage: "lock.shield.fill")
+			} footer: {
+				Text(.localized("Download the latest SSL certificates for secure connections"))
+					.font(.caption)
 			}
 			
 			if _showSuccessAnimation {
 				Section {
 					HStack {
 						Spacer()
-						VStack(spacing: 8) {
-							Image(systemName: "checkmark.circle.fill")
-								.font(.system(size: 50))
-								.foregroundStyle(.green)
-								.scaleEffect(_showSuccessAnimation ? 1.0 : 0.5)
-								.opacity(_showSuccessAnimation ? 1.0 : 0.0)
-								.animation(.spring(response: 0.6, dampingFraction: 0.7), value: _showSuccessAnimation)
+						VStack(spacing: 12) {
+							ZStack {
+								Circle()
+									.fill(Color.green.opacity(0.15))
+									.frame(width: 80, height: 80)
+								
+								Image(systemName: "checkmark.circle.fill")
+									.font(.system(size: 50))
+									.foregroundStyle(.green)
+							}
+							.scaleEffect(_showSuccessAnimation ? 1.0 : 0.5)
+							.opacity(_showSuccessAnimation ? 1.0 : 0.0)
+							.animation(.spring(response: 0.6, dampingFraction: 0.7), value: _showSuccessAnimation)
 							
 							Text(.localized("SSL certificates updated successfully!"))
 								.font(.headline)

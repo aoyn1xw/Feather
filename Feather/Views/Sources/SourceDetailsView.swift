@@ -67,34 +67,7 @@ struct SourceDetailsView: View {
 		}
 		.navigationTitle("Source Details")
 		.navigationBarTitleDisplayMode(.inline)
-		.background(
-			ZStack {
-				LinearGradient(
-					colors: [
-						dominantColor.opacity(0.3),
-						dominantColor.opacity(0.15),
-						dominantColor.opacity(0.05),
-						Color(UIColor.systemBackground)
-					],
-					startPoint: .top,
-					endPoint: .bottom
-				)
-				.ignoresSafeArea()
-				
-				// Add radial gradient overlay for more depth
-				RadialGradient(
-					colors: [
-						dominantColor.opacity(0.2),
-						dominantColor.opacity(0.05),
-						Color.clear
-					],
-					center: .top,
-					startRadius: 50,
-					endRadius: 400
-				)
-				.ignoresSafeArea()
-			}
-		)
+		.background(Color(UIColor.systemGroupedBackground))
 		.onAppear {
 			if let repo = viewModel.sources[source] {
 				repository = repo
@@ -111,78 +84,105 @@ struct SourceDetailsView: View {
 	// MARK: - Source Header
 	@ViewBuilder
 	private func _sourceHeader() -> some View {
-		HStack(spacing: 16) {
-			// Repository Icon
-			if let iconURL = source.iconURL {
-				LazyImage(url: iconURL) { state in
-					if let image = state.image {
-						image
-							.resizable()
-							.aspectRatio(contentMode: .fill)
-					} else {
-						RoundedRectangle(cornerRadius: 16, style: .continuous)
-							.fill(Color.gray.opacity(0.2))
+		VStack(spacing: 16) {
+			HStack(spacing: 16) {
+				// Repository Icon
+				if let iconURL = source.iconURL {
+					LazyImage(url: iconURL) { state in
+						if let image = state.image {
+							image
+								.resizable()
+								.aspectRatio(contentMode: .fill)
+						} else {
+							RoundedRectangle(cornerRadius: 20, style: .continuous)
+								.fill(Color.gray.opacity(0.2))
+						}
+					}
+					.frame(width: 90, height: 90)
+					.clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+					.shadow(color: dominantColor.opacity(0.3), radius: 10, x: 0, y: 5)
+					.onAppear {
+						extractDominantColor(from: iconURL)
+					}
+				} else {
+					RoundedRectangle(cornerRadius: 20, style: .continuous)
+						.fill(Color.gray.opacity(0.2))
+						.frame(width: 90, height: 90)
+				}
+				
+				VStack(alignment: .leading, spacing: 8) {
+					Text(source.name ?? .localized("Unknown"))
+						.font(.title2)
+						.fontWeight(.bold)
+						.foregroundStyle(.primary)
+					
+					if let url = source.sourceURL?.absoluteString {
+						Text(url)
+							.font(.caption)
+							.foregroundStyle(.secondary)
+							.lineLimit(2)
+					}
+					
+					if let repo = repository {
+						HStack(spacing: 12) {
+							Label("\(repo.apps.count)", systemImage: "app.badge")
+								.font(.caption)
+								.foregroundStyle(dominantColor)
+							
+							if let news = repo.news, !news.isEmpty {
+								Label("\(news.count)", systemImage: "newspaper")
+									.font(.caption)
+									.foregroundStyle(dominantColor)
+							}
+						}
+						.padding(.top, 4)
 					}
 				}
-				.frame(width: 80, height: 80)
-				.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-				.onAppear {
-					extractDominantColor(from: iconURL)
+				
+				Spacer()
+			}
+			
+			// Additional repo metadata if available
+			if let repo = repository {
+				VStack(spacing: 8) {
+					Divider()
+					
+					HStack {
+						if let identifier = repo.identifier {
+							VStack(alignment: .leading, spacing: 4) {
+								Text("Identifier")
+									.font(.caption2)
+									.foregroundStyle(.secondary)
+								Text(identifier)
+									.font(.caption)
+									.foregroundStyle(.primary)
+									.lineLimit(1)
+							}
+						}
+						
+						Spacer()
+						
+						if let subtitle = repo.subtitle {
+							VStack(alignment: .trailing, spacing: 4) {
+								Text("Description")
+									.font(.caption2)
+									.foregroundStyle(.secondary)
+								Text(subtitle)
+									.font(.caption)
+									.foregroundStyle(.primary)
+									.lineLimit(2)
+									.multilineTextAlignment(.trailing)
+							}
+						}
+					}
 				}
-			} else {
-				RoundedRectangle(cornerRadius: 16, style: .continuous)
-					.fill(Color.gray.opacity(0.2))
-					.frame(width: 80, height: 80)
 			}
-			
-			VStack(alignment: .leading, spacing: 6) {
-				Text(source.name ?? .localized("Unknown"))
-					.font(.title2)
-					.fontWeight(.bold)
-					.foregroundStyle(.primary)
-			}
-			
-			Spacer()
 		}
 		.padding(20)
 		.background(
-			ZStack {
-				// Base gradient with stronger colors
-				RoundedRectangle(cornerRadius: 20, style: .continuous)
-					.fill(
-						LinearGradient(
-							colors: [
-								dominantColor.opacity(0.4),
-								dominantColor.opacity(0.25),
-								dominantColor.opacity(0.15)
-							],
-							startPoint: .topLeading,
-							endPoint: .bottomTrailing
-						)
-					)
-				
-				// Glass effect overlay
-				RoundedRectangle(cornerRadius: 20, style: .continuous)
-					.fill(.ultraThinMaterial)
-					.opacity(0.5)
-				
-				// Border gradient
-				RoundedRectangle(cornerRadius: 20, style: .continuous)
-					.stroke(
-						LinearGradient(
-							colors: [
-								dominantColor.opacity(0.6),
-								dominantColor.opacity(0.3),
-								Color.clear
-							],
-							startPoint: .topLeading,
-							endPoint: .bottomTrailing
-						),
-						lineWidth: 2
-					)
-			}
-			.shadow(color: dominantColor.opacity(0.4), radius: 20, x: 0, y: 10)
-			.shadow(color: dominantColor.opacity(0.2), radius: 5, x: 0, y: 3)
+			RoundedRectangle(cornerRadius: 16, style: .continuous)
+				.fill(Color(UIColor.secondarySystemGroupedBackground))
+				.shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
 		)
 	}
 	
@@ -278,12 +278,17 @@ struct SourceDetailsView: View {
 							.fill(Color.gray.opacity(0.2))
 					}
 				}
-				.frame(width: 280, height: 160)
+				.frame(width: 300, height: 170)
 				.clipped()
 			} else {
 				Rectangle()
-					.fill(dominantColor.opacity(0.2))
-					.frame(width: 280, height: 160)
+					.fill(dominantColor.opacity(0.15))
+					.frame(width: 300, height: 170)
+					.overlay(
+						Image(systemName: "newspaper.fill")
+							.font(.system(size: 40))
+							.foregroundStyle(dominantColor.opacity(0.5))
+					)
 			}
 			
 			// Content
@@ -297,13 +302,31 @@ struct SourceDetailsView: View {
 					.font(.caption)
 					.foregroundStyle(.secondary)
 					.lineLimit(2)
+				
+				// Date badge if available
+				if let date = newsItem.date {
+					HStack(spacing: 4) {
+						Image(systemName: "calendar")
+							.font(.caption2)
+						Text(formatNewsDate(date))
+							.font(.caption2)
+					}
+					.foregroundStyle(.secondary)
+					.padding(.top, 4)
+				}
 			}
-			.padding(12)
-			.frame(width: 280, alignment: .leading)
+			.padding(14)
+			.frame(width: 300, alignment: .leading)
 		}
-		.background(Color(UIColor.secondarySystemBackground))
+		.background(Color(UIColor.secondarySystemGroupedBackground))
 		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-		.shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+		.shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 4)
+	}
+	
+	private func formatNewsDate(_ date: Date) -> String {
+		let formatter = RelativeDateTimeFormatter()
+		formatter.unitsStyle = .abbreviated
+		return formatter.localizedString(for: date, relativeTo: Date())
 	}
 	
 	// MARK: - Apps Section

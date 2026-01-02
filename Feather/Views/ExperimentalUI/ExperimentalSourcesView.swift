@@ -7,10 +7,29 @@
 
 import SwiftUI
 import NimbleViews
+import CoreData
 
 struct ExperimentalSourcesView: View {
+    @StateObject var viewModel = SourcesViewModel.shared
     @State private var searchText = ""
     @State private var showAddSource = false
+    
+    @FetchRequest(
+        entity: AltSource.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \AltSource.name, ascending: true)],
+        animation: .easeInOut(duration: 0.35)
+    ) private var sources: FetchedResults<AltSource>
+    
+    private var filteredSources: [AltSource] {
+        let filtered = sources.filter { searchText.isEmpty || ($0.name?.localizedCaseInsensitiveContains(searchText) ?? false) }
+        return filtered.sorted { s1, s2 in
+            let p1 = viewModel.isPinned(s1)
+            let p2 = viewModel.isPinned(s2)
+            if p1 && !p2 { return true }
+            if !p1 && p2 { return false }
+            return (s1.name ?? "") < (s2.name ?? "")
+        }
+    }
     
     var body: some View {
         NavigationView {
@@ -27,15 +46,20 @@ struct ExperimentalSourcesView: View {
                     ExperimentalSearchBar(text: $searchText, placeholder: "Search sources...")
                         .padding(.horizontal, ExperimentalUITheme.Spacing.md)
                     
-                    // Featured Section
-                    ExperimentalFeaturedSection()
+                    // Featured Section (using actual sources)
+                    if !filteredSources.isEmpty {
+                        ExperimentalFeaturedSection(sources: Array(filteredSources.prefix(3)), viewModel: viewModel)
+                    }
                     
-                    // Sources Grid
-                    ExperimentalSourcesGrid()
+                    // Sources Grid (using actual sources)
+                    ExperimentalSourcesGrid(sources: filteredSources, viewModel: viewModel)
                 }
                 .padding(.bottom, 100) // Space for floating tab bar
             }
             .navigationBarHidden(true)
+            .task {
+                await viewModel.fetchSources(sources, refresh: false)
+            }
         }
         .accentColor(ExperimentalUITheme.Colors.accentPrimary)
     }
@@ -109,6 +133,9 @@ struct ExperimentalSearchBar: View {
 
 // MARK: - Featured Section
 struct ExperimentalFeaturedSection: View {
+    let sources: [AltSource]
+    @ObservedObject var viewModel: SourcesViewModel
+    
     var body: some View {
         VStack(alignment: .leading, spacing: ExperimentalUITheme.Spacing.md) {
             Text("Featured")
@@ -116,13 +143,23 @@ struct ExperimentalFeaturedSection: View {
                 .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
                 .padding(.horizontal, ExperimentalUITheme.Spacing.md)
             
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: ExperimentalUITheme.Spacing.md) {
-                    ForEach(0..<3) { index in
-                        ExperimentalFeaturedCard(index: index)
+            if sources.isEmpty {
+                Text("No featured sources available")
+                    .font(ExperimentalUITheme.Typography.body)
+                    .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                    .padding(.horizontal, ExperimentalUITheme.Spacing.md)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: ExperimentalUITheme.Spacing.md) {
+                        ForEach(sources) { source in
+                            NavigationLink(destination: SourceDetailsView(source: source, viewModel: viewModel)) {
+                                ExperimentalFeaturedCard(source: source, viewModel: viewModel)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
+                    .padding(.horizontal, ExperimentalUITheme.Spacing.md)
                 }
-                .padding(.horizontal, ExperimentalUITheme.Spacing.md)
             }
         }
     }
@@ -130,7 +167,8 @@ struct ExperimentalFeaturedSection: View {
 
 // MARK: - Featured Card
 struct ExperimentalFeaturedCard: View {
-    let index: Int
+    let source: AltSource
+    @ObservedObject var viewModel: SourcesViewModel
     
     var body: some View {
         ZStack(alignment: .bottomLeading) {
@@ -139,13 +177,19 @@ struct ExperimentalFeaturedCard: View {
                 .frame(width: 300, height: 180)
             
             VStack(alignment: .leading, spacing: ExperimentalUITheme.Spacing.xs) {
-                Text("Featured Source \(index + 1)")
+                Text(source.name ?? "Unknown Source")
                     .font(ExperimentalUITheme.Typography.headline)
                     .foregroundStyle(.white)
                 
-                Text("Discover amazing apps and more")
-                    .font(ExperimentalUITheme.Typography.caption)
-                    .foregroundStyle(.white.opacity(0.8))
+                if let repo = viewModel.sources[source] {
+                    Text("\(repo.apps.count) apps available")
+                        .font(ExperimentalUITheme.Typography.caption)
+                        .foregroundStyle(.white.opacity(0.8))
+                } else {
+                    Text("Loading...")
+                        .font(ExperimentalUITheme.Typography.caption)
+                        .foregroundStyle(.white.opacity(0.8))
+                }
             }
             .padding(ExperimentalUITheme.Spacing.md)
         }
@@ -160,6 +204,9 @@ struct ExperimentalFeaturedCard: View {
 
 // MARK: - Sources Grid
 struct ExperimentalSourcesGrid: View {
+    let sources: [AltSource]
+    @ObservedObject var viewModel: SourcesViewModel
+    
     let columns = [
         GridItem(.flexible(), spacing: ExperimentalUITheme.Spacing.md),
         GridItem(.flexible(), spacing: ExperimentalUITheme.Spacing.md)
@@ -172,40 +219,83 @@ struct ExperimentalSourcesGrid: View {
                 .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
                 .padding(.horizontal, ExperimentalUITheme.Spacing.md)
             
-            LazyVGrid(columns: columns, spacing: ExperimentalUITheme.Spacing.md) {
-                ForEach(0..<6) { index in
-                    ExperimentalSourceCard(index: index)
+            if sources.isEmpty {
+                Text("No sources available")
+                    .font(ExperimentalUITheme.Typography.body)
+                    .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                    .padding(.horizontal, ExperimentalUITheme.Spacing.md)
+            } else {
+                LazyVGrid(columns: columns, spacing: ExperimentalUITheme.Spacing.md) {
+                    ForEach(sources) { source in
+                        NavigationLink(destination: SourceDetailsView(source: source, viewModel: viewModel)) {
+                            ExperimentalSourceCard(source: source, viewModel: viewModel)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
+                .padding(.horizontal, ExperimentalUITheme.Spacing.md)
             }
-            .padding(.horizontal, ExperimentalUITheme.Spacing.md)
         }
     }
 }
 
 // MARK: - Source Card
 struct ExperimentalSourceCard: View {
-    let index: Int
+    let source: AltSource
+    @ObservedObject var viewModel: SourcesViewModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: ExperimentalUITheme.Spacing.sm) {
-            // Icon placeholder
-            RoundedRectangle(cornerRadius: ExperimentalUITheme.CornerRadius.md)
-                .fill(ExperimentalUITheme.Gradients.accent)
-                .frame(height: 100)
-                .overlay(
-                    Image(systemName: "app.badge.fill")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.white)
-                )
+            // Icon placeholder or actual icon
+            if let iconURL = source.iconURL {
+                AsyncImage(url: iconURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(height: 100)
+                            .clipShape(RoundedRectangle(cornerRadius: ExperimentalUITheme.CornerRadius.md))
+                    case .failure(_), .empty:
+                        RoundedRectangle(cornerRadius: ExperimentalUITheme.CornerRadius.md)
+                            .fill(ExperimentalUITheme.Gradients.accent)
+                            .frame(height: 100)
+                            .overlay(
+                                Image(systemName: "app.badge.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundStyle(.white)
+                            )
+                    @unknown default:
+                        RoundedRectangle(cornerRadius: ExperimentalUITheme.CornerRadius.md)
+                            .fill(ExperimentalUITheme.Gradients.accent)
+                            .frame(height: 100)
+                    }
+                }
+            } else {
+                RoundedRectangle(cornerRadius: ExperimentalUITheme.CornerRadius.md)
+                    .fill(ExperimentalUITheme.Gradients.accent)
+                    .frame(height: 100)
+                    .overlay(
+                        Image(systemName: "app.badge.fill")
+                            .font(.system(size: 40))
+                            .foregroundStyle(.white)
+                    )
+            }
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("Source \(index + 1)")
+                Text(source.name ?? "Unknown Source")
                     .font(ExperimentalUITheme.Typography.headline)
                     .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
                 
-                Text("\(10 + index) apps")
-                    .font(ExperimentalUITheme.Typography.caption)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                if let repo = viewModel.sources[source] {
+                    Text("\(repo.apps.count) apps")
+                        .font(ExperimentalUITheme.Typography.caption)
+                        .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                } else {
+                    Text("Loading...")
+                        .font(ExperimentalUITheme.Typography.caption)
+                        .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                }
             }
             .padding(.horizontal, ExperimentalUITheme.Spacing.xs)
         }
