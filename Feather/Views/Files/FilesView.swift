@@ -44,11 +44,15 @@ struct FilesView: View {
     @State private var quickInspectFile: FileItem?
     
     // Settings
+    @AppStorage("files_viewStyle") private var viewStyleSetting: String = "list"
+    @AppStorage("files_sortOption") private var sortOptionSetting: String = "name"
+    @AppStorage("files_showFileSize") private var showFileSize = true
+    @AppStorage("files_showModificationDate") private var showModificationDate = true
     @AppStorage("files_enableQuickInspect") private var enableQuickInspect = true
     @AppStorage("files_enableOpenInSigner") private var enableOpenInSigner = true
     @AppStorage("files_enableFixStructure") private var enableFixStructure = true
     
-    enum LayoutMode {
+    enum LayoutMode: String {
         case list, grid
     }
     
@@ -340,6 +344,32 @@ struct FilesView: View {
             } message: {
                 Text(.localized("Enter a new name for the file"))
             }
+            .onAppear {
+                applySettings()
+            }
+            .onChange(of: viewStyleSetting) { _ in
+                applySettings()
+            }
+            .onChange(of: sortOptionSetting) { _ in
+                applySettings()
+            }
+        }
+    }
+    
+    private func applySettings() {
+        // Apply view style
+        layoutMode = viewStyleSetting == "grid" ? .grid : .list
+        
+        // Apply sort option
+        switch sortOptionSetting {
+        case "date":
+            sortOption = .date
+        case "size":
+            sortOption = .size
+        case "type":
+            sortOption = .type
+        default:
+            sortOption = .name
         }
     }
     
@@ -906,6 +936,8 @@ struct FilesView: View {
 struct FileRowView: View {
     let file: FileItem
     var isSelected: Bool = false
+    @AppStorage("files_showFileSize") private var showFileSize = true
+    @AppStorage("files_showModificationDate") private var showModificationDate = true
     
     var body: some View {
         HStack(spacing: 14) {
@@ -944,7 +976,7 @@ struct FileRowView: View {
                     .lineLimit(2)
                 
                 HStack(spacing: 8) {
-                    if let size = file.size {
+                    if showFileSize, let size = file.size {
                         HStack(spacing: 4) {
                             Image(systemName: "doc.fill")
                                 .font(.caption2)
@@ -954,7 +986,7 @@ struct FileRowView: View {
                         .foregroundStyle(.secondary)
                     }
                     
-                    if let modDate = file.modificationDate {
+                    if showModificationDate, let modDate = file.modificationDate {
                         HStack(spacing: 4) {
                             Image(systemName: "clock.fill")
                                 .font(.caption2)
@@ -994,6 +1026,7 @@ struct FileRowView: View {
 struct FileGridItemView: View {
     let file: FileItem
     var isSelected: Bool = false
+    @AppStorage("files_showFileSize") private var showFileSize = true
     
     var body: some View {
         VStack(spacing: 10) {
@@ -1054,7 +1087,7 @@ struct FileGridItemView: View {
                     .multilineTextAlignment(.center)
                     .frame(width: 100)
                 
-                if let size = file.size {
+                if showFileSize, let size = file.size {
                     Text(size)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
