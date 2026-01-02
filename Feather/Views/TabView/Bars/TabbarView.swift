@@ -23,7 +23,7 @@ struct TabbarView: View {
 			ForEach(visibleTabs, id: \.hashValue) { tab in
 				TabEnum.view(for: tab)
 					.tabItem {
-						Label(tab.title, systemImage: tab.icon)
+						ConditionalLabel(title: LocalizedStringKey(tab.title), systemImage: tab.icon)
 					}
 					.tag(tab)
 			}

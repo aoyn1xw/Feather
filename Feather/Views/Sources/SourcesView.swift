@@ -70,7 +70,7 @@ struct SourcesView: View {
 					NBSection(.localized("File Manager")) {
 						NavigationLink(destination: FilesView()) {
 							HStack {
-								Image(systemName: "folder.fill")
+								ConditionalImage(systemName: "folder.fill")
 									.font(.title3)
 									.foregroundStyle(.blue)
 								
@@ -84,7 +84,7 @@ struct SourcesView: View {
 								
 								Spacer()
 								
-								Image(systemName: "chevron.right")
+								ConditionalImage(systemName: "chevron.right")
 									.font(.body.bold())
 									.foregroundStyle(.secondary)
 							}
@@ -99,7 +99,7 @@ struct SourcesView: View {
 				if _filteredSources.isEmpty {
 					if #available(iOS 17, *) {
 						ContentUnavailableView {
-							Label(.localized("No Repositories"), systemImage: "globe.desk.fill")
+							ConditionalLabel(title: .localized("No Repositories"), systemImage: "globe.desk.fill")
 						} description: {
 							Text(.localized("Get started by adding your first repository."))
 						} actions: {
