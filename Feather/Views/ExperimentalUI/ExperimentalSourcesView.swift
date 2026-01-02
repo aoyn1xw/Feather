@@ -8,6 +8,7 @@
 import SwiftUI
 import NimbleViews
 import CoreData
+import AltSourceKit
 
 struct ExperimentalSourcesView: View {
     @StateObject var viewModel = SourcesViewModel.shared

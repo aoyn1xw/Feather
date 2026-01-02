@@ -29,40 +29,85 @@ struct TextViewerView: View {
     
     var body: some View {
         NBNavigationView(.localized("Text Viewer"), displayMode: .inline) {
-            VStack(spacing: 0) {
-                if let error = errorMessage {
-                    HStack {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.red)
-                        Text(error)
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                        Spacer()
-                    }
-                    .padding()
-                    .background(Color.red.opacity(0.1))
-                }
+            ZStack {
+                Color(UIColor.systemGroupedBackground)
+                    .ignoresSafeArea()
                 
-                if isLoading {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                } else {
-                    if isEditing {
-                        TextEditor(text: $textContent)
-                            .font(.system(.body, design: .monospaced))
-                            .padding()
-                            .focused($isTextEditorFocused)
-                            .onChange(of: textContent) { _ in
-                                hasUnsavedChanges = true
-                                scheduleAutoSave()
-                            }
+                VStack(spacing: 0) {
+                    // Error banner
+                    if let error = errorMessage {
+                        HStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.red)
+                                .font(.body)
+                            Text(error)
+                                .font(.subheadline)
+                                .foregroundStyle(.red)
+                            Spacer()
+                        }
+                        .padding(16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.red.opacity(0.1))
+                        )
+                        .padding()
+                    }
+                    
+                    // Loading state
+                    if isLoading {
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                            Text("Loading file...")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
                     } else {
-                        ScrollView {
-                            Text(textContent)
+                        // File info header
+                        if !isEditing {
+                            VStack(spacing: 8) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(fileURL.lastPathComponent)
+                                            .font(.headline)
+                                            .foregroundStyle(.primary)
+                                        HStack(spacing: 8) {
+                                            Text("\(textContent.split(separator: "\n").count) lines")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                            Text("•")
+                                                .foregroundStyle(.secondary)
+                                            Text(selectedEncoding.description)
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    }
+                                    Spacer()
+                                }
+                                .padding(.horizontal)
+                                .padding(.vertical, 12)
+                            }
+                            .background(Color(UIColor.secondarySystemGroupedBackground))
+                        }
+                        
+                        // Content
+                        if isEditing {
+                            TextEditor(text: $textContent)
                                 .font(.system(.body, design: .monospaced))
-                                .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding()
-                                .textSelection(.enabled)
+                                .focused($isTextEditorFocused)
+                                .onChange(of: textContent) { _ in
+                                    hasUnsavedChanges = true
+                                    scheduleAutoSave()
+                                }
+                        } else {
+                            ScrollView {
+                                Text(textContent)
+                                    .font(.system(.body, design: .monospaced))
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding()
+                                    .textSelection(.enabled)
+                            }
                         }
                     }
                 }
