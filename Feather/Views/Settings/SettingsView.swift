@@ -36,6 +36,9 @@ struct SettingsView: View {
                 }
                 
                 NBSection(.localized("Features")) {
+                    NavigationLink(destination: FilesSettingsView()) {
+                        ConditionalLabel(title: .localized("Files"), systemImage: "folder")
+                    }
                     NavigationLink(destination: CertificatesView()) {
                         ConditionalLabel(title: .localized("Certificates"), systemImage: "checkmark.seal")
                     }

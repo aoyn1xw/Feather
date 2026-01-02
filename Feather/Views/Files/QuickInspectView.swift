@@ -1,0 +1,290 @@
+import SwiftUI
+import NimbleViews
+
+// MARK: - QuickInspectView
+struct QuickInspectView: View {
+    let file: FileItem
+    @Environment(\.dismiss) private var dismiss
+    @State private var fileInfo: FilesEngine.FileInformation?
+    @State private var hashInfo: FilesEngine.HashInformation?
+    @State private var ipaInfo: FilesEngine.IPAInformation?
+    @State private var machoInfo: FilesEngine.MachOInformation?
+    @State private var isLoading = true
+    
+    var body: some View {
+        NBNavigationView(.localized("Quick Inspect"), displayMode: .inline) {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // File Icon and Name
+                    VStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            file.iconColor.opacity(0.15),
+                                            file.iconColor.opacity(0.08)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 80, height: 80)
+                            
+                            Image(systemName: file.icon)
+                                .font(.system(size: 40))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [file.iconColor, file.iconColor.opacity(0.8)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        }
+                        .shadow(color: file.iconColor.opacity(0.3), radius: 8, x: 0, y: 4)
+                        
+                        Text(file.name)
+                            .font(.headline)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.top)
+                    
+                    if isLoading {
+                        ProgressView()
+                            .padding()
+                    } else {
+                        // Basic Info Section
+                        if let info = fileInfo {
+                            infoSection(info)
+                        }
+                        
+                        // Hash Info Section
+                        if let hashes = hashInfo {
+                            hashSection(hashes)
+                        }
+                        
+                        // IPA Info Section
+                        if let ipa = ipaInfo {
+                            ipaSection(ipa)
+                        }
+                        
+                        // Mach-O Info Section
+                        if let macho = machoInfo {
+                            machoSection(macho)
+                        }
+                    }
+                }
+                .padding()
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(.localized("Close")) {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .task {
+            await loadFileInformation()
+        }
+    }
+    
+    @ViewBuilder
+    private func infoSection(_ info: FilesEngine.FileInformation) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(.localized("File Information"))
+                .font(.headline)
+                .foregroundStyle(.primary)
+            
+            GroupBox {
+                VStack(spacing: 10) {
+                    InfoRow(label: .localized("Type"), value: info.type.displayName)
+                    InfoRow(label: .localized("Size"), value: ByteCountFormatter.string(fromByteCount: Int64(info.size), countStyle: .file))
+                    InfoRow(label: .localized("Path"), value: info.path)
+                    
+                    if !info.magicSignature.isEmpty && info.magicSignature.trimmingCharacters(in: .whitespaces) != "" {
+                        InfoRow(label: .localized("Magic Bytes"), value: info.magicSignature)
+                    }
+                    
+                    InfoRow(label: .localized("Executable"), value: info.isExecutable ? "Yes" : "No")
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func hashSection(_ hashes: FilesEngine.HashInformation) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(.localized("Hashes"))
+                .font(.headline)
+                .foregroundStyle(.primary)
+            
+            GroupBox {
+                VStack(spacing: 10) {
+                    HashRow(label: "MD5", value: hashes.md5)
+                    HashRow(label: "SHA1", value: hashes.sha1)
+                    HashRow(label: "SHA256", value: hashes.sha256)
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func ipaSection(_ ipa: FilesEngine.IPAInformation) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(.localized("IPA Information"))
+                .font(.headline)
+                .foregroundStyle(.primary)
+            
+            GroupBox {
+                VStack(spacing: 10) {
+                    InfoRow(label: .localized("Bundle ID"), value: ipa.bundleId)
+                    InfoRow(label: .localized("Version"), value: ipa.version)
+                    InfoRow(label: .localized("Min OS"), value: ipa.minOSVersion)
+                    InfoRow(label: .localized("Display Name"), value: ipa.displayName)
+                    InfoRow(label: .localized("Signed"), value: ipa.isSigned ? "Yes" : "No")
+                    InfoRow(label: .localized("Has Provisioning"), value: ipa.hasProvisioning ? "Yes" : "No")
+                    InfoRow(label: .localized("Executables"), value: "\(ipa.numberOfExecutables)")
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func machoSection(_ macho: FilesEngine.MachOInformation) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(.localized("Mach-O Information"))
+                .font(.headline)
+                .foregroundStyle(.primary)
+            
+            GroupBox {
+                VStack(spacing: 10) {
+                    InfoRow(label: .localized("Valid"), value: macho.isValid ? "Yes" : "No")
+                    InfoRow(label: .localized("Architecture"), value: macho.architectures)
+                    InfoRow(label: .localized("64-bit"), value: macho.is64Bit ? "Yes" : "No")
+                    InfoRow(label: .localized("ARM64e"), value: macho.isArm64e ? "Yes" : "No")
+                    InfoRow(label: .localized("PIE"), value: macho.isPIE ? "Yes" : "No")
+                    InfoRow(label: .localized("Encrypted"), value: macho.hasEncryption ? "Yes" : "No")
+                    InfoRow(label: .localized("Load Commands"), value: "\(macho.numberOfLoadCommands)")
+                }
+            }
+        }
+    }
+    
+    private func loadFileInformation() async {
+        isLoading = true
+        
+        await Task.detached {
+            let path = file.url.path
+            
+            // Get basic file info
+            let info = FilesEngine.getFileInfo(at: path)
+            
+            // Calculate hashes (for smaller files)
+            var hashes: FilesEngine.HashInformation?
+            if file.sizeInBytes ?? 0 < 100_000_000 { // Only for files < 100MB
+                hashes = FilesEngine.calculateHashes(for: path)
+            }
+            
+            // Analyze specific file types
+            var ipa: FilesEngine.IPAInformation?
+            var macho: FilesEngine.MachOInformation?
+            
+            if file.url.pathExtension.lowercased() == "ipa" {
+                ipa = FilesEngine.analyzeIPA(at: path)
+            }
+            
+            if info?.type == .machO || file.url.pathExtension.lowercased() == "dylib" {
+                macho = FilesEngine.analyzeMachO(at: path)
+            }
+            
+            await MainActor.run {
+                self.fileInfo = info
+                self.hashInfo = hashes
+                self.ipaInfo = ipa
+                self.machoInfo = macho
+                self.isLoading = false
+            }
+        }.value
+    }
+}
+
+// MARK: - InfoRow
+struct InfoRow: View {
+    let label: String
+    let value: String
+    
+    var body: some View {
+        HStack(alignment: .top) {
+            Text(label)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .frame(width: 100, alignment: .leading)
+            
+            Text(value)
+                .font(.subheadline)
+                .foregroundStyle(.primary)
+                .textSelection(.enabled)
+            
+            Spacer()
+        }
+    }
+}
+
+// MARK: - HashRow
+struct HashRow: View {
+    let label: String
+    let value: String
+    @State private var copied = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(label)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+                
+                Spacer()
+                
+                Button {
+                    UIPasteboard.general.string = value
+                    copied = true
+                    HapticsManager.shared.success()
+                    
+                    Task {
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        copied = false
+                    }
+                } label: {
+                    Image(systemName: copied ? "checkmark.circle.fill" : "doc.on.doc")
+                        .foregroundStyle(copied ? .green : .blue)
+                        .font(.caption)
+                }
+            }
+            
+            Text(value)
+                .font(.system(.caption, design: .monospaced))
+                .foregroundStyle(.primary)
+                .textSelection(.enabled)
+                .lineLimit(nil)
+        }
+    }
+}
+
+// MARK: - Preview
+struct QuickInspectView_Previews: PreviewProvider {
+    static var previews: some View {
+        let testFile = FileItem(
+            name: "test.ipa",
+            url: URL(fileURLWithPath: "/test.ipa"),
+            isDirectory: false,
+            size: "10 MB",
+            sizeInBytes: 10_000_000,
+            modificationDate: Date(),
+            customIcon: nil
+        )
+        
+        QuickInspectView(file: testFile)
+    }
+}
