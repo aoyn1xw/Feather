@@ -268,7 +268,7 @@ struct SourceAppCardView: View {
 	let useGradients: Bool
 	
 	var body: some View {
-		HStack(spacing: 12) {
+		HStack(spacing: 10) {
 			// App Icon (smaller)
 			appIcon
 			
@@ -281,21 +281,21 @@ struct SourceAppCardView: View {
 				
 				if let version = app.currentVersion {
 					Text("v\(version)")
-						.font(.system(size: 12))
+						.font(.system(size: 11))
 						.foregroundStyle(.secondary)
 						.lineLimit(1)
 				}
 			}
 			
-			Spacer(minLength: 8)
+			Spacer(minLength: 6)
 			
-			// Download/Get Button (compact)
+			// Download/Get Button (compact and closer to name)
 			Button(action: {}) {
 				Text("GET")
-					.font(.system(size: 13, weight: .bold))
+					.font(.system(size: 12, weight: .bold))
 					.foregroundStyle(.white)
-					.padding(.horizontal, 20)
-					.padding(.vertical, 8)
+					.padding(.horizontal, 18)
+					.padding(.vertical, 6)
 					.background(
 						Capsule()
 							.fill(Color.accentColor)
@@ -303,9 +303,9 @@ struct SourceAppCardView: View {
 			}
 			.buttonStyle(.plain)
 		}
-		.padding(10)
+		.padding(8)
 		.background(cardBackground)
-		.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+		.clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 	}
 	
 	@ViewBuilder
@@ -319,8 +319,8 @@ struct SourceAppCardView: View {
 					image
 						.resizable()
 						.aspectRatio(contentMode: .fill)
-						.frame(width: 48, height: 48)
-						.clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+						.frame(width: 44, height: 44)
+						.clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
 				case .failure:
 					iconPlaceholder
 				@unknown default:
@@ -333,11 +333,12 @@ struct SourceAppCardView: View {
 	}
 	
 	private var iconPlaceholder: some View {
-		RoundedRectangle(cornerRadius: 10, style: .continuous)
+		RoundedRectangle(cornerRadius: 9, style: .continuous)
 			.fill(Color.secondary.opacity(0.2))
-			.frame(width: 48, height: 48)
+			.frame(width: 44, height: 44)
 			.overlay(
 				Image(systemName: "app.fill")
+					.font(.system(size: 18))
 					.foregroundStyle(.secondary)
 			)
 	}
