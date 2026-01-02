@@ -286,7 +286,7 @@ struct SourcesView: View {
 	}
 	
 	private var resetSection: some View {
-		NBSection {
+		NBSection("") {
 			Button {
 				_sortOrder = .alphabetical
 				_filterByPinned = .all
