@@ -210,7 +210,7 @@ struct QuickInspectView: View {
 }
 
 // MARK: - InfoRow
-struct InfoRow: View {
+private struct InfoRow: View {
     let label: String
     let value: String
     
@@ -232,7 +232,7 @@ struct InfoRow: View {
 }
 
 // MARK: - HashRow
-struct HashRow: View {
+private struct HashRow: View {
     let label: String
     let value: String
     @State private var copied = false
