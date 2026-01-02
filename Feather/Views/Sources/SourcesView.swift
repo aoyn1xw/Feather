@@ -162,6 +162,9 @@ private struct AllAppsCardView: View {
 	let horizontalSizeClass: UserInterfaceSizeClass?
 	let totalApps: Int
 	
+	// Get app icon for the gradient - use the system's app icon
+	@State private var appIconColor: Color = .accentColor
+	
 	var body: some View {
 		let isRegular = horizontalSizeClass != .compact
 		
@@ -178,13 +181,16 @@ private struct AllAppsCardView: View {
 		}
 		.background(cardBackground)
 		.overlay(cardStroke)
-		.shadow(color: _useGradients ? Color.accentColor.opacity(0.15) : Color.black.opacity(0.05), radius: _useGradients ? 20 : 5, x: 0, y: _useGradients ? 8 : 2)
+		.shadow(color: _useGradients ? appIconColor.opacity(0.15) : Color.black.opacity(0.05), radius: _useGradients ? 20 : 5, x: 0, y: _useGradients ? 8 : 2)
 		.shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 4)
+		.onAppear {
+			extractAppIconColor()
+		}
 	}
 	
 	private var flatBanner: some View {
 		ZStack {
-			Color.accentColor.opacity(0.2)
+			appIconColor.opacity(0.2)
 				.frame(height: 80)
 		}
 		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -194,9 +200,9 @@ private struct AllAppsCardView: View {
 		ZStack(alignment: .topTrailing) {
 			LinearGradient(
 				colors: [
-					Color.accentColor.opacity(0.9),
-					Color.accentColor.opacity(0.7),
-					Color.accentColor.opacity(0.5)
+					appIconColor.opacity(0.9),
+					appIconColor.opacity(0.7),
+					appIconColor.opacity(0.5)
 				],
 				startPoint: .topLeading,
 				endPoint: .bottomTrailing
@@ -216,6 +222,41 @@ private struct AllAppsCardView: View {
 		}
 		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 	}
+	
+	// Extract color from app icon
+	private func extractAppIconColor() {
+		guard let iconName = Bundle.main.iconFileName,
+			  let appIcon = UIImage(named: iconName) else {
+			appIconColor = .accentColor
+			return
+		}
+		
+		guard let inputImage = CIImage(image: appIcon) else {
+			appIconColor = .accentColor
+			return
+		}
+		
+		let extentVector = CIVector(x: inputImage.extent.origin.x, y: inputImage.extent.origin.y, z: inputImage.extent.size.width, w: inputImage.extent.size.height)
+		
+		guard let filter = CIFilter(name: "CIAreaAverage", parameters: [kCIInputImageKey: inputImage, kCIInputExtentKey: extentVector]) else {
+			appIconColor = .accentColor
+			return
+		}
+		guard let outputImage = filter.outputImage else {
+			appIconColor = .accentColor
+			return
+		}
+		
+		var bitmap = [UInt8](repeating: 0, count: 4)
+		// Use a shared context for better performance
+		let context = Self.sharedCIContext
+		context.render(outputImage, toBitmap: &bitmap, rowBytes: 4, bounds: CGRect(x: 0, y: 0, width: 1, height: 1), format: .RGBA8, colorSpace: nil)
+		
+		appIconColor = Color(red: Double(bitmap[0]) / 255, green: Double(bitmap[1]) / 255, blue: Double(bitmap[2]) / 255)
+	}
+	
+	// Shared CIContext for performance
+	private static let sharedCIContext = CIContext(options: [.workingColorSpace: kCFNull as Any])
 	
 	private func contentSection(isRegular: Bool) -> some View {
 		HStack(spacing: 14) {
@@ -244,7 +285,7 @@ private struct AllAppsCardView: View {
 					.font(.system(size: 26))
 					.foregroundStyle(
 						LinearGradient(
-							colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+							colors: [appIconColor, appIconColor.opacity(0.7)],
 							startPoint: .topLeading,
 							endPoint: .bottomTrailing
 						)
@@ -252,7 +293,7 @@ private struct AllAppsCardView: View {
 			} else {
 				Image(systemName: "app.badge.fill")
 					.font(.system(size: 26))
-					.foregroundStyle(Color.accentColor)
+					.foregroundStyle(appIconColor)
 			}
 		}
 		.offset(y: -28)
@@ -279,12 +320,12 @@ private struct AllAppsCardView: View {
 			Text("\(totalApps) Apps Available")
 				.font(.system(size: 10, weight: .bold))
 		}
-		.foregroundStyle(Color.accentColor)
+		.foregroundStyle(appIconColor)
 		.padding(.horizontal, 8)
 		.padding(.vertical, 3)
 		.background(
 			Capsule()
-				.fill(Color.accentColor.opacity(0.1))
+				.fill(appIconColor.opacity(0.1))
 		)
 	}
 	

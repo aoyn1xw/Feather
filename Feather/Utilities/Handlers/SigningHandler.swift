@@ -22,6 +22,9 @@ final class SigningHandler: NSObject {
 	var appIcon: UIImage?
 	var appCertificate: CertificatePair?
 	
+	// Static character set for PPQ protection - reused across instances for efficiency
+	private static let ppqCharacterSet: [Character] = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	
 	init(app: AppInfoPresentable, options: Options = OptionsManager.shared.options) {
 		self._app = app
 		self._options = options
@@ -67,15 +70,33 @@ final class SigningHandler: NSObject {
 		
 		AppLogManager.shared.info("Applying modifications to app bundle", category: "Signing")
 		
+		// Get the original bundle identifier before any modifications
+		let originalIdentifier = infoDictionary["CFBundleIdentifier"] as? String
+		
+		// Apply PPQ Protection if enabled
+		var modifiedIdentifier = _options.appIdentifier
+		if _options.ppqProtection, let baseIdentifier = modifiedIdentifier ?? originalIdentifier {
+			// Generate a 7-character random string using static character set
+			let randomSuffix = String((0..<7).compactMap { _ in Self.ppqCharacterSet.randomElement() })
+			modifiedIdentifier = "\(baseIdentifier).\(randomSuffix)"
+			AppLogManager.shared.info("PPQ Protection enabled: Appending random suffix to Bundle ID: \(randomSuffix)", category: "Signing")
+		}
+		
 		if
-			let identifier = _options.appIdentifier,
-			let oldIdentifier = infoDictionary["CFBundleIdentifier"] as? String
+			let identifier = modifiedIdentifier,
+			let oldIdentifier = originalIdentifier
 		{
 			AppLogManager.shared.info("Changing bundle identifier from \(oldIdentifier) to \(identifier)", category: "Signing")
 			try await _modifyPluginIdentifiers(old: oldIdentifier, new: identifier, for: movedAppPath)
 		}
 		
-		try await _modifyDict(using: infoDictionary, with: _options, to: movedAppPath)
+		// Update options with the modified identifier for further processing
+		var updatedOptions = _options
+		if let identifier = modifiedIdentifier {
+			updatedOptions.appIdentifier = identifier
+		}
+		
+		try await _modifyDict(using: infoDictionary, with: updatedOptions, to: movedAppPath)
 		
 		if let icon = appIcon {
 			AppLogManager.shared.info("Applying custom app icon", category: "Signing")

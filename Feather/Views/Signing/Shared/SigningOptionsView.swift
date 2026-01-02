@@ -6,6 +6,7 @@ struct SigningOptionsView: View {
 	@Binding var options: Options
 	var temporaryOptions: Options?
 	@State private var accentColor: Color = .accentColor
+	@State private var showPPQInfo = false
 	
 	// MARK: Body
 	var body: some View {
@@ -17,6 +18,27 @@ struct SigningOptionsView: View {
 					isOn: $options.ppqProtection,
 					temporaryValue: temporaryOptions?.ppqProtection
 				)
+				
+				Button {
+					showPPQInfo = true
+				} label: {
+					HStack(spacing: 12) {
+						Image(systemName: "questionmark.circle.fill")
+							.foregroundStyle(
+								LinearGradient(
+									colors: [accentColor, accentColor.opacity(0.7)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+						Text(.localized("What is PPQ?"))
+							.foregroundStyle(.primary)
+						Spacer()
+						Image(systemName: "chevron.right")
+							.font(.caption)
+							.foregroundStyle(.tertiary)
+					}
+				}
 			} header: {
 				HStack(spacing: 8) {
 					Image(systemName: "shield.lefthalf.filled")
@@ -266,6 +288,11 @@ struct SigningOptionsView: View {
 			.textCase(.none)
 		} footer: {
 			Text(.localized("This option force converts apps to try to use the new liquid glass redesign iOS 26 introduced, this may not work for all applications due to differing frameworks."))
+		}
+		.alert(.localized("What is PPQ?"), isPresented: $showPPQInfo) {
+			Button(.localized("OK"), role: .cancel) {}
+		} message: {
+			Text(.localized("PPQ is a check Apple has added to certificates. If you have this check, change your Bundle IDs when signing apps to avoid Apple revoking your certificates."))
 		}
 	}
 	

@@ -13,4 +13,13 @@ extension UIUserInterfaceStyle: @retroactive CaseIterable {
 		@unknown default: .localized("Unknown")
 		}
 	}
+	
+	var iconName: String {
+		switch self {
+		case .unspecified: "circle.lefthalf.filled"
+		case .dark: "moon.fill"
+		case .light: "sun.max.fill"
+		@unknown default: "questionmark.circle"
+		}
+	}
 }
