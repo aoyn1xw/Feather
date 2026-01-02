@@ -34,10 +34,6 @@ struct AppearanceView: View {
 					}
 				}
 				.pickerStyle(.segmented)
-				
-				Toggle(.localized("Use Gradients"), isOn: $_useGradients)
-			} footer: {
-				Text(.localized("When disabled, the app uses flat system colors only. When enabled, subtle adaptive gradients are allowed."))
 			}
 			
 			NBSection(.localized("Theme")) {

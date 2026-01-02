@@ -6,6 +6,8 @@ struct CoreSignHeaderView: View {
     // MARK: - State
     @State private var currentSubtitleIndex: Int = 0
     @State private var isAnimating = false
+    @State private var showAbout = false
+    var hideAboutButton: Bool = false
 
     // MARK: - Subtitle Definitions
     /// All available subtitle options as individual localized keys
@@ -33,16 +35,24 @@ struct CoreSignHeaderView: View {
     var body: some View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
-                // Icon
-                Image(systemName: "app.badge")
-                    .font(.system(size: 32, weight: .semibold))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.accentColor, .accentColor.opacity(0.7)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+                // App Icon instead of SF Symbol
+                if let icon = UIImage(named: "AppIcon") {
+                    Image(uiImage: icon)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 56, height: 56)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                } else {
+                    Image(systemName: "app.badge")
+                        .font(.system(size: 32, weight: .semibold))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.accentColor, .accentColor.opacity(0.7)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
                         )
-                    )
+                }
 
                 VStack(alignment: .leading, spacing: 4) {
                     // Title
@@ -63,18 +73,38 @@ struct CoreSignHeaderView: View {
                 }
 
                 Spacer()
-
-                // Version Badge
-                Text("v1.0.4")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(
-                        Capsule()
-                            .fill(Color.accentColor.opacity(0.15))
-                    )
+                
+                VStack(alignment: .trailing, spacing: 8) {
+                    // Version Badge
+                    Text("v1.0.4")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(
+                            Capsule()
+                                .fill(Color.accentColor.opacity(0.15))
+                        )
+                    
+                    // About Button (hidden when in Settings)
+                    if !hideAboutButton {
+                        Button {
+                            showAbout = true
+                        } label: {
+                            Text(.localized("About"))
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.accentColor)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.accentColor.opacity(0.15))
+                                )
+                        }
+                    }
+                }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -88,6 +118,9 @@ struct CoreSignHeaderView: View {
         .onAppear {
             setupLifecycleObservers()
             rotateSubtitle()
+        }
+        .sheet(isPresented: $showAbout) {
+            CreditsView()
         }
     }
 

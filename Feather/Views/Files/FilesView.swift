@@ -147,7 +147,16 @@ struct FilesView: View {
                 CreatePlistView(directoryURL: fileManager.currentDirectory)
             }
             .sheet(isPresented: $showDocumentPicker) {
-                DocumentPickerView(directoryURL: fileManager.currentDirectory)
+                FileImporterRepresentableView(
+                    allowedContentTypes: [.item],
+                    allowsMultipleSelection: true,
+                    onDocumentsPicked: { urls in
+                        for url in urls {
+                            fileManager.importFile(from: url)
+                        }
+                    }
+                )
+                .ignoresSafeArea()
             }
             .sheet(isPresented: $showZipSheet) {
                 ZipOperationView(files: selectedFilesArray, operation: .zip, directoryURL: fileManager.currentDirectory)

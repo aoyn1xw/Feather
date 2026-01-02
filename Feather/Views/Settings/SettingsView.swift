@@ -16,7 +16,7 @@ struct SettingsView: View {
             Form {
                 // CoreSign Header at top
                 Section {
-                    CoreSignHeaderView()
+                    CoreSignHeaderView(hideAboutButton: true)
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
                         .onTapGesture {

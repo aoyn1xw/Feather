@@ -184,7 +184,7 @@ struct ZipOperationView: View {
         let destinationURL = directoryURL
         
         try await Task.detached(priority: .userInitiated) { [self] in
-            try Zip.unzipFile(
+            try await Zip.unzipFile(
                 zipFile.url,
                 destination: destinationURL,
                 overwrite: conflictResolution == .replace,
