@@ -12,91 +12,163 @@ struct CertificatesInfoView: View {
 	// MARK: Body
     var body: some View {
 		NBNavigationView(cert.nickname ?? "", displayMode: .inline) {
-			Form {
-				Section {} header: {
-					VStack(spacing: 20) {
-						// Enhanced certificate image with modern depth
-						ZStack {
-							// Outer glow
-							Circle()
-								.fill(
-									RadialGradient(
-										colors: [
-											Color.accentColor.opacity(0.15),
-											Color.accentColor.opacity(0.05),
-											Color.clear
-										],
-										center: .center,
-										startRadius: 60,
-										endRadius: 120
-									)
-								)
-								.frame(width: 160, height: 160)
-							
-							// Certificate image container
+			ZStack {
+				// Background gradient
+				LinearGradient(
+					colors: [
+						Color.accentColor.opacity(0.05),
+						Color.clear,
+						Color.accentColor.opacity(0.02)
+					],
+					startPoint: .top,
+					endPoint: .bottom
+				)
+				.ignoresSafeArea()
+				
+				Form {
+					Section {} header: {
+						VStack(spacing: 20) {
+							// Enhanced certificate image with modern depth
 							ZStack {
-								// Background circle
+								// Outer glow with pulsing effect
 								Circle()
-									.fill(Color(UIColor.secondarySystemGroupedBackground))
-									.frame(width: 120, height: 120)
-								
-								// Main image
-								Image("Cert")
-									.resizable()
-									.scaledToFit()
-									.frame(width: 100, height: 100)
-							}
-							.shadow(color: .black.opacity(0.15), radius: 15, x: 0, y: 8)
-						}
-						.frame(maxWidth: .infinity, alignment: .center)
-						
-						VStack(spacing: 8) {
-							Text(cert.nickname ?? "Certificate")
-								.font(.title3)
-								.fontWeight(.bold)
-								.foregroundStyle(.primary)
-							
-							if let data = data {
-								VStack(spacing: 4) {
-									Text(data.TeamName)
-										.font(.subheadline)
-										.foregroundStyle(.secondary)
-									
-									// Status indicator
-									HStack(spacing: 6) {
-										Circle()
-											.fill(cert.revoked ? Color.red : Color.green)
-											.frame(width: 8, height: 8)
-										Text(cert.revoked ? "Revoked" : "Active")
-											.font(.caption)
-											.foregroundStyle(cert.revoked ? .red : .green)
-											.fontWeight(.semibold)
-									}
-									.padding(.horizontal, 12)
-									.padding(.vertical, 6)
-									.background(
-										Capsule()
-											.fill((cert.revoked ? Color.red : Color.green).opacity(0.12))
+									.fill(
+										RadialGradient(
+											colors: [
+												Color.accentColor.opacity(0.2),
+												Color.accentColor.opacity(0.1),
+												Color.accentColor.opacity(0.05),
+												Color.clear
+											],
+											center: .center,
+											startRadius: 40,
+											endRadius: 100
+										)
 									)
-									.padding(.top, 4)
+									.frame(width: 180, height: 180)
+								
+								// Certificate image container with gradient
+								ZStack {
+									// Background circle with gradient
+									Circle()
+										.fill(
+											LinearGradient(
+												colors: [
+													Color(UIColor.secondarySystemGroupedBackground),
+													Color(UIColor.tertiarySystemGroupedBackground)
+												],
+												startPoint: .topLeading,
+												endPoint: .bottomTrailing
+											)
+										)
+										.frame(width: 120, height: 120)
+									
+									// Main image
+									Image("Cert")
+										.resizable()
+										.scaledToFit()
+										.frame(width: 100, height: 100)
+								}
+								.shadow(color: Color.accentColor.opacity(0.3), radius: 20, x: 0, y: 10)
+							}
+							.frame(maxWidth: .infinity, alignment: .center)
+							
+							VStack(spacing: 8) {
+								Text(cert.nickname ?? "Certificate")
+									.font(.title2)
+									.fontWeight(.bold)
+									.foregroundStyle(.primary)
+								
+								if let data = data {
+									VStack(spacing: 6) {
+										Text(data.TeamName)
+											.font(.subheadline)
+											.foregroundStyle(.secondary)
+										
+										// Status indicator with enhanced gradient
+										HStack(spacing: 8) {
+											ZStack {
+												Circle()
+													.fill(
+														cert.revoked
+															? LinearGradient(
+																colors: [Color.red.opacity(0.2), Color.red.opacity(0.1)],
+																startPoint: .topLeading,
+																endPoint: .bottomTrailing
+															)
+															: LinearGradient(
+																colors: [Color.green.opacity(0.2), Color.green.opacity(0.1)],
+																startPoint: .topLeading,
+																endPoint: .bottomTrailing
+															)
+													)
+													.frame(width: 20, height: 20)
+												
+												Circle()
+													.fill(cert.revoked ? Color.red : Color.green)
+													.frame(width: 10, height: 10)
+											}
+											
+											Text(cert.revoked ? "Revoked" : "Active")
+												.font(.subheadline)
+												.foregroundStyle(cert.revoked ? .red : .green)
+												.fontWeight(.semibold)
+										}
+										.padding(.horizontal, 16)
+										.padding(.vertical, 8)
+										.background(
+											Capsule()
+												.fill(
+													(cert.revoked ? Color.red : Color.green).opacity(0.08)
+												)
+												.overlay(
+													Capsule()
+														.stroke(
+															(cert.revoked ? Color.red : Color.green).opacity(0.3),
+															lineWidth: 1
+														)
+												)
+										)
+										.shadow(color: (cert.revoked ? Color.red : Color.green).opacity(0.15), radius: 6, x: 0, y: 3)
+										.padding(.top, 4)
+									}
 								}
 							}
 						}
+						.padding(.vertical, 12)
 					}
-					.padding(.vertical, 12)
-				}
-				
-				if let data {
-					_infoSection(data: data)
-					_entitlementsSection(data: data)
-					_miscSection(data: data)
-				}
-				
-				Section {
-					Button(.localized("Open in Files"), systemImage: "folder") {
-						UIApplication.open(Storage.shared.getUuidDirectory(for: cert)!.toSharedDocumentsURL()!)
+					
+					if let data {
+						_infoSection(data: data)
+						_entitlementsSection(data: data)
+						_miscSection(data: data)
+					}
+					
+					Section {
+						Button {
+							UIApplication.open(Storage.shared.getUuidDirectory(for: cert)!.toSharedDocumentsURL()!)
+						} label: {
+							HStack(spacing: 12) {
+								Image(systemName: "folder.fill.badge.gearshape")
+									.font(.title3)
+									.foregroundStyle(
+										LinearGradient(
+											colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
+								Text(.localized("Open in Files"))
+									.fontWeight(.medium)
+								Spacer()
+								Image(systemName: "arrow.up.right")
+									.font(.caption)
+									.foregroundStyle(.secondary)
+							}
+						}
 					}
 				}
+				.scrollContentBackground(.hidden)
 			}
 			.toolbar {
 				NBToolbarButton(role: .close)
