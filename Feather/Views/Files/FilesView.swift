@@ -103,7 +103,7 @@ struct FilesView: View {
             .searchable(text: $searchText, prompt: .localized("Search Files"))
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarLeading) {
-                    if fileManager.currentDirectory != fileManager.documentsDirectory {
+                    if fileManager.currentDirectory != fileManager.baseDirectory {
                         Button {
                             fileManager.navigateUp()
                         } label: {
@@ -229,11 +229,63 @@ struct FilesView: View {
             .sheet(isPresented: $showCompareSheet) {
                 if let file1 = compareFile1, let file2 = compareFile2 {
                     FileCompareView(file1: file1, file2: file2)
+                } else {
+                    // Fallback view if files are not set
+                    NBNavigationView(.localized("Compare Files"), displayMode: .inline) {
+                        VStack(spacing: 20) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 50))
+                                .foregroundStyle(.orange)
+                            
+                            Text(.localized("Files Not Selected"))
+                                .font(.headline)
+                            
+                            Text(.localized("Please select exactly two files to compare."))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        }
+                        .padding()
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button(.localized("Close")) {
+                                    showCompareSheet = false
+                                }
+                            }
+                        }
+                    }
                 }
             }
             .sheet(isPresented: $showCertificateQuickAdd) {
                 if let p12 = detectedP12, let provision = detectedMobileprovision {
                     CertificateQuickAddView(p12URL: p12, mobileprovisionURL: provision)
+                } else {
+                    // Fallback view if detection failed
+                    NBNavigationView(.localized("Certificate Import"), displayMode: .inline) {
+                        VStack(spacing: 20) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 50))
+                                .foregroundStyle(.orange)
+                            
+                            Text(.localized("Certificate Files Not Found"))
+                                .font(.headline)
+                            
+                            Text(.localized("Please ensure both .p12 and .mobileprovision files are present in the current directory."))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        }
+                        .padding()
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button(.localized("Close")) {
+                                    showCertificateQuickAdd = false
+                                }
+                            }
+                        }
+                    }
                 }
             }
             .sheet(isPresented: $showSearchReplaceSheet) {
@@ -871,10 +923,12 @@ class FileManagerService: ObservableObject {
     @Published var currentFiles: [FileItem] = []
     
     let documentsDirectory: URL
+    let baseDirectory: URL
     
     private init() {
         self.documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        self.currentDirectory = documentsDirectory.appendingPathComponent("FeatherFiles", isDirectory: true)
+        self.baseDirectory = documentsDirectory.appendingPathComponent("FeatherFiles", isDirectory: true)
+        self.currentDirectory = baseDirectory
         
         // Create base directory if needed
         try? FileManager.default.createDirectory(at: currentDirectory, withIntermediateDirectories: true)
@@ -935,8 +989,18 @@ class FileManagerService: ObservableObject {
     }
     
     func navigateUp() {
+        // Don't navigate if we're already at the base directory
+        guard currentDirectory != baseDirectory else { return }
+        
         let parent = currentDirectory.deletingLastPathComponent()
-        if parent.path.starts(with: documentsDirectory.path) {
+        
+        // Check if parent is the base directory or a subdirectory within it
+        // by comparing standardized paths to avoid substring issues
+        let standardizedParent = parent.standardized.path
+        let standardizedBase = baseDirectory.standardized.path
+        
+        // Navigate up if parent is the base directory OR parent is inside the base directory
+        if parent == baseDirectory || standardizedParent.hasPrefix(standardizedBase + "/") {
             currentDirectory = parent
             loadFiles()
         }
