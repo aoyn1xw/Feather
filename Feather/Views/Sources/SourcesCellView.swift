@@ -14,7 +14,7 @@ struct SourcesCellView: View {
 	var body: some View {
 		let isPinned = viewModel.isPinned(source)
 		
-		HStack(spacing: 12) {
+		HStack(spacing: 16) {
 			// Icon and content
 			FRIconCellView(
 				title: source.name ?? .localized("Unknown"),
@@ -38,21 +38,26 @@ struct SourcesCellView: View {
 						.foregroundStyle(dominantColor)
 				}
 				.padding(.horizontal, 10)
-				.padding(.vertical, 4)
+				.padding(.vertical, 5)
 				.background(
 					Capsule()
 						.fill(dominantColor.opacity(0.12))
 				)
 			}
+			
+			// Chevron icon instead of Get button
+			Image(systemName: "chevron.right")
+				.font(.body.bold())
+				.foregroundStyle(.secondary)
 		}
-		.padding(16)
+		.padding(20)
 		.background(
-			RoundedRectangle(cornerRadius: 12, style: .continuous)
+			RoundedRectangle(cornerRadius: 16, style: .continuous)
 				.fill(
 					LinearGradient(
 						colors: [
-							dominantColor.opacity(0.08),
-							dominantColor.opacity(0.04)
+							dominantColor.opacity(0.12),
+							dominantColor.opacity(0.06)
 						],
 						startPoint: .topLeading,
 						endPoint: .bottomTrailing
@@ -60,10 +65,10 @@ struct SourcesCellView: View {
 				)
 		)
 		.overlay(
-			RoundedRectangle(cornerRadius: 12, style: .continuous)
-				.stroke(dominantColor.opacity(0.2), lineWidth: 1)
+			RoundedRectangle(cornerRadius: 16, style: .continuous)
+				.stroke(dominantColor.opacity(0.25), lineWidth: 1)
 		)
-		.shadow(color: dominantColor.opacity(0.15), radius: 8, x: 0, y: 4)
+		.shadow(color: dominantColor.opacity(0.2), radius: 10, x: 0, y: 5)
 		.swipeActions(edge: .leading) {
 			Button {
 				viewModel.togglePin(for: source)
