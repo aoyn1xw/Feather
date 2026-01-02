@@ -179,21 +179,7 @@ struct SourceDetailsView: View {
 			}
 		}
 		.padding(20)
-		.background(
-			RoundedRectangle(cornerRadius: 16, style: .continuous)
-				.fill(
-					LinearGradient(
-						colors: [
-							Color(UIColor.secondarySystemGroupedBackground),
-							Color(UIColor.secondarySystemGroupedBackground).opacity(0.6),
-							dominantColor.opacity(0.15)
-						],
-						startPoint: .topLeading,
-						endPoint: .bottomTrailing
-					)
-				)
-				.shadow(color: dominantColor.opacity(0.2), radius: 12, x: 0, y: 4)
-		)
+		.background(accentedGradient(cornerRadius: 16))
 	}
 	
 	// MARK: - Search Bar
@@ -217,20 +203,7 @@ struct SourceDetailsView: View {
 			}
 		}
 		.padding(12)
-		.background(
-			RoundedRectangle(cornerRadius: 12, style: .continuous)
-				.fill(
-					LinearGradient(
-						colors: [
-							Color(UIColor.secondarySystemBackground),
-							Color(UIColor.secondarySystemBackground).opacity(0.8),
-							dominantColor.opacity(0.08)
-						],
-						startPoint: .topLeading,
-						endPoint: .bottomTrailing
-					)
-				)
-		)
+		.background(subtleGradient(cornerRadius: 12))
 	}
 	
 	// MARK: - News Section
@@ -338,16 +311,7 @@ struct SourceDetailsView: View {
 			.padding(14)
 			.frame(width: 300, alignment: .leading)
 		}
-		.background(
-			LinearGradient(
-				colors: [
-					Color(UIColor.secondarySystemGroupedBackground),
-					Color(UIColor.tertiarySystemGroupedBackground).opacity(0.6)
-				],
-				startPoint: .top,
-				endPoint: .bottom
-			)
-		)
+		.background(verticalGradient())
 		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 		.shadow(color: dominantColor.opacity(0.15), radius: 10, x: 0, y: 4)
 	}
@@ -536,6 +500,49 @@ struct SourceDetailsView: View {
 				dominantColor = Color(red: r, green: g, blue: b)
 			}
 		}
+	}
+	
+	// MARK: - Gradient Helpers
+	private func accentedGradient(cornerRadius: CGFloat, shadowRadius: CGFloat = 12) -> some View {
+		RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+			.fill(
+				LinearGradient(
+					colors: [
+						Color(UIColor.secondarySystemGroupedBackground),
+						Color(UIColor.secondarySystemGroupedBackground).opacity(0.6),
+						dominantColor.opacity(0.15)
+					],
+					startPoint: .topLeading,
+					endPoint: .bottomTrailing
+				)
+			)
+			.shadow(color: dominantColor.opacity(0.2), radius: shadowRadius, x: 0, y: 4)
+	}
+	
+	private func subtleGradient(cornerRadius: CGFloat) -> some View {
+		RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+			.fill(
+				LinearGradient(
+					colors: [
+						Color(UIColor.secondarySystemBackground),
+						Color(UIColor.secondarySystemBackground).opacity(0.8),
+						dominantColor.opacity(0.08)
+					],
+					startPoint: .topLeading,
+					endPoint: .bottomTrailing
+				)
+			)
+	}
+	
+	private func verticalGradient() -> LinearGradient {
+		LinearGradient(
+			colors: [
+				Color(UIColor.secondarySystemGroupedBackground),
+				Color(UIColor.tertiarySystemGroupedBackground).opacity(0.6)
+			],
+			startPoint: .top,
+			endPoint: .bottom
+		)
 	}
 	
 	struct SourceAppRoute: Identifiable, Hashable {

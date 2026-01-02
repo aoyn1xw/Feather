@@ -21,9 +21,6 @@ struct AppearanceView: View {
 	@AppStorage("Feather.showNews")
 	private var _showNews: Bool = true
 	
-	@AppStorage("Feather.useGradients")
-	private var _useGradients: Bool = true
-	
 	@AppStorage("Feather.showIconsInAppearance")
 	private var _showIconsInAppearance: Bool = true
 	

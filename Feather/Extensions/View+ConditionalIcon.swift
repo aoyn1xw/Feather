@@ -1,19 +1,5 @@
 import SwiftUI
 
-// MARK: - View Extension for Conditional Icons
-extension View {
-	/// Conditionally hide icons based on user preference
-	@ViewBuilder
-	func hideIconIfNeeded() -> some View {
-		@AppStorage("Feather.showIconsInAppearance") var showIcons: Bool = true
-		if showIcons {
-			self
-		} else {
-			EmptyView()
-		}
-	}
-}
-
 // MARK: - Helper for Conditional Label Creation
 struct ConditionalLabel: View {
 	let title: LocalizedStringKey
