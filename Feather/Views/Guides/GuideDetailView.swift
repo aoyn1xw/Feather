@@ -181,14 +181,19 @@ struct GuideDetailView: View {
     }
     
     private func renderLink(url: String, text: String) -> some View {
-        Link(destination: URL(string: url) ?? URL(string: "about:blank")!) {
-            HStack {
-                Text(text)
-                    .foregroundStyle(.blue)
-                Image(systemName: "arrow.up.right.square")
-                    .font(.caption)
-                    .foregroundStyle(.blue)
+        if let validURL = URL(string: url) {
+            Link(destination: validURL) {
+                HStack {
+                    Text(text)
+                        .foregroundStyle(.blue)
+                    Image(systemName: "arrow.up.right.square")
+                        .font(.caption)
+                        .foregroundStyle(.blue)
+                }
             }
+        } else {
+            Text(text)
+                .foregroundStyle(.secondary)
         }
     }
     
@@ -217,14 +222,18 @@ struct GuideDetailView: View {
         .padding(.vertical, 8)
     }
     
+    // Static regex patterns for better performance
+    private static let codeRegex = try? NSRegularExpression(pattern: "`([^`]+)`")
+    private static let boldRegex = try? NSRegularExpression(pattern: "(\\*\\*|__)([^*_]+)(\\*\\*|__)")
+    private static let italicRegex = try? NSRegularExpression(pattern: "(\\*|_)([^*_]+)(\\*|_)")
+    
     // Simple inline markdown parser for bold, italic, and inline code
     private func parseInlineMarkdown(_ text: String) -> AttributedString {
         var attributedString = AttributedString(text)
+        let nsString = text as NSString
         
         // Handle inline code first (backticks)
-        let codePattern = "`([^`]+)`"
-        if let regex = try? NSRegularExpression(pattern: codePattern) {
-            let nsString = text as NSString
+        if let regex = Self.codeRegex {
             let matches = regex.matches(in: text, range: NSRange(location: 0, length: nsString.length))
             
             for match in matches.reversed() {
@@ -238,9 +247,7 @@ struct GuideDetailView: View {
         }
         
         // Handle bold (**text** or __text__)
-        let boldPattern = "(\\*\\*|__)([^*_]+)(\\*\\*|__)"
-        if let regex = try? NSRegularExpression(pattern: boldPattern) {
-            let nsString = text as NSString
+        if let regex = Self.boldRegex {
             let matches = regex.matches(in: text, range: NSRange(location: 0, length: nsString.length))
             
             for match in matches.reversed() {
@@ -254,9 +261,7 @@ struct GuideDetailView: View {
         }
         
         // Handle italic (*text* or _text_)
-        let italicPattern = "(\\*|_)([^*_]+)(\\*|_)"
-        if let regex = try? NSRegularExpression(pattern: italicPattern) {
-            let nsString = text as NSString
+        if let regex = Self.italicRegex {
             let matches = regex.matches(in: text, range: NSRange(location: 0, length: nsString.length))
             
             for match in matches.reversed() {
