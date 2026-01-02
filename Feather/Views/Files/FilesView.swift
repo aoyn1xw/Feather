@@ -1,6 +1,7 @@
 import SwiftUI
 import NimbleViews
 import UniformTypeIdentifiers
+import QuickLook
 
 // MARK: - FilesView
 struct FilesView: View {
@@ -8,14 +9,55 @@ struct FilesView: View {
     @State private var showCreateMenu = false
     @State private var showCreateFolder = false
     @State private var showCreateTextFile = false
-    @State private var showZipOptions = false
-    @State private var showUnzipOptions = false
-    @State private var showPlistEditor = false
-    @State private var showHexEditor = false
-    @State private var showFolderCustomization = false
-    @State private var newFileName = ""
-    @State private var newFolderName = ""
+    @State private var showCreatePlist = false
+    @State private var showDocumentPicker = false
+    @State private var showZipSheet = false
+    @State private var showUnzipSheet = false
+    @State private var showSearch = false
+    @State private var showFileInfo = false
+    @State private var searchText = ""
     @State private var selectedFile: FileItem?
+    @State private var selectedFiles: Set<UUID> = []
+    @State private var isSelectionMode = false
+    @State private var layoutMode: LayoutMode = .list
+    @State private var sortOption: SortOption = .name
+    @State private var showShareSheet = false
+    @State private var shareURLs: [URL] = []
+    @State private var showRenameAlert = false
+    @State private var renameText = ""
+    @State private var fileToRename: FileItem?
+    
+    enum LayoutMode {
+        case list, grid
+    }
+    
+    enum SortOption: String, CaseIterable {
+        case name = "Name"
+        case date = "Date Modified"
+        case size = "Size"
+        case type = "Type"
+    }
+    
+    var filteredFiles: [FileItem] {
+        var files = fileManager.currentFiles
+        
+        if !searchText.isEmpty {
+            files = files.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        }
+        
+        switch sortOption {
+        case .name:
+            files.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        case .date:
+            files.sort { ($0.modificationDate ?? Date.distantPast) > ($1.modificationDate ?? Date.distantPast) }
+        case .size:
+            files.sort { ($0.sizeInBytes ?? 0) > ($1.sizeInBytes ?? 0) }
+        case .type:
+            files.sort { $0.url.pathExtension.localizedCaseInsensitiveCompare($1.url.pathExtension) == .orderedAscending }
+        }
+        
+        return files
+    }
     
     var body: some View {
         NBNavigationView(.localized("Files")) {
@@ -23,11 +65,69 @@ struct FilesView: View {
                 if fileManager.currentFiles.isEmpty {
                     emptyStateView
                 } else {
-                    fileListView
+                    if layoutMode == .list {
+                        fileListView
+                    } else {
+                        fileGridView
+                    }
                 }
             }
+            .searchable(text: $searchText, prompt: .localized("Search Files"))
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItemGroup(placement: .navigationBarLeading) {
+                    if fileManager.currentDirectory != fileManager.documentsDirectory {
+                        Button {
+                            fileManager.navigateUp()
+                        } label: {
+                            Image(systemName: "chevron.left")
+                        }
+                    }
+                    
+                    if isSelectionMode {
+                        Button(.localized("Cancel")) {
+                            isSelectionMode = false
+                            selectedFiles.removeAll()
+                        }
+                    }
+                }
+                
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button {
+                            layoutMode = layoutMode == .list ? .grid : .list
+                        } label: {
+                            Label(layoutMode == .list ? .localized("Grid View") : .localized("List View"), 
+                                  systemImage: layoutMode == .list ? "square.grid.2x2" : "list.bullet")
+                        }
+                        
+                        Menu {
+                            ForEach(SortOption.allCases, id: \.self) { option in
+                                Button {
+                                    sortOption = option
+                                } label: {
+                                    if sortOption == option {
+                                        Label(option.rawValue, systemImage: "checkmark")
+                                    } else {
+                                        Text(option.rawValue)
+                                    }
+                                }
+                            }
+                        } label: {
+                            Label(.localized("Sort By"), systemImage: "arrow.up.arrow.down")
+                        }
+                        
+                        Button {
+                            isSelectionMode.toggle()
+                            if !isSelectionMode {
+                                selectedFiles.removeAll()
+                            }
+                        } label: {
+                            Label(.localized("Select"), systemImage: "checkmark.circle")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                    
                     Menu {
                         createMenuItems
                     } label: {
@@ -43,16 +143,47 @@ struct FilesView: View {
             .sheet(isPresented: $showCreateFolder) {
                 CreateFolderView(directoryURL: fileManager.currentDirectory)
             }
-            .sheet(item: $selectedFile) { file in
-                if file.isDirectory {
-                    FolderCustomizationView(folderURL: file.url)
-                } else if file.url.pathExtension == "plist" {
-                    PlistEditorView(fileURL: file.url)
-                } else {
-                    HexEditorView(fileURL: file.url)
+            .sheet(isPresented: $showCreatePlist) {
+                CreatePlistView(directoryURL: fileManager.currentDirectory)
+            }
+            .sheet(isPresented: $showDocumentPicker) {
+                DocumentPickerView(directoryURL: fileManager.currentDirectory)
+            }
+            .sheet(isPresented: $showZipSheet) {
+                ZipOperationView(files: selectedFilesArray, operation: .zip, directoryURL: fileManager.currentDirectory)
+            }
+            .sheet(isPresented: $showUnzipSheet) {
+                if let zipFile = selectedFilesArray.first(where: { $0.url.pathExtension == "zip" }) {
+                    ZipOperationView(files: [zipFile], operation: .unzip, directoryURL: fileManager.currentDirectory)
                 }
             }
+            .sheet(item: $selectedFile) { file in
+                fileDetailSheet(for: file)
+            }
+            .sheet(isPresented: $showFileInfo) {
+                if let file = selectedFilesArray.first {
+                    FileInfoView(file: file)
+                }
+            }
+            .sheet(isPresented: $showShareSheet) {
+                ShareSheet(urls: shareURLs)
+            }
+            .alert(.localized("Rename File"), isPresented: $showRenameAlert) {
+                TextField(.localized("New Name"), text: $renameText)
+                Button(.localized("Cancel"), role: .cancel) { }
+                Button(.localized("Rename")) {
+                    if let file = fileToRename {
+                        fileManager.renameFile(file, to: renameText)
+                    }
+                }
+            } message: {
+                Text(.localized("Enter a new name for the file"))
+            }
         }
+    }
+    
+    private var selectedFilesArray: [FileItem] {
+        fileManager.currentFiles.filter { selectedFiles.contains($0.id) }
     }
     
     private var emptyStateView: some View {
@@ -65,18 +196,18 @@ struct FilesView: View {
                 .font(.title2)
                 .fontWeight(.bold)
             
-            Text(.localized("Create files, folders, and manage your content"))
+            Text(.localized("Import files or create new content"))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
             
-            Menu {
-                createMenuItems
+            Button {
+                showDocumentPicker = true
             } label: {
                 HStack {
-                    Image(systemName: "plus")
-                    Text(.localized("Create"))
+                    Image(systemName: "square.and.arrow.down")
+                    Text(.localized("Import Files"))
                 }
                 .font(.headline)
                 .foregroundStyle(.white)
@@ -89,29 +220,147 @@ struct FilesView: View {
     }
     
     private var fileListView: some View {
-        List {
-            ForEach(fileManager.currentFiles) { file in
-                FileRowView(file: file)
+        List(selection: isSelectionMode ? $selectedFiles : .constant(Set<UUID>())) {
+            ForEach(filteredFiles) { file in
+                FileRowView(file: file, isSelected: selectedFiles.contains(file.id))
+                    .contentShape(Rectangle())
                     .onTapGesture {
-                        HapticsManager.shared.impact()
-                        if file.isDirectory {
-                            fileManager.navigateToDirectory(file.url)
-                        } else {
-                            selectedFile = file
+                        handleFileTap(file)
+                    }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            HapticsManager.shared.warning()
+                            fileManager.deleteFile(file)
+                        } label: {
+                            Label(.localized("Delete"), systemImage: "trash")
                         }
+                        
+                        Button {
+                            shareURLs = [file.url]
+                            showShareSheet = true
+                        } label: {
+                            Label(.localized("Share"), systemImage: "square.and.arrow.up")
+                        }
+                        .tint(.blue)
+                    }
+                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                        Button {
+                            fileToRename = file
+                            renameText = file.name
+                            showRenameAlert = true
+                        } label: {
+                            Label(.localized("Rename"), systemImage: "pencil")
+                        }
+                        .tint(.orange)
+                        
+                        Button {
+                            fileManager.duplicateFile(file)
+                        } label: {
+                            Label(.localized("Duplicate"), systemImage: "doc.on.doc")
+                        }
+                        .tint(.green)
                     }
                     .contextMenu {
                         fileContextMenu(for: file)
                     }
             }
-            .onDelete { indexSet in
-                deleteFiles(at: indexSet)
+        }
+        .environment(\.editMode, isSelectionMode ? .constant(.active) : .constant(.inactive))
+        .toolbar {
+            if isSelectionMode && !selectedFiles.isEmpty {
+                ToolbarItemGroup(placement: .bottomBar) {
+                    Button {
+                        shareURLs = selectedFilesArray.map { $0.url }
+                        showShareSheet = true
+                    } label: {
+                        Label(.localized("Share"), systemImage: "square.and.arrow.up")
+                    }
+                    
+                    Spacer()
+                    
+                    Button {
+                        showZipSheet = true
+                    } label: {
+                        Label(.localized("Zip"), systemImage: "doc.zipper")
+                    }
+                    
+                    Spacer()
+                    
+                    Button(role: .destructive) {
+                        for id in selectedFiles {
+                            if let file = fileManager.currentFiles.first(where: { $0.id == id }) {
+                                fileManager.deleteFile(file)
+                            }
+                        }
+                        selectedFiles.removeAll()
+                    } label: {
+                        Label(.localized("Delete"), systemImage: "trash")
+                    }
+                }
+            }
+        }
+    }
+    
+    private var fileGridView: some View {
+        ScrollView {
+            LazyVGrid(columns: [
+                GridItem(.adaptive(minimum: 100), spacing: 16)
+            ], spacing: 16) {
+                ForEach(filteredFiles) { file in
+                    FileGridItemView(file: file, isSelected: selectedFiles.contains(file.id))
+                        .onTapGesture {
+                            handleFileTap(file)
+                        }
+                        .contextMenu {
+                            fileContextMenu(for: file)
+                        }
+                }
+            }
+            .padding()
+        }
+    }
+    
+    private func handleFileTap(_ file: FileItem) {
+        HapticsManager.shared.impact()
+        
+        if isSelectionMode {
+            if selectedFiles.contains(file.id) {
+                selectedFiles.remove(file.id)
+            } else {
+                selectedFiles.insert(file.id)
+            }
+        } else {
+            if file.isDirectory {
+                fileManager.navigateToDirectory(file.url)
+            } else {
+                selectedFile = file
+            }
+        }
+    }
+    
+    private func fileDetailSheet(for file: FileItem) -> some View {
+        Group {
+            if file.isDirectory {
+                FolderCustomizationView(folderURL: file.url)
+            } else if file.url.pathExtension.lowercased() == "plist" {
+                PlistEditorView(fileURL: file.url)
+            } else {
+                HexEditorView(fileURL: file.url)
             }
         }
     }
     
     @ViewBuilder
     private var createMenuItems: some View {
+        Button {
+            HapticsManager.shared.impact()
+            showDocumentPicker = true
+        } label: {
+            Label(.localized("Import Files"), systemImage: "square.and.arrow.down")
+        }
+        
+        Divider()
+        
         Button {
             HapticsManager.shared.impact()
             showCreateTextFile = true
@@ -121,25 +370,38 @@ struct FilesView: View {
         
         Button {
             HapticsManager.shared.impact()
+            showCreatePlist = true
+        } label: {
+            Label(.localized("Plist File"), systemImage: "doc.badge.gearshape")
+        }
+        
+        Button {
+            HapticsManager.shared.impact()
             showCreateFolder = true
         } label: {
             Label(.localized("Folder"), systemImage: "folder.badge.plus")
         }
         
-        Divider()
-        
-        Button {
-            HapticsManager.shared.impact()
-            // Zip action
-        } label: {
-            Label(.localized("Zip Files"), systemImage: "doc.zipper")
-        }
-        
-        Button {
-            HapticsManager.shared.impact()
-            // Unzip action
-        } label: {
-            Label(.localized("Unzip File"), systemImage: "arrow.up.doc")
+        if !selectedFiles.isEmpty || fileManager.currentFiles.contains(where: { $0.url.pathExtension == "zip" }) {
+            Divider()
+            
+            if !selectedFiles.isEmpty {
+                Button {
+                    HapticsManager.shared.impact()
+                    showZipSheet = true
+                } label: {
+                    Label(.localized("Zip Selected"), systemImage: "doc.zipper")
+                }
+            }
+            
+            if fileManager.currentFiles.contains(where: { $0.url.pathExtension == "zip" }) {
+                Button {
+                    HapticsManager.shared.impact()
+                    showUnzipSheet = true
+                } label: {
+                    Label(.localized("Unzip File"), systemImage: "arrow.up.doc")
+                }
+            }
         }
     }
     
@@ -152,7 +414,7 @@ struct FilesView: View {
             } label: {
                 Label(.localized("Customize Folder"), systemImage: "paintbrush")
             }
-        } else if file.url.pathExtension == "plist" {
+        } else if file.url.pathExtension.lowercased() == "plist" {
             Button {
                 HapticsManager.shared.impact()
                 selectedFile = file
@@ -164,7 +426,48 @@ struct FilesView: View {
                 HapticsManager.shared.impact()
                 selectedFile = file
             } label: {
-                Label(.localized("Hex Editor"), systemImage: "number")
+                Label(.localized("View/Edit"), systemImage: "doc.text")
+            }
+        }
+        
+        Divider()
+        
+        Button {
+            selectedFiles = [file.id]
+            showFileInfo = true
+        } label: {
+            Label(.localized("Info"), systemImage: "info.circle")
+        }
+        
+        Button {
+            fileToRename = file
+            renameText = file.name
+            showRenameAlert = true
+        } label: {
+            Label(.localized("Rename"), systemImage: "pencil")
+        }
+        
+        Button {
+            fileManager.duplicateFile(file)
+        } label: {
+            Label(.localized("Duplicate"), systemImage: "doc.on.doc")
+        }
+        
+        Button {
+            shareURLs = [file.url]
+            showShareSheet = true
+        } label: {
+            Label(.localized("Share"), systemImage: "square.and.arrow.up")
+        }
+        
+        if file.url.pathExtension.lowercased() == "zip" {
+            Divider()
+            
+            Button {
+                selectedFiles = [file.id]
+                showUnzipSheet = true
+            } label: {
+                Label(.localized("Unzip"), systemImage: "arrow.up.doc")
             }
         }
         
@@ -177,22 +480,21 @@ struct FilesView: View {
             Label(.localized("Delete"), systemImage: "trash")
         }
     }
-    
-    private func deleteFiles(at indexSet: IndexSet) {
-        HapticsManager.shared.warning()
-        for index in indexSet {
-            let file = fileManager.currentFiles[index]
-            fileManager.deleteFile(file)
-        }
-    }
 }
 
 // MARK: - FileRowView
 struct FileRowView: View {
     let file: FileItem
+    var isSelected: Bool = false
     
     var body: some View {
         HStack(spacing: 12) {
+            if isSelected {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.blue)
+                    .font(.title3)
+            }
+            
             Image(systemName: file.icon)
                 .font(.title2)
                 .foregroundStyle(file.iconColor)
@@ -222,14 +524,59 @@ struct FileRowView: View {
     }
 }
 
+// MARK: - FileGridItemView
+struct FileGridItemView: View {
+    let file: FileItem
+    var isSelected: Bool = false
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: file.icon)
+                    .font(.system(size: 40))
+                    .foregroundStyle(file.iconColor)
+                    .frame(width: 100, height: 80)
+                
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.blue)
+                        .font(.title3)
+                        .offset(x: 8, y: -8)
+                }
+            }
+            
+            Text(file.name)
+                .font(.caption)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .frame(width: 100)
+        }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemGray6))
+        )
+    }
+}
+
 // MARK: - FileItem
-struct FileItem: Identifiable {
+struct FileItem: Identifiable, Hashable {
     let id = UUID()
     let name: String
     let url: URL
     let isDirectory: Bool
     let size: String?
+    let sizeInBytes: Int?
+    let modificationDate: Date?
     let customIcon: String?
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: FileItem, rhs: FileItem) -> Bool {
+        lhs.id == rhs.id
+    }
     
     var icon: String {
         if let customIcon = customIcon {
@@ -246,6 +593,12 @@ struct FileItem: Identifiable {
             return "doc.badge.gearshape.fill"
         case "zip":
             return "doc.zipper"
+        case "json":
+            return "curlybraces"
+        case "xml":
+            return "chevron.left.forwardslash.chevron.right"
+        case "ipa":
+            return "app.badge"
         default:
             return "doc.fill"
         }
@@ -263,6 +616,12 @@ struct FileItem: Identifiable {
             return .purple
         case "zip":
             return .green
+        case "json":
+            return .yellow
+        case "xml":
+            return .red
+        case "ipa":
+            return .cyan
         default:
             return .gray
         }
@@ -276,7 +635,7 @@ class FileManagerService: ObservableObject {
     @Published var currentDirectory: URL
     @Published var currentFiles: [FileItem] = []
     
-    private let documentsDirectory: URL
+    let documentsDirectory: URL
     
     private init() {
         self.documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -291,12 +650,16 @@ class FileManagerService: ObservableObject {
     func loadFiles() {
         DispatchQueue.global(qos: .userInitiated).async { [self] in
             do {
-                let contents = try FileManager.default.contentsOfDirectory(at: self.currentDirectory, includingPropertiesForKeys: [.isDirectoryKey, .fileSizeKey])
+                let contents = try FileManager.default.contentsOfDirectory(
+                    at: self.currentDirectory, 
+                    includingPropertiesForKeys: [.isDirectoryKey, .fileSizeKey, .contentModificationDateKey]
+                )
                 
                 let files = contents.compactMap { url -> FileItem? in
-                    let resourceValues = try? url.resourceValues(forKeys: [.isDirectoryKey, .fileSizeKey])
+                    let resourceValues = try? url.resourceValues(forKeys: [.isDirectoryKey, .fileSizeKey, .contentModificationDateKey])
                     let isDirectory = resourceValues?.isDirectory ?? false
                     let fileSize = resourceValues?.fileSize
+                    let modDate = resourceValues?.contentModificationDate
                     
                     let sizeString: String? = {
                         if isDirectory {
@@ -314,6 +677,8 @@ class FileManagerService: ObservableObject {
                         url: url,
                         isDirectory: isDirectory,
                         size: sizeString,
+                        sizeInBytes: fileSize,
+                        modificationDate: modDate,
                         customIcon: customIcon
                     )
                 }.sorted { $0.isDirectory && !$1.isDirectory }
@@ -334,6 +699,14 @@ class FileManagerService: ObservableObject {
         loadFiles()
     }
     
+    func navigateUp() {
+        let parent = currentDirectory.deletingLastPathComponent()
+        if parent.path.starts(with: documentsDirectory.path) {
+            currentDirectory = parent
+            loadFiles()
+        }
+    }
+    
     func deleteFile(_ file: FileItem) {
         do {
             try FileManager.default.removeItem(at: file.url)
@@ -341,6 +714,69 @@ class FileManagerService: ObservableObject {
             loadFiles()
         } catch {
             HapticsManager.shared.error()
+            AppLogManager.shared.error("Failed to delete file: \(error.localizedDescription)", category: "Files")
+        }
+    }
+    
+    func renameFile(_ file: FileItem, to newName: String) {
+        let newURL = file.url.deletingLastPathComponent().appendingPathComponent(newName)
+        do {
+            try FileManager.default.moveItem(at: file.url, to: newURL)
+            HapticsManager.shared.success()
+            loadFiles()
+        } catch {
+            HapticsManager.shared.error()
+            AppLogManager.shared.error("Failed to rename file: \(error.localizedDescription)", category: "Files")
+        }
+    }
+    
+    func duplicateFile(_ file: FileItem) {
+        let nameWithoutExt = file.url.deletingPathExtension().lastPathComponent
+        let ext = file.url.pathExtension
+        let baseName = ext.isEmpty ? nameWithoutExt : "\(nameWithoutExt).\(ext)"
+        
+        var counter = 1
+        var newURL = file.url.deletingLastPathComponent().appendingPathComponent("Copy of \(baseName)")
+        
+        while FileManager.default.fileExists(atPath: newURL.path) {
+            counter += 1
+            newURL = file.url.deletingLastPathComponent().appendingPathComponent("Copy \(counter) of \(baseName)")
+        }
+        
+        do {
+            try FileManager.default.copyItem(at: file.url, to: newURL)
+            HapticsManager.shared.success()
+            loadFiles()
+        } catch {
+            HapticsManager.shared.error()
+            AppLogManager.shared.error("Failed to duplicate file: \(error.localizedDescription)", category: "Files")
+        }
+    }
+    
+    func importFile(from sourceURL: URL) {
+        let fileName = sourceURL.lastPathComponent
+        let destinationURL = currentDirectory.appendingPathComponent(fileName)
+        
+        do {
+            // Copy file to destination
+            if FileManager.default.fileExists(atPath: destinationURL.path) {
+                // Handle name conflict
+                var counter = 1
+                var newDestinationURL = currentDirectory.appendingPathComponent("\(counter)_\(fileName)")
+                while FileManager.default.fileExists(atPath: newDestinationURL.path) {
+                    counter += 1
+                    newDestinationURL = currentDirectory.appendingPathComponent("\(counter)_\(fileName)")
+                }
+                try FileManager.default.copyItem(at: sourceURL, to: newDestinationURL)
+            } else {
+                try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
+            }
+            
+            HapticsManager.shared.success()
+            loadFiles()
+        } catch {
+            HapticsManager.shared.error()
+            AppLogManager.shared.error("Failed to import file: \(error.localizedDescription)", category: "Files")
         }
     }
 }
