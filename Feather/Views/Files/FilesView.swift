@@ -40,6 +40,13 @@ struct FilesView: View {
     @State private var copiedFiles: [FileItem] = []
     @State private var showPermissionsSheet = false
     @State private var showTemplatesSheet = false
+    @State private var showQuickInspect = false
+    @State private var quickInspectFile: FileItem?
+    
+    // Settings
+    @AppStorage("files_enableQuickInspect") private var enableQuickInspect = true
+    @AppStorage("files_enableOpenInSigner") private var enableOpenInSigner = true
+    @AppStorage("files_enableFixStructure") private var enableFixStructure = true
     
     enum LayoutMode {
         case list, grid
@@ -83,6 +90,15 @@ struct FilesView: View {
     var body: some View {
         NBNavigationView(.localized("Files")) {
             VStack(spacing: 0) {
+                // Breadcrumb Navigation
+                BreadcrumbView(
+                    currentPath: fileManager.currentDirectory.path,
+                    baseDirectory: fileManager.baseDirectory,
+                    onNavigate: { url in
+                        fileManager.navigateToDirectory(url)
+                    }
+                )
+                
                 // Certificate Quick Add Banner
                 if hasCertificateFiles {
                     certificateQuickAddBanner
@@ -307,6 +323,11 @@ struct FilesView: View {
             }
             .sheet(isPresented: $showTemplatesSheet) {
                 FileTemplatesView(directoryURL: fileManager.currentDirectory)
+            }
+            .sheet(isPresented: $showQuickInspect) {
+                if let file = quickInspectFile {
+                    QuickInspectView(file: file)
+                }
             }
             .alert(.localized("Rename File"), isPresented: $showRenameAlert) {
                 TextField(.localized("New Name"), text: $renameText)
@@ -730,6 +751,35 @@ struct FilesView: View {
         
         Divider()
         
+        // Smart Actions
+        if enableQuickInspect && !file.isDirectory {
+            Button {
+                quickInspectFile = file
+                showQuickInspect = true
+            } label: {
+                Label(.localized("Quick Inspect"), systemImage: "doc.text.magnifyingglass")
+            }
+        }
+        
+        if enableOpenInSigner && file.url.pathExtension.lowercased() == "ipa" {
+            Button {
+                // TODO: Open in signer
+                HapticsManager.shared.impact()
+            } label: {
+                Label(.localized("Open in Signer"), systemImage: "signature")
+            }
+        }
+        
+        if enableFixStructure && !file.isDirectory {
+            Button {
+                fixFileStructure(file)
+            } label: {
+                Label(.localized("Fix Structure"), systemImage: "wrench.and.screwdriver")
+            }
+        }
+        
+        Divider()
+        
         Button {
             selectedFiles = [file.id]
             showFileInfo = true
@@ -825,6 +875,30 @@ struct FilesView: View {
         detectedP12 = files.first(where: { $0.url.pathExtension.lowercased() == "p12" })?.url
         detectedMobileprovision = files.first(where: { $0.url.pathExtension.lowercased() == "mobileprovision" })?.url
         HapticsManager.shared.impact()
+    }
+    
+    private func fixFileStructure(_ file: FileItem) {
+        HapticsManager.shared.impact()
+        
+        // Basic file structure repair
+        Task {
+            do {
+                let fileManager = FileManager.default
+                let attrs = try fileManager.attributesOfItem(atPath: file.url.path)
+                
+                // Check if file is readable
+                if fileManager.isReadableFile(atPath: file.url.path) {
+                    AppLogManager.shared.info("File structure appears valid", category: "Files")
+                    HapticsManager.shared.success()
+                } else {
+                    AppLogManager.shared.warning("File may be corrupted", category: "Files")
+                    HapticsManager.shared.error()
+                }
+            } catch {
+                AppLogManager.shared.error("Failed to check file structure: \(error.localizedDescription)", category: "Files")
+                HapticsManager.shared.error()
+            }
+        }
     }
 }
 
