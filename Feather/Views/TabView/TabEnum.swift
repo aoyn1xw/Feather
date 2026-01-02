@@ -8,6 +8,7 @@ enum TabEnum: String, CaseIterable, Hashable {
 	case settings
 	case certificates
 	case files
+	case guides
 	
 	var title: String {
 		switch self {
@@ -16,6 +17,7 @@ enum TabEnum: String, CaseIterable, Hashable {
 		case .settings: 	return .localized("Settings")
 		case .certificates:	return .localized("Certificates")
 		case .files:		return .localized("Files")
+		case .guides:		return .localized("Guides")
 		}
 	}
 	
@@ -26,6 +28,7 @@ enum TabEnum: String, CaseIterable, Hashable {
 		case .settings: 	return "gearshape.2"
 		case .certificates: return "person.text.rectangle"
 		case .files:		return "folder.fill"
+		case .guides:		return "book.fill"
 		}
 	}
 	
@@ -37,6 +40,7 @@ enum TabEnum: String, CaseIterable, Hashable {
 		case .settings: SettingsView()
 		case .certificates: NBNavigationView(.localized("Certificates")) { CertificatesView() }
 		case .files: FilesView()
+		case .guides: GuidesView()
 		}
 	}
 	
@@ -49,10 +53,7 @@ enum TabEnum: String, CaseIterable, Hashable {
 	}
 	
 	static var customizableTabs: [TabEnum] {
-		var tabs = [TabEnum.certificates]
-		if UserDefaults.standard.bool(forKey: "Feather.filesTabEnabled") {
-			tabs.append(.files)
-		}
+		var tabs = [TabEnum.certificates, TabEnum.files, TabEnum.guides]
 		return tabs
 	}
 }

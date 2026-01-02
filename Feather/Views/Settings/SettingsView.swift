@@ -33,9 +33,6 @@ struct SettingsView: View {
                     NavigationLink(destination: AppearanceView()) {
                         Label(.localized("Appearance"), systemImage: "paintbrush")
                     }
-					NavigationLink(destination: AppIconView(currentIcon: $_currentIcon)) {
-						Label(.localized("App Icon"), systemImage: "app.badge")
-					}
                     NavigationLink(destination: HapticsView()) {
                         Label(.localized("Haptics"), systemImage: "iphone.radiowaves.left.and.right")
                     }

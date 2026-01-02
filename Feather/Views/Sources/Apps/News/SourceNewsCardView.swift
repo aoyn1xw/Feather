@@ -27,7 +27,7 @@ struct SourceNewsCardView: View {
 						image
 							.resizable()
 							.aspectRatio(contentMode: .fill)
-							.frame(width: 250, height: 150)
+							.frame(width: 280, height: 180)
 							.clipped()
 					} else {
 						placeholderView
@@ -37,60 +37,37 @@ struct SourceNewsCardView: View {
 				placeholderView
 			}
 			
+			// Modern gradient overlay
 			LinearGradient(
 				gradient: Gradient(colors: [
-					.black.opacity(0.9),
-					.black.opacity(0.6),
+					.black.opacity(0.8),
+					.black.opacity(0.5),
 					.clear
 				]),
 				startPoint: .bottom,
 				endPoint: .top
 			)
-			.frame(height: 80)
+			.frame(height: 100)
 			.frame(maxWidth: .infinity, alignment: .bottom)
-			.overlay(
-				NBVariableBlurView()
-					.rotationEffect(.degrees(180))
-					.frame(height: 60)
-					.frame(maxHeight: .infinity, alignment: .bottom)
-			)
-			.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 			
-			Text(new.title)
-				.font(.headline)
-				.fontWeight(.semibold)
-				.foregroundColor(.white)
-				.lineLimit(2)
-				.multilineTextAlignment(.leading)
-				.padding()
+			VStack(alignment: .leading, spacing: 6) {
+				Text(new.title)
+					.font(.system(size: 17, weight: .semibold))
+					.foregroundColor(.white)
+					.lineLimit(2)
+					.multilineTextAlignment(.leading)
+				
+				if let date = new.date?.date {
+					Text(date.formatted(date: .abbreviated, time: .omitted))
+						.font(.caption)
+						.foregroundStyle(.white.opacity(0.8))
+				}
+			}
+			.padding(16)
 		}
-		.frame(width: 250, height: 150)
-		.background(
-			LinearGradient(
-				colors: [
-					(new.tintColor ?? Color.accentColor).opacity(0.8),
-					(new.tintColor ?? Color.accentColor).opacity(0.4)
-				],
-				startPoint: .topLeading,
-				endPoint: .bottomTrailing
-			)
-		)
-		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-		.overlay(
-			RoundedRectangle(cornerRadius: 16, style: .continuous)
-				.strokeBorder(
-					LinearGradient(
-						colors: [
-							Color.white.opacity(0.3),
-							Color.clear
-						],
-						startPoint: .topLeading,
-						endPoint: .bottomTrailing
-					),
-					lineWidth: 1.5
-				)
-		)
-		.shadow(color: (new.tintColor ?? Color.accentColor).opacity(0.3), radius: 10, x: 0, y: 5)
+		.frame(width: 280, height: 180)
+		.clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+		.shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
 	}
 }
 

@@ -45,7 +45,7 @@ struct SourceNewsView: View {
 				.transition(.opacity)
 			}
 		}
-		.frame(height: (news?.isEmpty == false) ? 170 : 0)
+		.frame(height: (news?.isEmpty == false) ? 180 : 0)
 		.onAppear {
 			if !hasLoadedInitialData && news?.isEmpty == false {
 				_load()

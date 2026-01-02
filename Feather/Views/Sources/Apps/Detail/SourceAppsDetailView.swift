@@ -43,14 +43,11 @@ struct SourceAppsDetailView: View {
 						standardIcon
 					}
 
-					VStack(alignment: .leading, spacing: 2) {
+					VStack(alignment: .leading, spacing: 8) {
 						Text(app.currentName)
 							.font(.title2)
 							.fontWeight(.semibold)
 							.foregroundColor(.primary)
-						Text(app.currentDescription ?? .localized("An awesome application"))
-							.font(.subheadline)
-							.foregroundColor(.secondary)
 						
 						Spacer()
 						
@@ -60,9 +57,6 @@ struct SourceAppsDetailView: View {
 					.frame(maxWidth: .infinity, alignment: .leading)
 				}
 				
-				Divider()
-				_infoPills(app: app)
-				Divider()
                 
                 if let screenshotURLs = app.screenshotURLs {
                     NBSection(.localized("Screenshots")) {
@@ -110,31 +104,31 @@ struct SourceAppsDetailView: View {
                 NBSection(.localized("Information")) {
                     VStack(spacing: 12) {
                         if let sourceName = source.name {
-                            _infoRow(title: .localized("Source"), value: sourceName)
+                            _infoRow(title: .localized("Source"), value: sourceName, icon: "globe")
                         }
                         
 						if let developer = app.developer {
-							_infoRow(title: .localized("Developer"), value: developer)
+							_infoRow(title: .localized("Developer"), value: developer, icon: "person.circle")
 						}
 						
 						if let size = app.size {
-							_infoRow(title: .localized("Size"), value: size.formattedByteCount)
+							_infoRow(title: .localized("Size"), value: size.formattedByteCount, icon: "archivebox")
 						}
 						
 						if let category = app.category {
-                            _infoRow(title: .localized("Category"), value: category.capitalized)
+                            _infoRow(title: .localized("Category"), value: category.capitalized, icon: "tag")
 						}
 						
 						if let version = app.currentVersion {
-							_infoRow(title: .localized("Version"), value: version)
+							_infoRow(title: .localized("Version"), value: version, icon: "number")
 						}
 						
 						if let date = app.currentDate?.date {
-							_infoRow(title: .localized("Updated"), value: DateFormatter.localizedString(from: date, dateStyle: .medium, timeStyle: .none))
+							_infoRow(title: .localized("Updated"), value: DateFormatter.localizedString(from: date, dateStyle: .medium, timeStyle: .none), icon: "calendar")
 						}
 						
 						if let bundleId = app.id {
-							_infoRow(title: .localized("Identifier"), value: bundleId)
+							_infoRow(title: .localized("Identifier"), value: bundleId, icon: "barcode")
 						}
 					}
 					.padding()
@@ -225,20 +219,6 @@ struct SourceAppsDetailView: View {
 		)
 		.flexibleHeaderScrollView()
 		.shouldSetInset()
-		.toolbar {
-			NBToolbarButton(
-				systemImage: "square.and.arrow.up",
-				placement: .topBarTrailing
-			) {
-				let sharedString = """
-				\(app.currentName) - \(app.currentVersion ?? "0")
-				\(app.currentDescription ?? .localized("An awesome application"))
-				---
-				\(source.website?.absoluteString ?? source.name ?? "")
-				"""
-				UIActivityViewController.show(activityItems: [sharedString])
-			}
-		}
 		.fullScreenCover(isPresented: $_isScreenshotPreviewPresented) {
 			if let screenshotURLs = app.screenshotURLs {
 				ScreenshotPreviewView(
@@ -322,21 +302,26 @@ extension SourceAppsDetailView {
 	
 	private func _buildPills(from app: ASRepository.App) -> [NBPillItem] {
 		var pills: [NBPillItem] = []
-		
-		if let version = app.currentVersion {
-			pills.append(NBPillItem(title: version, icon: "tag", color: Color.accentColor))
-		}
-		
-		if let size = app.size {
-			pills.append(NBPillItem(title: size.formattedByteCount, icon: "archivebox", color: .secondary))
-		}
-		
 		return pills
 	}
 	
 	@ViewBuilder
-	private func _infoRow(title: String, value: String) -> some View {
-		LabeledContent(title, value: value)
+	private func _infoRow(title: String, value: String, icon: String? = nil) -> some View {
+		HStack(spacing: 12) {
+			if let icon = icon {
+				Image(systemName: icon)
+					.font(.system(size: 15))
+					.foregroundStyle(.secondary)
+					.frame(width: 24)
+			}
+			LabeledContent {
+				Text(value)
+					.foregroundStyle(.primary)
+			} label: {
+				Text(title)
+					.foregroundStyle(.secondary)
+			}
+		}
 		Divider()
 	}
 	

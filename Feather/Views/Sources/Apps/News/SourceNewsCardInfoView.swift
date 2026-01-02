@@ -11,10 +11,18 @@ struct SourceNewsCardInfoView: View {
 	var body: some View {
 		NavigationStack {
 			ScrollView {
-				VStack(alignment: .leading, spacing: 20) {
+				VStack(alignment: .leading, spacing: 24) {
+					// Modern image header
 					ZStack(alignment: .bottomLeading) {
 						let placeholderView = {
-							Color.gray.opacity(0.2)
+							LinearGradient(
+								colors: [
+									Color.accentColor.opacity(0.3),
+									Color.accentColor.opacity(0.1)
+								],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
 						}()
 						
 						if let iconURL = new.imageURL {
@@ -33,41 +41,68 @@ struct SourceNewsCardInfoView: View {
 							placeholderView
 						}
 					}
-					.frame(height: 220)
+					.frame(height: 260)
 					.frame(maxWidth: .infinity)
-					.background(new.tintColor ?? Color.secondary)
-					.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-					.overlay(
-						RoundedRectangle(cornerRadius: 12, style: .continuous)
-							.strokeBorder(Color.gray.opacity(0.2), lineWidth: 1)
-					)
+					.clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+					.shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
 					
-					VStack(alignment: .leading, spacing: 12) {
+					// Content section
+					VStack(alignment: .leading, spacing: 16) {
+						// Title
 						Text(new.title)
-							.font(.title.bold())
-							.foregroundStyle(.tint)
+							.font(.system(size: 28, weight: .bold))
+							.foregroundStyle(.primary)
 							.multilineTextAlignment(.leading)
 						
+						// Date
+						if let date = new.date?.date {
+							HStack(spacing: 6) {
+								Image(systemName: "calendar")
+									.font(.caption)
+									.foregroundStyle(.secondary)
+								Text(date.formatted(date: .long, time: .omitted))
+									.font(.subheadline)
+									.foregroundStyle(.secondary)
+							}
+							.padding(.vertical, 6)
+							.padding(.horizontal, 12)
+							.background(
+								Capsule()
+									.fill(Color.secondary.opacity(0.15))
+							)
+						}
+						
+						// Caption
 						if !new.caption.isEmpty {
 							Text(new.caption)
 								.font(.body)
-								.foregroundStyle(.secondary)
+								.foregroundStyle(.primary)
 								.multilineTextAlignment(.leading)
+								.lineSpacing(4)
 						}
 						
+						// Open button
 						if let url = new.url {
 							Button {
 								UIApplication.shared.open(url)
 							} label: {
-								NBSheetButton(title: .localized("Open"), systemImage: "arrow.up.right")
+								HStack {
+									Text(.localized("Read More"))
+										.font(.system(size: 16, weight: .semibold))
+									Image(systemName: "arrow.up.right")
+										.font(.system(size: 14, weight: .semibold))
+								}
+								.foregroundStyle(.white)
+								.padding(.horizontal, 24)
+								.padding(.vertical, 14)
+								.background(
+									Capsule()
+										.fill(Color.accentColor)
+								)
+								.shadow(color: Color.accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
 							}
 							.buttonStyle(.plain)
-						}
-						
-						if let date = new.date?.date {
-							Text(date.formatted(date: .abbreviated, time: .omitted))
-								.font(.footnote)
-								.foregroundStyle(.secondary)
+							.padding(.top, 8)
 						}
 					}
 				}
