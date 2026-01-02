@@ -6,6 +6,7 @@ import ZsignSwift
 struct CertificatesInfoView: View {
 	@Environment(\.dismiss) var dismiss
 	@State var data: Certificate?
+	@State private var showPPQInfo = false
 	
 	var cert: CertificatePair
 	
@@ -174,6 +175,11 @@ struct CertificatesInfoView: View {
 			.toolbar {
 				NBToolbarButton(role: .close)
 			}
+			.alert(.localized("What is PPQ?"), isPresented: $showPPQInfo) {
+				Button(.localized("OK"), role: .cancel) {}
+			} message: {
+				Text(.localized("PPQ is a check Apple has added to certificates. If you have this check, change your Bundle IDs when signing apps to avoid Apple revoking your certificates."))
+			}
 		}
 		.onAppear {
 			data = Storage.shared.getProvisionFileDecoded(for: cert)
@@ -221,7 +227,7 @@ extension CertificatesInfoView {
 					.padding(16)
 					
 					Button {
-						showPPQInfoDialog()
+						showPPQInfo = true
 					} label: {
 						HStack {
 							Image(systemName: "questionmark.circle.fill")
@@ -296,7 +302,7 @@ extension CertificatesInfoView {
 					.padding(16)
 					
 					Button {
-						showPPQInfoDialog()
+						showPPQInfo = true
 					} label: {
 						HStack {
 							Image(systemName: "questionmark.circle.fill")
@@ -337,20 +343,6 @@ extension CertificatesInfoView {
 				.listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
 				.listRowBackground(Color.clear)
 			}
-		}
-	}
-	
-	private func showPPQInfoDialog() {
-		let alert = UIAlertController(
-			title: .localized("What is PPQ?"),
-			message: .localized("PPQ is a check Apple has added to certificates. If you have this check, change your Bundle IDs when signing apps to avoid Apple revoking your certificates."),
-			preferredStyle: .alert
-		)
-		alert.addAction(UIAlertAction(title: .localized("OK"), style: .default))
-		
-		if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-		   let rootViewController = windowScene.windows.first?.rootViewController {
-			rootViewController.present(alert, animated: true)
 		}
 	}
 	

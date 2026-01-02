@@ -248,11 +248,15 @@ private struct AllAppsCardView: View {
 		}
 		
 		var bitmap = [UInt8](repeating: 0, count: 4)
-		let context = CIContext(options: [.workingColorSpace: kCFNull as Any])
+		// Use a shared context for better performance
+		let context = Self.sharedCIContext
 		context.render(outputImage, toBitmap: &bitmap, rowBytes: 4, bounds: CGRect(x: 0, y: 0, width: 1, height: 1), format: .RGBA8, colorSpace: nil)
 		
 		appIconColor = Color(red: Double(bitmap[0]) / 255, green: Double(bitmap[1]) / 255, blue: Double(bitmap[2]) / 255)
 	}
+	
+	// Shared CIContext for performance
+	private static let sharedCIContext = CIContext(options: [.workingColorSpace: kCFNull as Any])
 	
 	private func contentSection(isRegular: Bool) -> some View {
 		HStack(spacing: 14) {

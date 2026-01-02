@@ -36,14 +36,16 @@ struct AppearanceView: View {
 			Section {
 				Picker(.localized("Appearance"), selection: $_userIntefacerStyle) {
 					ForEach(UIUserInterfaceStyle.allCases.sorted(by: { $0.rawValue < $1.rawValue }), id: \.rawValue) { style in
-						Label {
-							Text(style.label)
-						} icon: {
-							if _showIconsInAppearance {
+						if _showIconsInAppearance {
+							Label {
+								Text(style.label)
+							} icon: {
 								Image(systemName: style.iconName)
 							}
+							.tag(style.rawValue)
+						} else {
+							Text(style.label).tag(style.rawValue)
 						}
-						.tag(style.rawValue)
 					}
 				}
 				.pickerStyle(.segmented)
@@ -61,20 +63,26 @@ struct AppearanceView: View {
 			
 			NBSection(.localized("Visual Effects")) {
 				Toggle(isOn: $_useGradients) {
-					Label(.localized("Use Gradients"), systemImage: _showIconsInAppearance ? "paintbrush.fill" : "")
+					if _showIconsInAppearance {
+						Label(.localized("Use Gradients"), systemImage: "paintbrush.fill")
+					} else {
+						Text(.localized("Use Gradients"))
+					}
 				}
 				
 				Toggle(isOn: $_showIconsInAppearance) {
-					Label(.localized("Show Icons in Settings"), systemImage: _showIconsInAppearance ? "square.grid.2x2.fill" : "")
+					if _showIconsInAppearance {
+						Label(.localized("Show Icons in Settings"), systemImage: "square.grid.2x2.fill")
+					} else {
+						Text(.localized("Show Icons in Settings"))
+					}
 				}
 				
 				VStack(alignment: .leading, spacing: 8) {
-					Label {
+					if _showIconsInAppearance {
+						Label(.localized("Animation Speed"), systemImage: "hare.fill")
+					} else {
 						Text(.localized("Animation Speed"))
-					} icon: {
-						if _showIconsInAppearance {
-							Image(systemName: "hare.fill")
-						}
 					}
 					
 					HStack {
@@ -95,17 +103,23 @@ struct AppearanceView: View {
 				Picker(.localized("Store Cell Appearance"), selection: $_storeCellAppearance) {
 					ForEach(0..<_storeCellAppearanceMethods.count, id: \.self) { index in
 						let method = _storeCellAppearanceMethods[index]
-						Label {
+						if _showIconsInAppearance {
+							Label {
+								NBTitleWithSubtitleView(
+									title: method.name,
+									subtitle: method.desc
+								)
+							} icon: {
+								Image(systemName: index == 0 ? "list.bullet" : "text.alignleft")
+							}
+							.tag(index)
+						} else {
 							NBTitleWithSubtitleView(
 								title: method.name,
 								subtitle: method.desc
 							)
-						} icon: {
-							if _showIconsInAppearance {
-								Image(systemName: index == 0 ? "list.bullet" : "text.alignleft")
-							}
+							.tag(index)
 						}
-						.tag(index)
 					}
 
 				}
@@ -113,7 +127,11 @@ struct AppearanceView: View {
 				.pickerStyle(.inline)
 				
 				Toggle(isOn: $_showNews) {
-					Label(.localized("Show News"), systemImage: _showIconsInAppearance ? "newspaper.fill" : "")
+					if _showIconsInAppearance {
+						Label(.localized("Show News"), systemImage: "newspaper.fill")
+					} else {
+						Text(.localized("Show News"))
+					}
 				}
 			} footer: {
 				Text(.localized("When disabled, news from sources will not be displayed in the app."))

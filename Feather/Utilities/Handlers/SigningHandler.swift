@@ -22,6 +22,9 @@ final class SigningHandler: NSObject {
 	var appIcon: UIImage?
 	var appCertificate: CertificatePair?
 	
+	// Static character set for PPQ protection - reused across instances for efficiency
+	private static let ppqCharacterSet: [Character] = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	
 	init(app: AppInfoPresentable, options: Options = OptionsManager.shared.options) {
 		self._app = app
 		self._options = options
@@ -73,8 +76,8 @@ final class SigningHandler: NSObject {
 		// Apply PPQ Protection if enabled
 		var modifiedIdentifier = _options.appIdentifier
 		if _options.ppqProtection, let baseIdentifier = modifiedIdentifier ?? originalIdentifier {
-			// Generate a 7-character random string
-			let randomSuffix = String((0..<7).compactMap { _ in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".randomElement() })
+			// Generate a 7-character random string using static character set
+			let randomSuffix = String((0..<7).compactMap { _ in Self.ppqCharacterSet.randomElement() })
 			modifiedIdentifier = "\(baseIdentifier).\(randomSuffix)"
 			AppLogManager.shared.info("PPQ Protection enabled: Appending random suffix to Bundle ID: \(randomSuffix)", category: "Signing")
 		}
