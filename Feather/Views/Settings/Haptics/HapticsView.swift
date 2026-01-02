@@ -51,7 +51,7 @@ struct HapticsView: View {
         } label: {
             HStack(spacing: 12) {
 				Image(systemName: iconForIntensity(intensity))
-					.foregroundStyle(hapticsManager.intensity == intensity ? .tint : Color.secondary)
+					.foregroundStyle(hapticsManager.intensity == intensity ? Color.accentColor : Color.secondary)
 					.font(.body)
 					.frame(width: 24)
                 Text(intensity.title)
@@ -59,7 +59,7 @@ struct HapticsView: View {
                 Spacer()
                 if hapticsManager.intensity == intensity {
                     Image(systemName: "checkmark")
-                        .foregroundStyle(.tint)
+                        .foregroundStyle(Color.accentColor)
                 }
             }
         }
