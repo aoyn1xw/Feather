@@ -71,7 +71,7 @@ struct OnboardingView: View {
                     VStack(spacing: 16) {
                         // Title
                         Text("Welcome to Feather")
-                            .font(.system(size: 36, weight: .bold, design: .rounded))
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
                             .foregroundStyle(
                                 LinearGradient(
                                     colors: [.white, Color.white.opacity(0.9)],
@@ -80,14 +80,16 @@ struct OnboardingView: View {
                                 )
                             )
                             .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
                             .opacity(animateContent ? 1.0 : 0.0)
                             .offset(y: animateContent ? 0 : 20)
                         
                         // Subtitle
                         Text("Your all-in-one iOS app sideloading solution")
-                            .font(.system(size: 18, weight: .medium, design: .rounded))
+                            .font(.system(size: 16, weight: .medium, design: .rounded))
                             .foregroundColor(.white.opacity(0.9))
                             .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
                             .opacity(animateContent ? 1.0 : 0.0)
                             .offset(y: animateContent ? 0 : 20)
                     }

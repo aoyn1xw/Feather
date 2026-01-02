@@ -33,9 +33,8 @@ struct ExtendedTabbarView: View {
 					TabEnum.view(for: tab)
 				}
 				.customizationID("tab.\(tab.rawValue)")
-				.defaultVisibility(.hidden, for: .tabBar)
+				.defaultVisibility(.visible, for: .tabBar)
 				.customizationBehavior(.reorderable, for: .tabBar, .sidebar)
-				.hidden(horizontalSizeClass == .compact)
 			}
 			
 			TabSection("Sources") {

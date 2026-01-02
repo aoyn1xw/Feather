@@ -60,7 +60,7 @@ struct SourceDetailsView: View {
 				
 				// Apps Section
 				if let apps = repository?.apps, !apps.isEmpty {
-					_appsSection(apps: filteredApps.isEmpty && !_searchText.isEmpty ? [] : (filteredApps.isEmpty ? Array(apps.prefix(5)) : Array(filteredApps.prefix(5))))
+					_appsSection(apps: filteredApps.isEmpty && !_searchText.isEmpty ? [] : filteredApps)
 				}
 			}
 			.padding(.bottom, 20)
@@ -311,13 +311,13 @@ struct SourceDetailsView: View {
 	private func _appsSection(apps: [ASRepository.App]) -> some View {
 		VStack(alignment: .leading, spacing: 12) {
 			HStack {
-				Text("Apps")
+				Text("Recently Updated")
 					.font(.title3)
 					.fontWeight(.bold)
 				
 				Spacer()
 				
-				if let fullApps = repository?.apps, fullApps.count > 5 {
+				if let fullApps = repository?.apps, fullApps.count > 10 {
 					NavigationLink {
 						if let repo = repository {
 							SourceAppsListView(repository: repo, dominantColor: dominantColor)
@@ -336,14 +336,56 @@ struct SourceDetailsView: View {
 			.padding(.horizontal)
 			
 			if apps.isEmpty {
-				Text("No apps found")
-					.font(.subheadline)
-					.foregroundStyle(.secondary)
-					.frame(maxWidth: .infinity)
-					.padding(.vertical, 20)
+				// Modern empty state
+				VStack(spacing: 16) {
+					ZStack {
+						Circle()
+							.fill(
+								LinearGradient(
+									colors: [dominantColor.opacity(0.2), dominantColor.opacity(0.1)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+							.frame(width: 80, height: 80)
+						
+						Image(systemName: "app.badge.questionmark")
+							.font(.system(size: 36, weight: .medium))
+							.foregroundStyle(
+								LinearGradient(
+									colors: [dominantColor, dominantColor.opacity(0.7)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+					}
+					.shadow(color: dominantColor.opacity(0.3), radius: 10, x: 0, y: 5)
+					
+					VStack(spacing: 8) {
+						Text("No Apps Found")
+							.font(.title3)
+							.fontWeight(.bold)
+							.foregroundStyle(.primary)
+						
+						Text(_searchText.isEmpty ? "This source doesn't have any apps yet" : "Try adjusting your search terms")
+							.font(.subheadline)
+							.foregroundStyle(.secondary)
+							.multilineTextAlignment(.center)
+					}
+				}
+				.frame(maxWidth: .infinity)
+				.padding(.vertical, 40)
+				.padding(.horizontal, 20)
 			} else {
+				// Get the 10 most recently updated apps
+				let recentApps = apps.sorted { app1, app2 in
+					let date1 = app1.currentDate?.date ?? .distantPast
+					let date2 = app2.currentDate?.date ?? .distantPast
+					return date1 > date2
+				}.prefix(10)
+				
 				VStack(spacing: 0) {
-					ForEach(Array(apps.enumerated()), id: \.element.id) { index, app in
+					ForEach(Array(recentApps.enumerated()), id: \.element.id) { index, app in
 						Button {
 							if let repo = repository {
 								_selectedRoute = SourceAppRoute(source: repo, app: app)
@@ -353,7 +395,7 @@ struct SourceDetailsView: View {
 						}
 						.buttonStyle(.plain)
 						
-						if index < apps.count - 1 {
+						if index < recentApps.count - 1 {
 							Divider()
 								.padding(.leading, 76)
 						}

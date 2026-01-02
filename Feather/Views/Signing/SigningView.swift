@@ -46,33 +46,60 @@ struct SigningView: View {
 	// MARK: Body
     var body: some View {
 		NBNavigationView(app.name ?? .localized("Unknown"), displayMode: .inline) {
-			Form {
-				_customizationOptions(for: app)
-				_cert()
-				_customizationProperties(for: app)
-				
-				// horrible
-				Rectangle()
-					.foregroundStyle(.clear)
-					.frame(height: 30)
-					.listRowBackground(EmptyView())
-			}
-			.overlay {
-				VStack(spacing: 0) {
+			ScrollView {
+				VStack(spacing: 20) {
+					_customizationOptions(for: app)
+					_cert()
+					_customizationProperties(for: app)
+					
+					// Bottom padding for button
 					Spacer()
-					NBVariableBlurView()
-						.frame(height: UIDevice.current.userInterfaceIdiom == .pad ? 60 : 80)
-						.rotationEffect(.degrees(180))
-						.overlay {
-							Button {
-								_start()
-							} label: {
-								NBSheetButton(title: .localized("Start Signing"), style: .prominent)
-									.padding()
-							}
-							.buttonStyle(.plain)
-							.offset(y: UIDevice.current.userInterfaceIdiom == .pad ? -20 : -40)
+						.frame(height: 100)
+				}
+				.padding(.horizontal)
+				.padding(.top, 12)
+			}
+			.background(Color(UIColor.systemGroupedBackground))
+			.overlay(alignment: .bottom) {
+				VStack(spacing: 0) {
+					// Gradient fade effect
+					LinearGradient(
+						colors: [
+							Color(UIColor.systemGroupedBackground).opacity(0),
+							Color(UIColor.systemGroupedBackground).opacity(0.95),
+							Color(UIColor.systemGroupedBackground)
+						],
+						startPoint: .top,
+						endPoint: .bottom
+					)
+					.frame(height: 40)
+					
+					// Modern floating button
+					Button {
+						_start()
+					} label: {
+						HStack(spacing: 12) {
+							Image(systemName: "signature")
+								.font(.system(size: 18, weight: .semibold))
+							Text(.localized("Start Signing"))
+								.font(.system(size: 17, weight: .semibold))
 						}
+						.foregroundStyle(.white)
+						.frame(maxWidth: .infinity)
+						.padding(.vertical, 16)
+						.background(
+							LinearGradient(
+								colors: [Color.accentColor, Color.accentColor.opacity(0.85)],
+								startPoint: .leading,
+								endPoint: .trailing
+							)
+						)
+						.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+						.shadow(color: Color.accentColor.opacity(0.4), radius: 12, x: 0, y: 6)
+					}
+					.padding(.horizontal, 20)
+					.padding(.vertical, 12)
+					.background(Color(UIColor.systemGroupedBackground))
 				}
 				.ignoresSafeArea(edges: .bottom)
 			}
@@ -190,153 +217,135 @@ struct SigningView: View {
 extension SigningView {
 	@ViewBuilder
 	private func _customizationOptions(for app: AppInfoPresentable) -> some View {
-		NBSection(.localized("Customization")) {
-			// Enhanced icon selection with glass effect
-			Menu {
-				Button(.localized("Select Alternative Icon"), systemImage: "app.dashed") { _isAltPickerPresenting = true }
-				Button(.localized("Choose from Files"), systemImage: "folder") { _isFilePickerPresenting = true }
-				Button(.localized("Choose from Photos"), systemImage: "photo") { _isImagePickerPresenting = true }
-			} label: {
-				ZStack {
-					// Shadow layer
-					Circle()
-						.fill(Color.black.opacity(0.1))
-						.frame(width: 60, height: 60)
-						.blur(radius: 4)
-						.offset(y: 3)
+		VStack(alignment: .leading, spacing: 16) {
+			Text(.localized("Customization"))
+				.font(.headline)
+				.foregroundStyle(.primary)
+				.padding(.horizontal, 4)
+			
+			VStack(spacing: 0) {
+				// Enhanced icon selection with glass effect
+				HStack(spacing: 16) {
+					Menu {
+						Button(.localized("Select Alternative Icon"), systemImage: "app.dashed") { _isAltPickerPresenting = true }
+						Button(.localized("Choose from Files"), systemImage: "folder") { _isFilePickerPresenting = true }
+						Button(.localized("Choose from Photos"), systemImage: "photo") { _isImagePickerPresenting = true }
+					} label: {
+						ZStack {
+							if let icon = appIcon {
+								Image(uiImage: icon)
+									.appIconStyle()
+									.shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 3)
+							} else {
+								FRAppIconView(app: app, size: 64)
+									.shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 3)
+							}
+						}
+					}
 					
-					if let icon = appIcon {
-						Image(uiImage: icon)
-							.appIconStyle()
-							.shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
-					} else {
-						FRAppIconView(app: app, size: 56)
-							.shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
+					VStack(alignment: .leading, spacing: 4) {
+						Text(app.name ?? .localized("Unknown"))
+							.font(.title3)
+							.fontWeight(.bold)
+							.foregroundStyle(.primary)
+						
+						Text(.localized("Tap icon to change"))
+							.font(.caption)
+							.foregroundStyle(.secondary)
+					}
+					
+					Spacer()
+				}
+				.padding()
+				.background(Color(UIColor.secondarySystemGroupedBackground))
+				.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+				
+				Divider()
+					.padding(.vertical, 8)
+				
+				VStack(spacing: 0) {
+					_infoCell(.localized("Name"), desc: _temporaryOptions.appName ?? app.name, icon: "pencil") {
+						_isNameDialogPresenting = true
+					}
+					
+					Divider()
+						.padding(.leading, 52)
+					
+					_infoCell(.localized("Identifier"), desc: _temporaryOptions.appIdentifier ?? app.identifier, icon: "barcode") {
+						_isIdentifierDialogPresenting = true
+					}
+					
+					Divider()
+						.padding(.leading, 52)
+					
+					_infoCell(.localized("Version"), desc: _temporaryOptions.appVersion ?? app.version, icon: "tag") {
+						_isVersionDialogPresenting = true
 					}
 				}
-			}
-			
-			_infoCell(.localized("Name"), desc: _temporaryOptions.appName ?? app.name, icon: "pencil") {
-				_isNameDialogPresenting = true
-			}
-			_infoCell(.localized("Identifier"), desc: _temporaryOptions.appIdentifier ?? app.identifier, icon: "barcode") {
-				_isIdentifierDialogPresenting = true
-			}
-			_infoCell(.localized("Version"), desc: _temporaryOptions.appVersion ?? app.version, icon: "tag") {
-				_isVersionDialogPresenting = true
+				.background(Color(UIColor.secondarySystemGroupedBackground))
+				.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 			}
 		}
 	}
 	
 	@ViewBuilder
 	private func _cert() -> some View {
-		NBSection(.localized("Signing")) {
-			if let cert = _selectedCert() {
-				NavigationLink {
-					CertificatesView(selectedCert: $_temporaryCertificate)
-				} label: {
-					CertificatesCellView(
-						cert: cert
-					)
-				}
-			} else {
-				VStack(spacing: 20) {
-					HStack {
-						ZStack {
-							Circle()
-								.fill(
-									LinearGradient(
-										colors: [Color.orange.opacity(0.3), Color.orange.opacity(0.1)],
-										startPoint: .topLeading,
-										endPoint: .bottomTrailing
-									)
-								)
-								.frame(width: 50, height: 50)
-							
+		VStack(alignment: .leading, spacing: 16) {
+			Text(.localized("Signing"))
+				.font(.headline)
+				.foregroundStyle(.primary)
+				.padding(.horizontal, 4)
+			
+			VStack(spacing: 0) {
+				if let cert = _selectedCert() {
+					NavigationLink {
+						CertificatesView(selectedCert: $_temporaryCertificate)
+					} label: {
+						CertificatesCellView(cert: cert)
+							.padding()
+					}
+					.background(Color(UIColor.secondarySystemGroupedBackground))
+					.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+				} else {
+					VStack(spacing: 16) {
+						HStack(spacing: 12) {
 							Image(systemName: "exclamationmark.triangle.fill")
 								.font(.title2)
-								.foregroundStyle(
-									LinearGradient(
-										colors: [Color.orange, Color.orange.opacity(0.8)],
-										startPoint: .topLeading,
-										endPoint: .bottomTrailing
-									)
-								)
-						}
-						.shadow(color: Color.orange.opacity(0.3), radius: 8, x: 0, y: 4)
-						
-						VStack(alignment: .leading, spacing: 4) {
-							Text(.localized("No Certificate"))
-								.font(.headline)
-								.foregroundColor(.primary)
-							Text(.localized("Add a certificate to continue"))
-								.font(.caption)
-								.foregroundColor(.secondary)
-						}
-						Spacer()
-					}
-					.padding(.bottom, 8)
-					
-					Button {
-						_isAddingCertificatePresenting = true
-					} label: {
-						HStack(spacing: 12) {
-							ZStack {
-								Circle()
-									.fill(Color.accentColor.opacity(0.15))
-									.frame(width: 36, height: 36)
-								
-								Image(systemName: "plus.circle.fill")
-									.font(.title3)
-									.foregroundStyle(
-										LinearGradient(
-											colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
-											startPoint: .topLeading,
-											endPoint: .bottomTrailing
-										)
-									)
+								.foregroundStyle(Color.orange)
+								.frame(width: 44, height: 44)
+								.background(Color.orange.opacity(0.15))
+								.clipShape(Circle())
+							
+							VStack(alignment: .leading, spacing: 4) {
+								Text(.localized("No Certificate"))
+									.font(.headline)
+									.foregroundColor(.primary)
+								Text(.localized("Add a certificate to continue"))
+									.font(.caption)
+									.foregroundColor(.secondary)
 							}
-							
-							Text(.localized("Add Certificate"))
-								.fontWeight(.semibold)
-								.foregroundStyle(.primary)
-							
 							Spacer()
 						}
-						.frame(maxWidth: .infinity)
-						.padding(.vertical, 16)
-						.padding(.horizontal, 16)
-						.background(
-							ZStack {
-								RoundedRectangle(cornerRadius: 16, style: .continuous)
-									.fill(
-										LinearGradient(
-											colors: [
-												Color.accentColor.opacity(0.15),
-												Color.accentColor.opacity(0.08)
-											],
-											startPoint: .topLeading,
-											endPoint: .bottomTrailing
-										)
-									)
-								
-								RoundedRectangle(cornerRadius: 16, style: .continuous)
-									.stroke(
-										LinearGradient(
-											colors: [
-												Color.accentColor.opacity(0.4),
-												Color.accentColor.opacity(0.2)
-											],
-											startPoint: .topLeading,
-											endPoint: .bottomTrailing
-										),
-										lineWidth: 1.5
-									)
+						
+						Button {
+							_isAddingCertificatePresenting = true
+						} label: {
+							HStack(spacing: 10) {
+								Image(systemName: "plus.circle.fill")
+									.font(.body)
+								Text(.localized("Add Certificate"))
+									.font(.body.weight(.semibold))
 							}
-							.shadow(color: Color.accentColor.opacity(0.2), radius: 8, x: 0, y: 4)
-						)
+							.foregroundStyle(.white)
+							.frame(maxWidth: .infinity)
+							.padding(.vertical, 14)
+							.background(Color.accentColor)
+							.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+						}
 					}
-					.buttonStyle(.plain)
+					.padding()
+					.background(Color(UIColor.secondarySystemGroupedBackground))
+					.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 				}
 			}
 		}
@@ -344,47 +353,100 @@ extension SigningView {
 	
 	@ViewBuilder
 	private func _customizationProperties(for app: AppInfoPresentable) -> some View {
-		NBSection(.localized("Advanced")) {
-			DisclosureGroup(
+		VStack(alignment: .leading, spacing: 16) {
+			Text(.localized("Advanced"))
+				.font(.headline)
+				.foregroundStyle(.primary)
+				.padding(.horizontal, 4)
+			
+			VStack(spacing: 0) {
+				DisclosureGroup(
                 content: {
-                    NavigationLink {
-                        SigningDylibView(
-                            app: app,
-                            options: $_temporaryOptions.optional()
-                        )
-                    } label: {
-                        Label(.localized("Existing Dylibs"), systemImage: "puzzlepiece")
-                    }
-                    
-                    NavigationLink {
-                        SigningFrameworksView(
-                            app: app,
-                            options: $_temporaryOptions.optional()
-                        )
-                    } label: {
-                        Label(.localized("Frameworks & PlugIns"), systemImage: "cube.box")
-                    }
-                    #if NIGHTLY || DEBUG
-                    NavigationLink {
-                        SigningEntitlementsView(
-                            bindingValue: $_temporaryOptions.appEntitlementsFile
-                        )
-                    } label: {
-                        Label(.localized("Entitlements") + " (BETA)", systemImage: "lock.shield")
-                    }
-                    #endif
-                    NavigationLink {
-                        SigningTweaksView(
-                            options: $_temporaryOptions
-                        )
-                    } label: {
-                        Label(.localized("Tweaks"), systemImage: "wrench.and.screwdriver")
-                    }
+					VStack(spacing: 0) {
+						NavigationLink {
+							SigningDylibView(
+								app: app,
+								options: $_temporaryOptions.optional()
+							)
+						} label: {
+							HStack {
+								Label(.localized("Existing Dylibs"), systemImage: "puzzlepiece")
+								Spacer()
+								Image(systemName: "chevron.right")
+									.font(.caption)
+									.foregroundStyle(.tertiary)
+							}
+							.padding()
+						}
+						
+						Divider()
+							.padding(.leading, 52)
+						
+						NavigationLink {
+							SigningFrameworksView(
+								app: app,
+								options: $_temporaryOptions.optional()
+							)
+						} label: {
+							HStack {
+								Label(.localized("Frameworks & PlugIns"), systemImage: "cube.box")
+								Spacer()
+								Image(systemName: "chevron.right")
+									.font(.caption)
+									.foregroundStyle(.tertiary)
+							}
+							.padding()
+						}
+						
+						#if NIGHTLY || DEBUG
+						Divider()
+							.padding(.leading, 52)
+						
+						NavigationLink {
+							SigningEntitlementsView(
+								bindingValue: $_temporaryOptions.appEntitlementsFile
+						} label: {
+							HStack {
+								Label(.localized("Entitlements") + " (BETA)", systemImage: "lock.shield")
+								Spacer()
+								Image(systemName: "chevron.right")
+									.font(.caption)
+									.foregroundStyle(.tertiary)
+							}
+							.padding()
+						}
+						#endif
+						
+						Divider()
+							.padding(.leading, 52)
+						
+						NavigationLink {
+							SigningTweaksView(
+								options: $_temporaryOptions
+							)
+						} label: {
+							HStack {
+								Label(.localized("Tweaks"), systemImage: "wrench.and.screwdriver")
+								Spacer()
+								Image(systemName: "chevron.right")
+									.font(.caption)
+									.foregroundStyle(.tertiary)
+							}
+							.padding()
+						}
+					}
                 },
                 label: {
-                    Label(.localized("Modify"), systemImage: "hammer")
+					HStack {
+						Label(.localized("Modify"), systemImage: "hammer")
+						Spacer()
+					}
+					.padding()
                 }
             )
+			.tint(.primary)
+			
+			Divider()
 			
 			NavigationLink {
 				Form { SigningOptionsView(
@@ -393,19 +455,46 @@ extension SigningView {
 				)}
 				.navigationTitle(.localized("Properties"))
 			} label: {
-                Label(.localized("Properties"), systemImage: "slider.horizontal.3")
+				HStack {
+					Label(.localized("Properties"), systemImage: "slider.horizontal.3")
+					Spacer()
+					Image(systemName: "chevron.right")
+						.font(.caption)
+						.foregroundStyle(.tertiary)
+				}
+				.padding()
             }
+			}
+			.background(Color(UIColor.secondarySystemGroupedBackground))
+			.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 		}
 	}
 	
 	@ViewBuilder
 	private func _infoCell(_ title: String, desc: String?, icon: String, action: @escaping () -> Void) -> some View {
 		Button(action: action) {
-			LabeledContent {
+			HStack(spacing: 12) {
+				Image(systemName: icon)
+					.font(.body)
+					.foregroundStyle(.secondary)
+					.frame(width: 28)
+				
+				Text(title)
+					.font(.body)
+					.foregroundStyle(.primary)
+				
+				Spacer()
+				
 				Text(desc ?? .localized("Unknown"))
-			} label: {
-                Label(title, systemImage: icon)
-            }
+					.font(.subheadline)
+					.foregroundStyle(.secondary)
+					.lineLimit(1)
+				
+				Image(systemName: "chevron.right")
+					.font(.caption)
+					.foregroundStyle(.tertiary)
+			}
+			.padding()
 		}
 		.buttonStyle(.plain)
 	}
@@ -445,38 +534,42 @@ extension SigningView {
                 using: _temporaryOptions,
                 certificate: cert
             ) { result in
-                _isSigningProcessPresented = false
-                switch result {
-                case .success(let installLink):
-                    // Send notification if enabled
-                    if UserDefaults.standard.bool(forKey: "Feather.notificationsEnabled") {
-                        NotificationManager.shared.sendAppReadyNotification(appName: app.name ?? "App")
-                    }
-                    
-                    let install = UIAlertAction(title: .localized("Install"), style: .default) { _ in
-                        if let url = URL(string: installLink) {
-                            UIApplication.shared.open(url)
-                        }
-                    }
-                    let copy = UIAlertAction(title: .localized("Copy Link"), style: .default) { _ in
-                        UIPasteboard.general.string = installLink
-                    }
-                    let cancel = UIAlertAction(title: .localized("Cancel"), style: .cancel)
-                    
-                    UIAlertController.showAlert(
-                        title: .localized("Signing Successful"),
-                        message: .localized("Your app is ready to install."),
-                        actions: [install, copy, cancel]
-                    )
-                    
-                case .failure(let error):
-                    let ok = UIAlertAction(title: .localized("Dismiss"), style: .cancel)
-                    UIAlertController.showAlert(
-                        title: "Error",
-                        message: error.localizedDescription,
-                        actions: [ok]
-                    )
-                }
+				DispatchQueue.main.async {
+					_isSigning = false
+					_isSigningProcessPresented = false
+					
+					switch result {
+					case .success(let installLink):
+						// Send notification if enabled
+						if UserDefaults.standard.bool(forKey: "Feather.notificationsEnabled") {
+							NotificationManager.shared.sendAppReadyNotification(appName: app.name ?? "App")
+						}
+						
+						let install = UIAlertAction(title: .localized("Install"), style: .default) { _ in
+							if let url = URL(string: installLink) {
+								UIApplication.shared.open(url)
+							}
+						}
+						let copy = UIAlertAction(title: .localized("Copy Link"), style: .default) { _ in
+							UIPasteboard.general.string = installLink
+						}
+						let cancel = UIAlertAction(title: .localized("Cancel"), style: .cancel)
+						
+						UIAlertController.showAlert(
+							title: .localized("Signing Successful"),
+							message: .localized("Your app is ready to install."),
+							actions: [install, copy, cancel]
+						)
+						
+					case .failure(let error):
+						let ok = UIAlertAction(title: .localized("Dismiss"), style: .cancel)
+						UIAlertController.showAlert(
+							title: "Error",
+							message: error.localizedDescription,
+							actions: [ok]
+						)
+					}
+				}
             }
         } else {
             // Local or Semi-Local
