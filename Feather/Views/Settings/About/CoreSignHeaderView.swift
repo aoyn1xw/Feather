@@ -46,7 +46,7 @@ struct CoreSignHeaderView: View {
     private var mainContent: some View {
         VStack(spacing: 0) {
             headerContent
-                .padding(20)
+                .padding(16)
         }
         .background(backgroundShape)
         .overlay(borderShape)
@@ -54,7 +54,7 @@ struct CoreSignHeaderView: View {
     }
     
     private var headerContent: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 12) {
             appIcon
             titleSection
             Spacer()
@@ -68,9 +68,9 @@ struct CoreSignHeaderView: View {
             Image(uiImage: icon)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 64, height: 64)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .shadow(color: .accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
+                .frame(width: 48, height: 48)
+                .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+                .shadow(color: .accentColor.opacity(0.25), radius: 6, x: 0, y: 3)
         } else {
             placeholderIcon
         }
@@ -78,7 +78,7 @@ struct CoreSignHeaderView: View {
     
     private var placeholderIcon: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: 11, style: .continuous)
                 .fill(
                     LinearGradient(
                         colors: [.accentColor, .accentColor.opacity(0.7)],
@@ -86,23 +86,23 @@ struct CoreSignHeaderView: View {
                         endPoint: .bottomTrailing
                     )
                 )
-                .frame(width: 64, height: 64)
+                .frame(width: 48, height: 48)
             
             Image(systemName: "app.badge")
-                .font(.system(size: 32, weight: .semibold))
+                .font(.system(size: 24, weight: .semibold))
                 .foregroundStyle(.white)
         }
-        .shadow(color: .accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
+        .shadow(color: .accentColor.opacity(0.25), radius: 6, x: 0, y: 3)
     }
     
     private var titleSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 4) {
             Text("CoreSign")
-                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundStyle(.primary)
             
             Text(currentSubtitle)
-                .font(.subheadline)
+                .font(.caption)
                 .foregroundStyle(.secondary)
                 .transition(.asymmetric(
                     insertion: .move(edge: .bottom).combined(with: .opacity),
@@ -113,7 +113,7 @@ struct CoreSignHeaderView: View {
     }
     
     private var actionButtons: some View {
-        VStack(alignment: .trailing, spacing: 10) {
+        VStack(alignment: .trailing, spacing: 8) {
             versionBadge
             if !hideAboutButton {
                 creditsButton
@@ -122,17 +122,17 @@ struct CoreSignHeaderView: View {
     }
     
     private var versionBadge: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 4) {
             Image(systemName: "checkmark.seal.fill")
-                .font(.caption2)
+                .font(.system(size: 8))
                 .foregroundStyle(Color.accentColor)
             Text("v1.0.4")
-                .font(.caption)
+                .font(.system(size: 10))
                 .fontWeight(.semibold)
         }
         .foregroundStyle(.primary)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
         .background(
             Capsule()
                 .fill(Color.accentColor.opacity(0.12))
@@ -143,21 +143,21 @@ struct CoreSignHeaderView: View {
         Button {
             showCredits = true
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: 4) {
                 Image(systemName: "person.3.fill")
-                    .font(.caption)
+                    .font(.system(size: 9))
                 Text(.localized("Credits"))
-                    .font(.callout)
+                    .font(.system(size: 11))
                     .fontWeight(.semibold)
             }
             .foregroundStyle(.white)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
             .background(
                 Capsule()
                     .fill(Color.accentColor)
             )
-            .shadow(color: .accentColor.opacity(0.4), radius: 6, x: 0, y: 3)
+            .shadow(color: .accentColor.opacity(0.3), radius: 4, x: 0, y: 2)
         }
     }
     

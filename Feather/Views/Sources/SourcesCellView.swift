@@ -48,12 +48,22 @@ struct SourcesCellView: View {
 		.padding(16)
 		.background(
 			RoundedRectangle(cornerRadius: 12, style: .continuous)
-				.fill(Color(UIColor.secondarySystemGroupedBackground))
+				.fill(
+					LinearGradient(
+						colors: [
+							dominantColor.opacity(0.08),
+							dominantColor.opacity(0.04)
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+				)
 		)
 		.overlay(
 			RoundedRectangle(cornerRadius: 12, style: .continuous)
-				.stroke(Color(UIColor.separator).opacity(0.5), lineWidth: 0.5)
+				.stroke(dominantColor.opacity(0.2), lineWidth: 1)
 		)
+		.shadow(color: dominantColor.opacity(0.15), radius: 8, x: 0, y: 4)
 		.swipeActions(edge: .leading) {
 			Button {
 				viewModel.togglePin(for: source)

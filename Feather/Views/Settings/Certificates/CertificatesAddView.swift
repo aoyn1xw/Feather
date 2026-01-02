@@ -21,24 +21,91 @@ struct CertificatesAddView: View {
 	// MARK: Body
 	var body: some View {
 		NBNavigationView(.localized("New Certificate"), displayMode: .inline) {
-			Form {
-				NBSection(.localized("Files")) {
-					_importButton(.localized("Import Certificate File"), file: _p12URL) {
-						_isImportingP12Presenting = true
-					}
-					_importButton(.localized("Import Provisioning File"), file: _provisionURL) {
-						_isImportingMobileProvisionPresenting = true
-					}
-				}
-				NBSection(.localized("Password")) {
-					SecureField(.localized("Enter Password"), text: $_p12Password)
-				} footer: {
-					Text(.localized("Enter the password associated with the private key. Leave it blank if theres no password required."))
-				}
+			ZStack {
+				// Background gradient
+				LinearGradient(
+					colors: [
+						Color.accentColor.opacity(0.03),
+						Color.clear
+					],
+					startPoint: .top,
+					endPoint: .bottom
+				)
+				.ignoresSafeArea()
 				
-				Section {
-					TextField(.localized("Nickname (Optional)"), text: $_certificateName)
+				Form {
+					NBSection {
+						_importButton(.localized("Import Certificate File"), file: _p12URL, iconName: "doc.badge.key.fill") {
+							_isImportingP12Presenting = true
+						}
+						_importButton(.localized("Import Provisioning File"), file: _provisionURL, iconName: "doc.fill.badge.gearshape") {
+							_isImportingMobileProvisionPresenting = true
+						}
+					} header: {
+						HStack(spacing: 8) {
+							Image(systemName: "folder.fill.badge.plus")
+								.font(.subheadline)
+								.foregroundStyle(
+									LinearGradient(
+										colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
+							Text(.localized("Files"))
+								.fontWeight(.semibold)
+						}
+						.textCase(.none)
+					}
+					NBSection {
+						HStack(spacing: 12) {
+							Image(systemName: "lock.shield.fill")
+								.foregroundStyle(Color.accentColor)
+							SecureField(.localized("Enter Password"), text: $_p12Password)
+						}
+					} header: {
+						HStack(spacing: 8) {
+							Image(systemName: "key.fill")
+								.font(.subheadline)
+								.foregroundStyle(
+									LinearGradient(
+										colors: [Color.orange, Color.orange.opacity(0.7)],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
+							Text(.localized("Password"))
+								.fontWeight(.semibold)
+						}
+						.textCase(.none)
+					} footer: {
+						Text(.localized("Enter the password associated with the private key. Leave it blank if theres no password required."))
+					}
+					
+					Section {
+						HStack(spacing: 12) {
+							Image(systemName: "tag.fill")
+								.foregroundStyle(Color.accentColor)
+							TextField(.localized("Nickname (Optional)"), text: $_certificateName)
+						}
+					} header: {
+						HStack(spacing: 8) {
+							Image(systemName: "textformat")
+								.font(.subheadline)
+								.foregroundStyle(
+									LinearGradient(
+										colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
+							Text(.localized("Name"))
+								.fontWeight(.semibold)
+						}
+						.textCase(.none)
+					}
 				}
+				.scrollContentBackground(.hidden)
 			}
 			.toolbar {
 				NBToolbarButton(role: .cancel)
@@ -82,12 +149,63 @@ extension CertificatesAddView {
 	private func _importButton(
 		_ title: String,
 		file: URL?,
+		iconName: String = "square.and.arrow.down.fill",
 		action: @escaping () -> Void
 	) -> some View {
-		Button(title) {
+		Button {
 			action()
+		} label: {
+			HStack(spacing: 12) {
+				ZStack {
+					Circle()
+						.fill(
+							file == nil
+								? LinearGradient(
+									colors: [Color.accentColor.opacity(0.15), Color.accentColor.opacity(0.05)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+								: LinearGradient(
+									colors: [Color.green.opacity(0.15), Color.green.opacity(0.05)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+						)
+						.frame(width: 36, height: 36)
+					
+					Image(systemName: file == nil ? iconName : "checkmark.circle.fill")
+						.font(.system(size: 16))
+						.foregroundStyle(file == nil ? Color.accentColor : Color.green)
+				}
+				
+				VStack(alignment: .leading, spacing: 4) {
+					Text(title)
+						.font(.body)
+						.fontWeight(.medium)
+						.foregroundStyle(file == nil ? .primary : .secondary)
+					
+					if let file = file {
+						Text(file.lastPathComponent)
+							.font(.caption)
+							.foregroundStyle(.secondary)
+							.lineLimit(1)
+					} else {
+						Text(.localized("Tap to select"))
+							.font(.caption)
+							.foregroundStyle(.secondary)
+					}
+				}
+				
+				Spacer()
+				
+				if file == nil {
+					Image(systemName: "chevron.right")
+						.font(.caption)
+						.foregroundStyle(.tertiary)
+				}
+			}
+			.padding(.vertical, 4)
 		}
-		.foregroundColor(file == nil ? .accentColor : .disabled())
 		.disabled(file != nil)
 		.animation(.easeInOut(duration: 0.3), value: file != nil)
 	}
