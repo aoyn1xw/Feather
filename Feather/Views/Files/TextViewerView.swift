@@ -1,0 +1,209 @@
+import SwiftUI
+import NimbleViews
+
+// MARK: - TextViewerView
+struct TextViewerView: View {
+    let fileURL: URL
+    @Environment(\.dismiss) var dismiss
+    
+    @State private var textContent: String = ""
+    @State private var selectedEncoding: String.Encoding = .utf8
+    @State private var isLoading: Bool = true
+    @State private var errorMessage: String?
+    @State private var showEncodingPicker: Bool = false
+    @State private var isEditing: Bool = false
+    @FocusState private var isTextEditorFocused: Bool
+    
+    let availableEncodings: [(name: String, encoding: String.Encoding)] = [
+        ("UTF-8", .utf8),
+        ("UTF-16", .utf16),
+        ("UTF-32", .utf32),
+        ("ASCII", .ascii),
+        ("ISO Latin 1", .isoLatin1),
+        ("ISO Latin 2", .isoLatin2),
+        ("Windows CP1252", .windowsCP1252),
+        ("Mac OS Roman", .macOSRoman)
+    ]
+    
+    var body: some View {
+        NBNavigationView(.localized("Text Viewer"), displayMode: .inline) {
+            VStack(spacing: 0) {
+                if let error = errorMessage {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.red)
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                        Spacer()
+                    }
+                    .padding()
+                    .background(Color.red.opacity(0.1))
+                }
+                
+                if isLoading {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                } else {
+                    if isEditing {
+                        TextEditor(text: $textContent)
+                            .font(.system(.body, design: .monospaced))
+                            .padding()
+                            .focused($isTextEditorFocused)
+                    } else {
+                        ScrollView {
+                            Text(textContent)
+                                .font(.system(.body, design: .monospaced))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding()
+                                .textSelection(.enabled)
+                        }
+                    }
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(.localized("Close")) {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItemGroup(placement: .primaryAction) {
+                    Menu {
+                        Button {
+                            showEncodingPicker = true
+                        } label: {
+                            Label(.localized("Change Encoding"), systemImage: "textformat.abc")
+                        }
+                        
+                        Button {
+                            copyToClipboard()
+                        } label: {
+                            Label(.localized("Copy All"), systemImage: "doc.on.doc")
+                        }
+                        
+                        Button {
+                            shareFile()
+                        } label: {
+                            Label(.localized("Share"), systemImage: "square.and.arrow.up")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                    
+                    if !isLoading {
+                        Button(isEditing ? .localized("Save") : .localized("Edit")) {
+                            if isEditing {
+                                saveContent()
+                            } else {
+                                isEditing = true
+                            }
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $showEncodingPicker) {
+                encodingPickerSheet
+            }
+        }
+        .onAppear {
+            loadContent()
+        }
+    }
+    
+    private var encodingPickerSheet: some View {
+        NBNavigationView(.localized("Text Encoding"), displayMode: .inline) {
+            Form {
+                Section {
+                    ForEach(availableEncodings, id: \.name) { item in
+                        Button {
+                            selectedEncoding = item.encoding
+                            showEncodingPicker = false
+                            loadContent()
+                        } label: {
+                            HStack {
+                                Text(item.name)
+                                    .foregroundStyle(.primary)
+                                Spacer()
+                                if selectedEncoding == item.encoding {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(.blue)
+                                }
+                            }
+                        }
+                    }
+                } header: {
+                    Text(.localized("Select Encoding"))
+                } footer: {
+                    Text(.localized("Choose the character encoding for this file"))
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(.localized("Cancel")) {
+                        showEncodingPicker = false
+                    }
+                }
+            }
+        }
+    }
+    
+    private func loadContent() {
+        isLoading = true
+        errorMessage = nil
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                let data = try Data(contentsOf: fileURL)
+                
+                guard let content = String(data: data, encoding: selectedEncoding) else {
+                    DispatchQueue.main.async {
+                        self.errorMessage = "Unable to decode file with \(encodingName()) encoding"
+                        self.isLoading = false
+                    }
+                    return
+                }
+                
+                DispatchQueue.main.async {
+                    self.textContent = content
+                    self.isLoading = false
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.errorMessage = error.localizedDescription
+                    self.isLoading = false
+                }
+                AppLogManager.shared.error("Failed to load text file: \(error.localizedDescription)", category: "Files")
+            }
+        }
+    }
+    
+    private func saveContent() {
+        do {
+            guard let data = textContent.data(using: selectedEncoding) else {
+                throw NSError(domain: "TextViewer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unable to encode text"])
+            }
+            
+            try data.write(to: fileURL, options: .atomic)
+            HapticsManager.shared.success()
+            isEditing = false
+        } catch {
+            HapticsManager.shared.error()
+            errorMessage = "Save failed: \(error.localizedDescription)"
+            AppLogManager.shared.error("Failed to save text file: \(error.localizedDescription)", category: "Files")
+        }
+    }
+    
+    private func copyToClipboard() {
+        UIPasteboard.general.string = textContent
+        HapticsManager.shared.success()
+    }
+    
+    private func shareFile() {
+        UIActivityViewController.show(activityItems: [fileURL])
+    }
+    
+    private func encodingName() -> String {
+        availableEncodings.first(where: { $0.encoding == selectedEncoding })?.name ?? "UTF-8"
+    }
+}

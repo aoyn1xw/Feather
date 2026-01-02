@@ -15,6 +15,8 @@ struct FilesView: View {
     @State private var showUnzipSheet = false
     @State private var showSearch = false
     @State private var showFileInfo = false
+    @State private var showMoveSheet = false
+    @State private var showChecksumSheet = false
     @State private var searchText = ""
     @State private var selectedFile: FileItem?
     @State private var selectedFiles: Set<UUID> = []
@@ -26,6 +28,9 @@ struct FilesView: View {
     @State private var showRenameAlert = false
     @State private var renameText = ""
     @State private var fileToRename: FileItem?
+    @State private var showCertificateQuickAdd = false
+    @State private var detectedP12: URL?
+    @State private var detectedMobileprovision: URL?
     
     enum LayoutMode {
         case list, grid
@@ -59,16 +64,30 @@ struct FilesView: View {
         return files
     }
     
+    var hasCertificateFiles: Bool {
+        let files = fileManager.currentFiles
+        let hasP12 = files.contains(where: { $0.url.pathExtension.lowercased() == "p12" })
+        let hasMobileprovision = files.contains(where: { $0.url.pathExtension.lowercased() == "mobileprovision" })
+        return hasP12 && hasMobileprovision
+    }
+    
     var body: some View {
         NBNavigationView(.localized("Files")) {
-            ZStack {
-                if fileManager.currentFiles.isEmpty {
-                    emptyStateView
-                } else {
-                    if layoutMode == .list {
-                        fileListView
+            VStack(spacing: 0) {
+                // Certificate Quick Add Banner
+                if hasCertificateFiles {
+                    certificateQuickAddBanner
+                }
+                
+                ZStack {
+                    if fileManager.currentFiles.isEmpty {
+                        emptyStateView
                     } else {
-                        fileGridView
+                        if layoutMode == .list {
+                            fileListView
+                        } else {
+                            fileGridView
+                        }
                     }
                 }
             }
@@ -177,6 +196,19 @@ struct FilesView: View {
             .sheet(isPresented: $showShareSheet) {
                 ShareSheet(urls: shareURLs)
             }
+            .sheet(isPresented: $showMoveSheet) {
+                MoveFileView(files: selectedFilesArray, currentDirectory: fileManager.currentDirectory)
+            }
+            .sheet(isPresented: $showChecksumSheet) {
+                if let file = selectedFilesArray.first {
+                    ChecksumCalculatorView(fileURL: file.url)
+                }
+            }
+            .sheet(isPresented: $showCertificateQuickAdd) {
+                if let p12 = detectedP12, let provision = detectedMobileprovision {
+                    CertificateQuickAddView(p12URL: p12, mobileprovisionURL: provision)
+                }
+            }
             .alert(.localized("Rename File"), isPresented: $showRenameAlert) {
                 TextField(.localized("New Name"), text: $renameText)
                 Button(.localized("Cancel"), role: .cancel) { }
@@ -189,6 +221,43 @@ struct FilesView: View {
                 Text(.localized("Enter a new name for the file"))
             }
         }
+    }
+    
+    private var certificateQuickAddBanner: some View {
+        Button {
+            detectCertificateFiles()
+            showCertificateQuickAdd = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "person.badge.key.fill")
+                    .font(.title2)
+                    .foregroundStyle(.white)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(.localized("Certificate Files Detected"))
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                    Text(.localized("Tap to add certificate"))
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.9))
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.body)
+                    .foregroundStyle(.white.opacity(0.7))
+            }
+            .padding()
+            .background(
+                LinearGradient(
+                    colors: [Color.blue, Color.blue.opacity(0.8)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+        }
+        .buttonStyle(.plain)
     }
     
     private var selectedFilesArray: [FileItem] {
@@ -288,6 +357,14 @@ struct FilesView: View {
                     Spacer()
                     
                     Button {
+                        showMoveSheet = true
+                    } label: {
+                        Label(.localized("Move"), systemImage: "folder")
+                    }
+                    
+                    Spacer()
+                    
+                    Button {
                         showZipSheet = true
                     } label: {
                         Label(.localized("Zip"), systemImage: "doc.zipper")
@@ -353,6 +430,10 @@ struct FilesView: View {
                 FolderCustomizationView(folderURL: file.url)
             } else if file.url.pathExtension.lowercased() == "plist" {
                 PlistEditorView(fileURL: file.url)
+            } else if file.url.pathExtension.lowercased() == "json" {
+                JSONViewerView(fileURL: file.url)
+            } else if ["txt", "text", "md", "log", "swift", "py", "js", "ts", "html", "css", "xml", "yml", "yaml"].contains(file.url.pathExtension.lowercased()) {
+                TextViewerView(fileURL: file.url)
             } else {
                 HexEditorView(fileURL: file.url)
             }
@@ -463,10 +544,28 @@ struct FilesView: View {
         }
         
         Button {
+            selectedFiles = [file.id]
+            showMoveSheet = true
+        } label: {
+            Label(.localized("Move"), systemImage: "folder")
+        }
+        
+        Button {
             shareURLs = [file.url]
             showShareSheet = true
         } label: {
             Label(.localized("Share"), systemImage: "square.and.arrow.up")
+        }
+        
+        if !file.isDirectory {
+            Divider()
+            
+            Button {
+                selectedFiles = [file.id]
+                showChecksumSheet = true
+            } label: {
+                Label(.localized("Calculate Checksums"), systemImage: "number.square")
+            }
         }
         
         if file.url.pathExtension.lowercased() == "zip" {
@@ -488,6 +587,13 @@ struct FilesView: View {
         } label: {
             Label(.localized("Delete"), systemImage: "trash")
         }
+    }
+    
+    private func detectCertificateFiles() {
+        let files = fileManager.currentFiles
+        detectedP12 = files.first(where: { $0.url.pathExtension.lowercased() == "p12" })?.url
+        detectedMobileprovision = files.first(where: { $0.url.pathExtension.lowercased() == "mobileprovision" })?.url
+        HapticsManager.shared.impact()
     }
 }
 
