@@ -989,11 +989,18 @@ class FileManagerService: ObservableObject {
     }
     
     func navigateUp() {
+        // Don't navigate if we're already at the base directory
+        guard currentDirectory != baseDirectory else { return }
+        
         let parent = currentDirectory.deletingLastPathComponent()
-        // Only navigate up if we're not at the base directory
-        // and the parent is at or within the base directory
-        if currentDirectory != baseDirectory && 
-           (parent == baseDirectory || parent.path.starts(with: baseDirectory.path)) {
+        
+        // Check if parent is the base directory or a subdirectory within it
+        // by comparing standardized paths to avoid substring issues
+        let standardizedParent = parent.standardized.path
+        let standardizedBase = baseDirectory.standardized.path
+        
+        // Navigate up if parent is the base directory OR parent is inside the base directory
+        if parent == baseDirectory || standardizedParent.hasPrefix(standardizedBase + "/") {
             currentDirectory = parent
             loadFiles()
         }
