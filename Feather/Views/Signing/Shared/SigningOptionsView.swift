@@ -10,7 +10,7 @@ struct SigningOptionsView: View {
 	// MARK: Body
 	var body: some View {
 		if (temporaryOptions == nil) {
-			NBSection {
+			Section {
 				_toggle(
 					.localized("PPQ Protection"),
 					systemImage: "shield.checkered",

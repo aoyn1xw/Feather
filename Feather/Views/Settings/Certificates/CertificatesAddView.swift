@@ -33,7 +33,7 @@ struct CertificatesAddView: View {
 				)
 				.ignoresSafeArea()
 				
-				Form {
+				SwiftUI.Form {
 					NBSection {
 						_importButton(.localized("Import Certificate File"), file: _p12URL, iconName: "doc.badge.key.fill") {
 							_isImportingP12Presenting = true
