@@ -95,7 +95,7 @@ struct CoreSignHeaderView: View {
                             Text(.localized("About"))
                                 .font(.caption)
                                 .fontWeight(.semibold)
-                                .foregroundStyle(.accentColor)
+                                .foregroundStyle(Color.accentColor)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 5)
                                 .background(
