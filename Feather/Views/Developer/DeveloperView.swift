@@ -1199,17 +1199,74 @@ struct AppStateView: View {
 }
 
 struct FeatureFlagsView: View {
-    @AppStorage("feature_newUI") var newUI = false
+    @AppStorage("feature_experimentalUI") var experimentalUI = false
     @AppStorage("feature_enhancedAnimations") var enhancedAnimations = false
     @AppStorage("feature_advancedSigning") var advancedSigning = false
     
+    @State private var showExperimentalUIConfirmation = false
+    @State private var pendingExperimentalUIValue = false
+    @Environment(\.scenePhase) private var scenePhase
+    
     var body: some View {
         List {
-            Toggle("Experimental UI", isOn: $newUI)
-            Toggle("Enhanced Animations", isOn: $enhancedAnimations)
-            Toggle("Advanced Signing Options", isOn: $advancedSigning)
+            Section(header: Text("UI & Experience")) {
+                Toggle("Experimental UI", isOn: Binding(
+                    get: { experimentalUI },
+                    set: { newValue in
+                        if newValue != experimentalUI {
+                            pendingExperimentalUIValue = newValue
+                            showExperimentalUIConfirmation = true
+                        }
+                    }
+                ))
+                .tint(.purple)
+                
+                if experimentalUI {
+                    Text("Experimental UI is currently enabled. The app will restart when you disable it.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } footer: {
+                Text("The Experimental UI is a complete redesign of the app's interface. This feature is still under development and may cause bugs.")
+            }
+            
+            Section(header: Text("Performance")) {
+                Toggle("Enhanced Animations", isOn: $enhancedAnimations)
+            }
+            
+            Section(header: Text("Signing")) {
+                Toggle("Advanced Signing Options", isOn: $advancedSigning)
+            }
         }
         .navigationTitle("Feature Flags")
+        .alert("Experimental UI", isPresented: $showExperimentalUIConfirmation) {
+            Button("No Thanks", role: .cancel) {
+                // Don't change anything
+                pendingExperimentalUIValue = experimentalUI
+            }
+            Button("Yes, Restart") {
+                // Apply the change
+                experimentalUI = pendingExperimentalUIValue
+                
+                // Log the change
+                AppLogManager.shared.info("Experimental UI toggled to: \(experimentalUI)", category: "FeatureFlags")
+                
+                // Restart the app
+                restartApp()
+            }
+        } message: {
+            Text("You are \(pendingExperimentalUIValue ? "enabling" : "disabling") an experimental UI. This is still under development and may cause bugs. The app will restart to apply changes. Are you sure?")
+        }
+    }
+    
+    private func restartApp() {
+        // Give a moment for the alert to dismiss
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            // Use exit to terminate the app
+            // The user will need to manually relaunch it
+            // This is the most reliable way on iOS to ensure a full restart
+            exit(0)
+        }
     }
 }
 

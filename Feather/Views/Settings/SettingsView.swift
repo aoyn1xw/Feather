@@ -8,6 +8,8 @@ import IDeviceSwift
 struct SettingsView: View {
     @State private var _currentIcon: String? = UIApplication.shared.alternateIconName
     @State private var developerTapCount = 0
+    @State private var lastTapTime: Date?
+    @State private var showDeveloperConfirmation = false
     @AppStorage("isDeveloperModeEnabled") private var isDeveloperModeEnabled = false
     
     // MARK: Body
@@ -20,12 +22,7 @@ struct SettingsView: View {
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
                         .onTapGesture {
-                            developerTapCount += 1
-                            if developerTapCount >= 7 {
-                                isDeveloperModeEnabled = true
-                                developerTapCount = 0
-                                HapticsManager.shared.success()
-                            }
+                            handleDeveloperModeTap()
                         }
                 }
                 
@@ -77,6 +74,41 @@ struct SettingsView: View {
                     }
                 }
             }
+        }
+        .alert("Enable Developer Mode", isPresented: $showDeveloperConfirmation) {
+            Button("Cancel", role: .cancel) {
+                developerTapCount = 0
+            }
+            Button("Enable", role: .none) {
+                isDeveloperModeEnabled = true
+                developerTapCount = 0
+                HapticsManager.shared.success()
+                AppLogManager.shared.info("Developer mode enabled", category: "Settings")
+            }
+        } message: {
+            Text("Developer mode provides advanced tools and diagnostics. This is intended for developers and advanced users only. Are you sure you want to enable it?")
+        }
+    }
+    
+    private func handleDeveloperModeTap() {
+        let now = Date()
+        
+        // Reset counter if too much time has passed (5 seconds)
+        if let lastTap = lastTapTime, now.timeIntervalSince(lastTap) > 5.0 {
+            developerTapCount = 0
+        }
+        
+        lastTapTime = now
+        developerTapCount += 1
+        
+        // Provide subtle feedback
+        if developerTapCount >= 5 && developerTapCount < 10 {
+            HapticsManager.shared.softImpact()
+        }
+        
+        // Require 10 taps to show confirmation dialog
+        if developerTapCount >= 10 {
+            showDeveloperConfirmation = true
         }
     }
 }
