@@ -31,6 +31,9 @@ struct StatusBarOverlay: View {
     @AppStorage("statusBar.borderColor") private var borderColorHex: String = "#007AFF"
     
     @State private var isVisible = false
+    
+    // Nearly transparent but still blocks the status bar area
+    private let nearlyTransparentOpacity: Double = 0.00001
 
     private var selectedFontDesign: Font.Design {
         switch fontDesign {
@@ -67,7 +70,7 @@ struct StatusBarOverlay: View {
                 // Overlay to hide default status bar area when option is enabled
                 if hideDefaultStatusBar {
                     Color.black
-                        .opacity(0.00001) // Nearly transparent but still blocks the area
+                        .opacity(nearlyTransparentOpacity)
                         .frame(height: 50) // Cover status bar area
                         .frame(maxWidth: .infinity)
                         .ignoresSafeArea(edges: .top)
