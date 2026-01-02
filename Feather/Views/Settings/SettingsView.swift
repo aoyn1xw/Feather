@@ -28,31 +28,31 @@ struct SettingsView: View {
                 
                 Section {
                     NavigationLink(destination: AppearanceView()) {
-                        Label(.localized("Appearance"), systemImage: "paintbrush")
+                        ConditionalLabel(title: .localized("Appearance"), systemImage: "paintbrush")
                     }
                     NavigationLink(destination: HapticsView()) {
-                        Label(.localized("Haptics"), systemImage: "iphone.radiowaves.left.and.right")
+                        ConditionalLabel(title: .localized("Haptics"), systemImage: "iphone.radiowaves.left.and.right")
                     }
                 }
                 
                 NBSection(.localized("Features")) {
                     NavigationLink(destination: CertificatesView()) {
-                        Label(.localized("Certificates"), systemImage: "checkmark.seal")
+                        ConditionalLabel(title: .localized("Certificates"), systemImage: "checkmark.seal")
                     }
                     NavigationLink(destination: ConfigurationView()) {
-                        Label(.localized("Signing Options"), systemImage: "signature")
+                        ConditionalLabel(title: .localized("Signing Options"), systemImage: "signature")
                     }
                     NavigationLink(destination: ArchiveView()) {
-                        Label(.localized("Archive & Compression"), systemImage: "archivebox")
+                        ConditionalLabel(title: .localized("Archive & Compression"), systemImage: "archivebox")
                     }
                     NavigationLink(destination: InstallationView()) {
-                        Label(.localized("Installation"), systemImage: "arrow.down.circle")
+                        ConditionalLabel(title: .localized("Installation"), systemImage: "arrow.down.circle")
                     }
                     NavigationLink(destination: BackupRestoreView()) {
-                        Label(.localized("Backup & Restore"), systemImage: "externaldrive")
+                        ConditionalLabel(title: .localized("Backup & Restore"), systemImage: "externaldrive")
                     }
                     NavigationLink(destination: NotificationsView()) {
-                        Label(.localized("Notifications"), systemImage: "bell.badge.fill")
+                        ConditionalLabel(title: .localized("Notifications"), systemImage: "bell.badge.fill")
                     }
                 } footer: {
                     Text(.localized("Configure the apps way of installing, its zip compression levels, custom modifications to apps, and enable experimental features."))
@@ -60,7 +60,7 @@ struct SettingsView: View {
                 
                 Section {
                     NavigationLink(destination: ResetView()) {
-                        Label(.localized("Reset"), systemImage: "trash")
+                        ConditionalLabel(title: .localized("Reset"), systemImage: "trash")
                     }
                 } footer: {
                     Text(.localized("Reset the applications sources, certificates, apps, and general contents."))
@@ -69,7 +69,7 @@ struct SettingsView: View {
                 if isDeveloperModeEnabled {
                     NBSection("Developer") {
                         NavigationLink(destination: DeveloperView()) {
-                            Label("Developer Tools", systemImage: "hammer.fill")
+                            ConditionalLabelString(title: "Developer Tools", systemImage: "hammer.fill")
                         }
                     }
                 }

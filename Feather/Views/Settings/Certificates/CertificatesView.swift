@@ -37,7 +37,7 @@ struct CertificatesView: View {
 			if _certificates.isEmpty {
 				if #available(iOS 17, *) {
 					ContentUnavailableView {
-						Label(.localized("No Certificates"), systemImage: "questionmark.folder.fill")
+						ConditionalLabel(title: .localized("No Certificates"), systemImage: "questionmark.folder.fill")
 					} description: {
 						Text(.localized("Get started signing by importing your first certificate."))
 					} actions: {
@@ -88,8 +88,9 @@ extension CertificatesView {
 						_selectedCertBinding.wrappedValue == index 
 							? LinearGradient(
 								colors: [
-									Color.accentColor.opacity(0.12),
-									Color.accentColor.opacity(0.06)
+									Color.accentColor.opacity(0.2),
+									Color.accentColor.opacity(0.1),
+									Color.accentColor.opacity(0.05)
 								],
 								startPoint: .topLeading,
 								endPoint: .bottomTrailing
@@ -97,7 +98,8 @@ extension CertificatesView {
 							: LinearGradient(
 								colors: [
 									Color(UIColor.secondarySystemGroupedBackground),
-									Color(UIColor.secondarySystemGroupedBackground).opacity(0.8)
+									Color(UIColor.secondarySystemGroupedBackground).opacity(0.7),
+									Color(UIColor.tertiarySystemGroupedBackground).opacity(0.5)
 								],
 								startPoint: .topLeading,
 								endPoint: .bottomTrailing
@@ -108,18 +110,26 @@ extension CertificatesView {
 				RoundedRectangle(cornerRadius: 14, style: .continuous)
 					.stroke(
 						_selectedCertBinding.wrappedValue == index 
-							? Color.accentColor.opacity(0.5)
-							: Color(UIColor.separator).opacity(0.3),
-						lineWidth: _selectedCertBinding.wrappedValue == index ? 2 : 0.5
+							? LinearGradient(
+								colors: [Color.accentColor.opacity(0.6), Color.accentColor.opacity(0.3)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+							: LinearGradient(
+								colors: [Color(UIColor.separator).opacity(0.3), Color(UIColor.separator).opacity(0.1)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							),
+						lineWidth: _selectedCertBinding.wrappedValue == index ? 2 : 1
 					)
 			)
 			.shadow(
 				color: _selectedCertBinding.wrappedValue == index 
-					? Color.accentColor.opacity(0.25) 
-					: Color.black.opacity(0.04),
-				radius: _selectedCertBinding.wrappedValue == index ? 10 : 6,
+					? Color.accentColor.opacity(0.35) 
+					: Color.black.opacity(0.08),
+				radius: _selectedCertBinding.wrappedValue == index ? 12 : 8,
 				x: 0,
-				y: _selectedCertBinding.wrappedValue == index ? 4 : 2
+				y: _selectedCertBinding.wrappedValue == index ? 6 : 3
 			)
 			.overlay(alignment: .topTrailing) {
 				if _selectedCertBinding.wrappedValue == index {

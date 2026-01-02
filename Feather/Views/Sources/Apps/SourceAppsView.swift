@@ -345,7 +345,7 @@ struct SourceAppCardView: View {
 	
 	@ViewBuilder
 	private var cardBackground: some View {
-		// Flat color background (glass effects removed)
-		Color(uiColor: .secondarySystemGroupedBackground)
+		// Transparent background - no gray
+		Color.clear
 	}
 }
