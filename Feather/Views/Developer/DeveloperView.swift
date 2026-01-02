@@ -81,6 +81,13 @@ struct DeveloperView: View {
                         Label("Feature Flags", systemImage: "flag")
                     }
                     
+                    Toggle(isOn: Binding(
+                        get: { UserDefaults.standard.bool(forKey: "forceShowGuides") },
+                        set: { UserDefaults.standard.set($0, forKey: "forceShowGuides") }
+                    )) {
+                        Label("Force Show Guides", systemImage: "book.circle")
+                    }
+                    
                     Button {
                         // Reset onboarding flag to show it again
                         UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
