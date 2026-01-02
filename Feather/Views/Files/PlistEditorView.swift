@@ -10,6 +10,8 @@ struct PlistEditorView: View {
     @State private var showFormatPicker: Bool = false
     @State private var selectedFormat: PlistFormat = .xml
     @State private var validationError: String?
+    @State private var hasUnsavedChanges: Bool = false
+    @State private var autoSaveTimer: Timer?
     @FocusState private var isTextEditorFocused: Bool
     
     enum PlistFormat: String, CaseIterable {
@@ -47,6 +49,10 @@ struct PlistEditorView: View {
                             .focused($isTextEditorFocused)
                             .onChange(of: plistContent) { _ in
                                 validatePlist()
+                                if validationError == nil {
+                                    hasUnsavedChanges = true
+                                    scheduleAutoSave()
+                                }
                             }
                         
                         if isTextEditorFocused {
@@ -65,11 +71,20 @@ struct PlistEditorView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Close")) {
+                        if hasUnsavedChanges && validationError == nil {
+                            saveContentSilently()
+                        }
                         dismiss()
                     }
                 }
                 
                 ToolbarItemGroup(placement: .primaryAction) {
+                    if hasUnsavedChanges {
+                        Label(.localized("Auto-saving..."), systemImage: "clock.arrow.circlepath")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    
                     Menu {
                         Button {
                             showFormatPicker = true
@@ -103,6 +118,12 @@ struct PlistEditorView: View {
         }
         .onAppear {
             loadContent()
+        }
+        .onDisappear {
+            autoSaveTimer?.invalidate()
+            if hasUnsavedChanges && validationError == nil {
+                saveContentSilently()
+            }
         }
     }
     
@@ -204,12 +225,37 @@ struct PlistEditorView: View {
             
             try outputData.write(to: fileURL, options: .atomic)
             HapticsManager.shared.success()
+            hasUnsavedChanges = false
             isEditing = false
             loadContent() // Reload to show formatted version
         } catch {
             HapticsManager.shared.error()
             validationError = "Save failed: \(error.localizedDescription)"
             AppLogManager.shared.error("Failed to save plist: \(error.localizedDescription)", category: "Files")
+        }
+    }
+    
+    private func saveContentSilently() {
+        guard validationError == nil else { return }
+        
+        do {
+            guard let data = plistContent.data(using: .utf8) else { return }
+            let plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
+            let format: PropertyListSerialization.PropertyListFormat = selectedFormat == .xml ? .xml : .binary
+            let outputData = try PropertyListSerialization.data(fromPropertyList: plist, format: format, options: 0)
+            try outputData.write(to: fileURL, options: .atomic)
+            hasUnsavedChanges = false
+        } catch {
+            AppLogManager.shared.error("Failed to auto-save plist: \(error.localizedDescription)", category: "Files")
+        }
+    }
+    
+    private func scheduleAutoSave() {
+        autoSaveTimer?.invalidate()
+        DispatchQueue.main.async {
+            self.autoSaveTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
+                self.saveContentSilently()
+            }
         }
     }
     

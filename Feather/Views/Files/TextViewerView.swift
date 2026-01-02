@@ -12,6 +12,8 @@ struct TextViewerView: View {
     @State private var errorMessage: String?
     @State private var showEncodingPicker: Bool = false
     @State private var isEditing: Bool = false
+    @State private var hasUnsavedChanges: Bool = false
+    @State private var autoSaveTimer: Timer?
     @FocusState private var isTextEditorFocused: Bool
     
     let availableEncodings: [(name: String, encoding: String.Encoding)] = [
@@ -50,6 +52,10 @@ struct TextViewerView: View {
                             .font(.system(.body, design: .monospaced))
                             .padding()
                             .focused($isTextEditorFocused)
+                            .onChange(of: textContent) { _ in
+                                hasUnsavedChanges = true
+                                scheduleAutoSave()
+                            }
                     } else {
                         ScrollView {
                             Text(textContent)
@@ -64,11 +70,20 @@ struct TextViewerView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Close")) {
+                        if hasUnsavedChanges {
+                            saveContentSilently()
+                        }
                         dismiss()
                     }
                 }
                 
                 ToolbarItemGroup(placement: .primaryAction) {
+                    if hasUnsavedChanges {
+                        Label(.localized("Auto-saving..."), systemImage: "clock.arrow.circlepath")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    
                     Menu {
                         Button {
                             showEncodingPicker = true
@@ -108,6 +123,12 @@ struct TextViewerView: View {
         }
         .onAppear {
             loadContent()
+        }
+        .onDisappear {
+            autoSaveTimer?.invalidate()
+            if hasUnsavedChanges {
+                saveContentSilently()
+            }
         }
     }
     
@@ -186,11 +207,31 @@ struct TextViewerView: View {
             
             try data.write(to: fileURL, options: .atomic)
             HapticsManager.shared.success()
+            hasUnsavedChanges = false
             isEditing = false
         } catch {
             HapticsManager.shared.error()
             errorMessage = "Save failed: \(error.localizedDescription)"
             AppLogManager.shared.error("Failed to save text file: \(error.localizedDescription)", category: "Files")
+        }
+    }
+    
+    private func saveContentSilently() {
+        do {
+            guard let data = textContent.data(using: selectedEncoding) else { return }
+            try data.write(to: fileURL, options: .atomic)
+            hasUnsavedChanges = false
+        } catch {
+            AppLogManager.shared.error("Failed to auto-save text file: \(error.localizedDescription)", category: "Files")
+        }
+    }
+    
+    private func scheduleAutoSave() {
+        autoSaveTimer?.invalidate()
+        DispatchQueue.main.async {
+            self.autoSaveTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
+                self.saveContentSilently()
+            }
         }
     }
     
