@@ -181,8 +181,18 @@ struct SourceDetailsView: View {
 		.padding(20)
 		.background(
 			RoundedRectangle(cornerRadius: 16, style: .continuous)
-				.fill(Color(UIColor.secondarySystemGroupedBackground))
-				.shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
+				.fill(
+					LinearGradient(
+						colors: [
+							Color(UIColor.secondarySystemGroupedBackground),
+							Color(UIColor.secondarySystemGroupedBackground).opacity(0.6),
+							dominantColor.opacity(0.15)
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+				)
+				.shadow(color: dominantColor.opacity(0.2), radius: 12, x: 0, y: 4)
 		)
 	}
 	
@@ -209,7 +219,17 @@ struct SourceDetailsView: View {
 		.padding(12)
 		.background(
 			RoundedRectangle(cornerRadius: 12, style: .continuous)
-				.fill(Color(UIColor.secondarySystemBackground))
+				.fill(
+					LinearGradient(
+						colors: [
+							Color(UIColor.secondarySystemBackground),
+							Color(UIColor.secondarySystemBackground).opacity(0.8),
+							dominantColor.opacity(0.08)
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+				)
 		)
 	}
 	
@@ -318,9 +338,18 @@ struct SourceDetailsView: View {
 			.padding(14)
 			.frame(width: 300, alignment: .leading)
 		}
-		.background(Color(UIColor.secondarySystemGroupedBackground))
+		.background(
+			LinearGradient(
+				colors: [
+					Color(UIColor.secondarySystemGroupedBackground),
+					Color(UIColor.tertiarySystemGroupedBackground).opacity(0.6)
+				],
+				startPoint: .top,
+				endPoint: .bottom
+			)
+		)
 		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-		.shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 4)
+		.shadow(color: dominantColor.opacity(0.15), radius: 10, x: 0, y: 4)
 	}
 	
 	private func formatNewsDate(_ date: Date) -> String {

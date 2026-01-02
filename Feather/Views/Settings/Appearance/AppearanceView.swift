@@ -62,19 +62,11 @@ struct AppearanceView: View {
 			}
 			
 			NBSection(.localized("Visual Effects")) {
-				Toggle(isOn: $_useGradients) {
-					if _showIconsInAppearance {
-						Label(.localized("Use Gradients"), systemImage: "paintbrush.fill")
-					} else {
-						Text(.localized("Use Gradients"))
-					}
-				}
-				
 				Toggle(isOn: $_showIconsInAppearance) {
 					if _showIconsInAppearance {
-						Label(.localized("Show Icons in Settings"), systemImage: "square.grid.2x2.fill")
+						Label(.localized("Show Icons"), systemImage: "square.grid.2x2.fill")
 					} else {
-						Text(.localized("Show Icons in Settings"))
+						Text(.localized("Show Icons"))
 					}
 				}
 				
@@ -96,7 +88,7 @@ struct AppearanceView: View {
 					}
 				}
 			} footer: {
-				Text(.localized("Customize visual effects like gradients and animation speeds"))
+				Text(.localized("Customize visual effects and animation speeds. Hiding icons will affect the entire app."))
 			}
 			
 			NBSection(.localized("Sources")) {
@@ -139,7 +131,7 @@ struct AppearanceView: View {
 			
 			NBSection(.localized("Status Bar")) {
 				NavigationLink(destination: StatusBarCustomizationView()) {
-					Label(.localized("Status Bar Customization"), systemImage: "rectangle.inset.topright.filled")
+					ConditionalLabel(title: .localized("Status Bar Customization"), systemImage: "rectangle.inset.topright.filled")
 				}
 			} footer: {
 				Text(.localized("Customize status bar with SF Symbols, text, colors, and more"))
@@ -147,7 +139,7 @@ struct AppearanceView: View {
 			
 			NBSection(.localized("Tab Bar")) {
 				NavigationLink(destination: TabBarCustomizationView()) {
-					Label(.localized("Tab Bar Customization"), systemImage: "square.split.bottomrightquarter")
+					ConditionalLabel(title: .localized("Tab Bar Customization"), systemImage: "square.split.bottomrightquarter")
 				}
 			} footer: {
 				Text(.localized("Show or hide tabs from the tab bar. Settings cannot be hidden."))
