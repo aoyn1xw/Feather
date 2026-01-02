@@ -11,7 +11,6 @@ struct TabBarCustomizationView: View {
     // Settings cannot be disabled
     
     @State private var showMinimumWarning = false
-    @State private var editMode: EditMode = .inactive
     @State private var orderedTabs: [String] = []
     
     var body: some View {
@@ -20,25 +19,10 @@ struct TabBarCustomizationView: View {
                 ForEach(orderedTabs, id: \.self) { tabId in
                     tabRow(for: tabId)
                 }
-                .onMove(perform: moveTabs)
             } header: {
                 Text(.localized("Visible Tabs"))
             } footer: {
-                Text(.localized("Choose which tabs appear in the tab bar. You can also reorder tabs by tapping Edit and dragging them. Settings cannot be hidden and at least 2 tabs must be visible."))
-            }
-        }
-        .environment(\.editMode, $editMode)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(editMode == .inactive ? .localized("Edit") : .localized("Done")) {
-                    withAnimation {
-                        if editMode == .inactive {
-                            editMode = .active
-                        } else {
-                            editMode = .inactive
-                        }
-                    }
-                }
+                Text(.localized("Choose which tabs appear in the tab bar. Settings cannot be hidden and at least 2 tabs must be visible."))
             }
         }
         .onAppear {
@@ -124,11 +108,6 @@ struct TabBarCustomizationView: View {
     private func loadTabOrder() {
         let tabs = tabOrder.split(separator: ",").map(String.init)
         orderedTabs = tabs.isEmpty ? ["home", "library", "files", "guides", "settings"] : tabs
-    }
-    
-    private func moveTabs(from source: IndexSet, to destination: Int) {
-        orderedTabs.move(fromOffsets: source, toOffset: destination)
-        tabOrder = orderedTabs.joined(separator: ",")
     }
     
     private func validateMinimumTabs() {

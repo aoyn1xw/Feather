@@ -6,7 +6,7 @@ struct CoreSignHeaderView: View {
     // MARK: - State
     @State private var currentSubtitleIndex: Int = 0
     @State private var isAnimating = false
-    @State private var showAbout = false
+    @State private var showCredits = false
     var hideAboutButton: Bool = false
 
     // MARK: - Subtitle Definitions
@@ -87,21 +87,30 @@ struct CoreSignHeaderView: View {
                                 .fill(Color.accentColor.opacity(0.15))
                         )
                     
-                    // About Button (hidden when in Settings)
+                    // Credits Button
                     if !hideAboutButton {
                         Button {
-                            showAbout = true
+                            showCredits = true
                         } label: {
-                            Text(.localized("About"))
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(Color.accentColor)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
-                                .background(
-                                    Capsule()
-                                        .fill(Color.accentColor.opacity(0.15))
+                            HStack(spacing: 4) {
+                                Image(systemName: "person.3.fill")
+                                    .font(.caption2)
+                                Text(.localized("Credits"))
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                            }
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                LinearGradient(
+                                    colors: [.accentColor, .accentColor.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
                                 )
+                            )
+                            .clipShape(Capsule())
+                            .shadow(color: .accentColor.opacity(0.3), radius: 4, x: 0, y: 2)
                         }
                     }
                 }
@@ -119,7 +128,7 @@ struct CoreSignHeaderView: View {
             setupLifecycleObservers()
             rotateSubtitle()
         }
-        .sheet(isPresented: $showAbout) {
+        .sheet(isPresented: $showCredits) {
             CreditsView()
         }
     }
