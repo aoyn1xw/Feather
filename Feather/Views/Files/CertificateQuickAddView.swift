@@ -117,7 +117,7 @@ struct CertificateQuickAddView: View {
             p12URL: p12URL,
             provisionURL: mobileprovisionURL,
             p12Password: password,
-            certificateName: certificateName.isEmpty ? nil : certificateName,
+            certificateName: certificateName,
             isDefault: false
         ) { error in
             isProcessing = false

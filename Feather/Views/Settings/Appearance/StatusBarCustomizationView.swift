@@ -21,11 +21,26 @@ struct StatusBarCustomizationView: View {
     @AppStorage("statusBar.showBackground") private var showBackground: Bool = false
     @AppStorage("statusBar.backgroundColor") private var backgroundColorHex: String = "#000000"
     @AppStorage("statusBar.backgroundOpacity") private var backgroundOpacity: Double = 0.2
+    @AppStorage("statusBar.alignment") private var alignment: String = "center"
+    @AppStorage("statusBar.cornerRadius") private var cornerRadius: Double = 12
+    @AppStorage("statusBar.enableAnimation") private var enableAnimation: Bool = false
+    @AppStorage("statusBar.animationType") private var animationType: String = "bounce"
+    @AppStorage("statusBar.hideDefaultStatusBar") private var hideDefaultStatusBar: Bool = true
+    @AppStorage("statusBar.blurBackground") private var blurBackground: Bool = false
+    @AppStorage("statusBar.shadowEnabled") private var shadowEnabled: Bool = false
+    @AppStorage("statusBar.shadowColor") private var shadowColorHex: String = "#000000"
+    @AppStorage("statusBar.shadowRadius") private var shadowRadius: Double = 4
+    @AppStorage("statusBar.borderWidth") private var borderWidth: Double = 0
+    @AppStorage("statusBar.borderColor") private var borderColorHex: String = "#007AFF"
 
 @State private var selectedColor: Color = .blue
     @State private var selectedBackgroundColor: Color = .black
+    @State private var selectedShadowColor: Color = .black
+    @State private var selectedBorderColor: Color = .blue
 @State private var showColorPicker = false
     @State private var showBackgroundColorPicker = false
+    @State private var showShadowColorPicker = false
+    @State private var showBorderColorPicker = false
 @State private var searchSymbol = ""
 
 // Popular SF Symbols for quick access
@@ -37,6 +52,8 @@ private let popularSymbols = [
 ]
     
     private let fontDesigns = ["default", "monospaced", "rounded", "serif"]
+    private let alignments = ["leading", "center", "trailing"]
+    private let animationTypes = ["none", "bounce", "fade", "slide", "scale"]
 
 var body: some View {
 NBList(.localized("Status Bar Customization")) {
@@ -185,6 +202,8 @@ Text(.localized("Customize the appearance of status bar elements"))
                 Toggle(String.localized("Show Background"), isOn: $showBackground)
                 
                 if showBackground {
+                    Toggle(String.localized("Blur Background"), isOn: $blurBackground)
+                    
                     Button {
                         showBackgroundColorPicker = true
                     } label: {
@@ -208,7 +227,109 @@ Text(.localized("Customize the appearance of status bar elements"))
                             .foregroundStyle(.secondary)
                     }
                     Slider(value: $backgroundOpacity, in: 0...1, step: 0.1)
+                    
+                    HStack {
+                        Text(.localized("Corner Radius"))
+                        Spacer()
+                        Text("\(Int(cornerRadius)) pt")
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $cornerRadius, in: 0...30, step: 1)
+                    
+                    HStack {
+                        Text(.localized("Border Width"))
+                        Spacer()
+                        Text("\(Int(borderWidth)) pt")
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $borderWidth, in: 0...5, step: 0.5)
+                    
+                    if borderWidth > 0 {
+                        Button {
+                            showBorderColorPicker = true
+                        } label: {
+                            HStack {
+                                Text(.localized("Border Color"))
+                                Spacer()
+                                Circle()
+                                    .fill(SwiftUI.Color(hex: borderColorHex))
+                                    .frame(width: 30, height: 30)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.primary.opacity(0.2), lineWidth: 1)
+                                    )
+                            }
+                        }
+                    }
                 }
+            } footer: {
+                Text(.localized("Customize the background appearance of the status bar"))
+            }
+            
+            // Shadow Section
+            NBSection(.localized("Shadow")) {
+                Toggle(String.localized("Enable Shadow"), isOn: $shadowEnabled)
+                
+                if shadowEnabled {
+                    Button {
+                        showShadowColorPicker = true
+                    } label: {
+                        HStack {
+                            Text(.localized("Shadow Color"))
+                            Spacer()
+                            Circle()
+                                .fill(SwiftUI.Color(hex: shadowColorHex))
+                                .frame(width: 30, height: 30)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.primary.opacity(0.2), lineWidth: 1)
+                                    )
+                        }
+                    }
+                    
+                    HStack {
+                        Text(.localized("Shadow Radius"))
+                        Spacer()
+                        Text("\(Int(shadowRadius)) pt")
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $shadowRadius, in: 0...20, step: 1)
+                }
+            } footer: {
+                Text(.localized("Add shadow effects to the status bar elements"))
+            }
+            
+            // Layout Section
+            NBSection(.localized("Layout")) {
+                Picker(String.localized("Alignment"), selection: $alignment) {
+                    ForEach(alignments, id: \.self) { align in
+                        Text(align.capitalized).tag(align)
+                    }
+                }
+            } footer: {
+                Text(.localized("Set the horizontal alignment of status bar content"))
+            }
+            
+            // Animation Section
+            NBSection(.localized("Animation")) {
+                Toggle(String.localized("Enable Animation"), isOn: $enableAnimation)
+                
+                if enableAnimation {
+                    Picker(String.localized("Animation Type"), selection: $animationType) {
+                        ForEach(animationTypes, id: \.self) { type in
+                            Text(type.capitalized).tag(type)
+                        }
+                    }
+                }
+            } footer: {
+                Text(.localized("Add entrance animations to status bar elements"))
+            }
+            
+            // System Integration Section
+            NBSection(.localized("System Integration")) {
+                Toggle(String.localized("Hide Default Status Bar"), isOn: $hideDefaultStatusBar)
+            } footer: {
+                Text(.localized("When enabled, the custom status bar fully replaces the system status bar. Note: System status bar (battery, signal, time) will still be visible in the notch/Dynamic Island area."))
             }
 
 // Padding Section
@@ -274,9 +395,17 @@ ColorPickerSheet(selectedColor: $selectedColor, colorHex: $colorHex)
         .sheet(isPresented: $showBackgroundColorPicker) {
             ColorPickerSheet(selectedColor: $selectedBackgroundColor, colorHex: $backgroundColorHex)
         }
+        .sheet(isPresented: $showShadowColorPicker) {
+            ColorPickerSheet(selectedColor: $selectedShadowColor, colorHex: $shadowColorHex)
+        }
+        .sheet(isPresented: $showBorderColorPicker) {
+            ColorPickerSheet(selectedColor: $selectedBorderColor, colorHex: $borderColorHex)
+        }
 .onAppear {
 selectedColor = SwiftUI.Color(hex: colorHex)
             selectedBackgroundColor = SwiftUI.Color(hex: backgroundColorHex)
+            selectedShadowColor = SwiftUI.Color(hex: shadowColorHex)
+            selectedBorderColor = SwiftUI.Color(hex: borderColorHex)
 }
 }
 
@@ -299,6 +428,19 @@ selectedColor = .blue
         backgroundColorHex = "#000000"
         backgroundOpacity = 0.2
         selectedBackgroundColor = .black
+        alignment = "center"
+        cornerRadius = 12
+        enableAnimation = false
+        animationType = "bounce"
+        hideDefaultStatusBar = true
+        blurBackground = false
+        shadowEnabled = false
+        shadowColorHex = "#000000"
+        shadowRadius = 4
+        selectedShadowColor = .black
+        borderWidth = 0
+        borderColorHex = "#007AFF"
+        selectedBorderColor = .blue
 }
 }
 
