@@ -10,6 +10,7 @@ struct PlistEditorView: View {
     @State private var showFormatPicker: Bool = false
     @State private var selectedFormat: PlistFormat = .xml
     @State private var validationError: String?
+    @FocusState private var isTextEditorFocused: Bool
     
     enum PlistFormat: String, CaseIterable {
         case xml = "XML"
@@ -38,12 +39,20 @@ struct PlistEditorView: View {
                 }
                 
                 if isEditing {
-                    TextEditor(text: $plistContent)
-                        .font(.system(.body, design: .monospaced))
-                        .padding()
-                        .onChange(of: plistContent) { _ in
-                            validatePlist()
+                    ZStack(alignment: .bottom) {
+                        TextEditor(text: $plistContent)
+                            .font(.system(.body, design: .monospaced))
+                            .padding()
+                            .padding(.bottom, 50)
+                            .focused($isTextEditorFocused)
+                            .onChange(of: plistContent) { _ in
+                                validatePlist()
+                            }
+                        
+                        if isTextEditorFocused {
+                            plistKeyboardToolbar
                         }
+                    }
                 } else {
                     ScrollView {
                         Text(plistContent)
@@ -233,5 +242,73 @@ struct PlistEditorView: View {
             validationError = "Conversion failed: \(error.localizedDescription)"
             AppLogManager.shared.error("Failed to convert plist: \(error.localizedDescription)", category: "Files")
         }
+    }
+    
+    private var plistKeyboardToolbar: some View {
+        VStack(spacing: 0) {
+            Divider()
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    toolbarButton(title: .localized("Key"), icon: "key.fill") {
+                        insertTemplate("<key></key>")
+                    }
+                    
+                    toolbarButton(title: .localized("String"), icon: "text.quote") {
+                        insertTemplate("<string></string>")
+                    }
+                    
+                    toolbarButton(title: .localized("Integer"), icon: "number") {
+                        insertTemplate("<integer>0</integer>")
+                    }
+                    
+                    toolbarButton(title: .localized("Boolean"), icon: "checkmark.circle") {
+                        insertTemplate("<true/>")
+                    }
+                    
+                    toolbarButton(title: .localized("Array"), icon: "list.bullet") {
+                        insertTemplate("<array>\n\t\n</array>")
+                    }
+                    
+                    toolbarButton(title: .localized("Dict"), icon: "curlybraces") {
+                        insertTemplate("<dict>\n\t\n</dict>")
+                    }
+                    
+                    Divider()
+                        .frame(height: 30)
+                    
+                    toolbarButton(title: .localized("Format"), icon: "text.alignleft") {
+                        formatPlistContent()
+                    }
+                    
+                    toolbarButton(title: .localized("Done"), icon: "keyboard.chevron.compact.down") {
+                        isTextEditorFocused = false
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .frame(height: 50)
+            .background(Color(.systemGray6))
+        }
+    }
+    
+    private func toolbarButton(title: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.caption)
+                Text(title)
+                    .font(.caption2)
+            }
+            .frame(minWidth: 50)
+            .foregroundStyle(.primary)
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private func insertTemplate(_ template: String) {
+        // Insert at current cursor position or at end
+        plistContent.append("\n" + template)
+        HapticsManager.shared.impact()
     }
 }
