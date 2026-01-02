@@ -33,8 +33,8 @@ struct CertificatesAddView: View {
 				)
 				.ignoresSafeArea()
 				
-				SwiftUI.Form {
-					NBSection {
+				Form {
+					Section {
 						_importButton(.localized("Import Certificate File"), file: _p12URL, iconName: "doc.badge.key.fill") {
 							_isImportingP12Presenting = true
 						}
@@ -57,7 +57,7 @@ struct CertificatesAddView: View {
 						}
 						.textCase(.none)
 					}
-					NBSection {
+					Section {
 						HStack(spacing: 12) {
 							Image(systemName: "lock.shield.fill")
 								.foregroundStyle(Color.accentColor)

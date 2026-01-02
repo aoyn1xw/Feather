@@ -37,7 +37,7 @@ struct SigningOptionsView: View {
 			}
 		}
 		
-		NBSection {
+		Section {
 			Self.picker(
 				.localized("Appearance"),
 				systemImage: "paintpalette.fill",
@@ -92,7 +92,7 @@ struct SigningOptionsView: View {
 			.textCase(.none)
 		}
 		
-		NBSection {
+		Section {
 			_toggle(
 				.localized("File Sharing"),
 				systemImage: "folder.fill.badge.person.crop",
@@ -144,7 +144,7 @@ struct SigningOptionsView: View {
 			.textCase(.none)
 		}
 		
-		NBSection {
+		Section {
 			_toggle(
 				.localized("Remove URL Scheme"),
 				systemImage: "link.badge.minus",
@@ -203,7 +203,7 @@ struct SigningOptionsView: View {
 			Text(.localized("By default, localized titles for the app won't be changed, however this option overrides it."))
 		}
 		
-		NBSection {
+		Section {
             _toggle(
                 .localized("Install After Signing"),
                 systemImage: "arrow.down.circle.fill",
@@ -235,7 +235,7 @@ struct SigningOptionsView: View {
 			Text(.localized("This will delete your imported application after signing, to save on using unneeded space."))
 		}
 		
-		NBSection {
+		Section {
 			_toggle(
 				.localized("Replace Substrate with ElleKit"),
 				systemImage: "arrow.triangle.2.circlepath.circle.fill",
