@@ -178,12 +178,12 @@ struct QuickInspectView: View {
             let path = file.url.path
             
             // Get basic file info
-            let info = FilesEngine.getFileInfo(at: path)
+            let info = FilesEngine.getFileInformation(at: path)
             
             // Calculate hashes (for smaller files)
             var hashes: FilesEngine.HashInformation?
             if file.sizeInBytes ?? 0 < 100_000_000 { // Only for files < 100MB
-                hashes = FilesEngine.calculateHashes(for: path)
+                hashes = FilesEngine.computeHashes(for: path)
             }
             
             // Analyze specific file types
@@ -191,11 +191,11 @@ struct QuickInspectView: View {
             var macho: FilesEngine.MachOInformation?
             
             if file.url.pathExtension.lowercased() == "ipa" {
-                ipa = FilesEngine.analyzeIPA(at: path)
+                ipa = FilesEngine.analyzeIPAFile(at: path)
             }
             
             if info?.type == .machO || file.url.pathExtension.lowercased() == "dylib" {
-                macho = FilesEngine.analyzeMachO(at: path)
+                macho = FilesEngine.analyzeMachOFile(at: path)
             }
             
             await MainActor.run {

@@ -89,7 +89,7 @@ class FilesEngine {
     // MARK: - Core Functions
     
     /// Detect file type by analyzing magic bytes
-    static func detectFileType(at path: String) -> FileType? {
+    static func getFileType(at path: String) -> FileType? {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return nil }
         
@@ -98,7 +98,7 @@ class FilesEngine {
     }
     
     /// Get detailed file information
-    static func getFileInfo(at path: String) -> FileInformation? {
+    static func getFileInformation(at path: String) -> FileInformation? {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return nil }
         
@@ -129,7 +129,7 @@ class FilesEngine {
     }
     
     /// Calculate file hashes (MD5, SHA1, SHA256)
-    static func calculateHashes(for path: String) -> HashInformation? {
+    static func computeHashes(for path: String) -> HashInformation? {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return nil }
         
@@ -155,7 +155,7 @@ class FilesEngine {
     }
     
     /// Analyze IPA file
-    static func analyzeIPA(at path: String) -> IPAInformation? {
+    static func analyzeIPAFile(at path: String) -> IPAInformation? {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return nil }
         
@@ -189,7 +189,7 @@ class FilesEngine {
     }
     
     /// Analyze Mach-O binary
-    static func analyzeMachO(at path: String) -> MachOInformation? {
+    static func analyzeMachOFile(at path: String) -> MachOInformation? {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return nil }
         
@@ -212,7 +212,7 @@ class FilesEngine {
     }
     
     /// Scan directory for files
-    static func scanDirectory(at path: String, recursive: Bool = false) -> [FileInformation]? {
+    static func scanDirectoryContents(at path: String, recursive: Bool = false) -> [FileInformation]? {
         let cPath = (path as NSString).utf8String
         guard let cStr = cPath else { return nil }
         
@@ -256,60 +256,100 @@ class FilesEngine {
     }
     
     /// Bulk delete files
-    static func bulkDelete(paths: [String]) -> Int {
-        let cPaths = paths.map { ($0 as NSString).utf8String! }
-        let cPathArray = cPaths.map { UnsafePointer<Int8>($0) }
+    static func deleteFilesInBulk(paths: [String]) -> Int {
+        // Convert Swift strings to C strings
+        let cStrings = paths.map { strdup($0) }
+        defer {
+            // Free the C strings when done
+            cStrings.forEach { free($0) }
+        }
         
-        return Int(bulkDelete(cPathArray, Int32(cPathArray.count)))
+        // Create array of pointers and call C function
+        return cStrings.withUnsafeBufferPointer { buffer in
+            let mutableBuffer = UnsafeMutablePointer<UnsafePointer<CChar>?>.allocate(capacity: buffer.count)
+            defer { mutableBuffer.deallocate() }
+            
+            for (index, cString) in buffer.enumerated() {
+                mutableBuffer[index] = UnsafePointer(cString)
+            }
+            
+            return Int(bulkDelete(mutableBuffer, Int32(paths.count)))
+        }
     }
     
     /// Bulk copy files
-    static func bulkCopy(sourcePaths: [String], to destDir: String) -> Int {
-        let cPaths = sourcePaths.map { ($0 as NSString).utf8String! }
-        let cPathArray = cPaths.map { UnsafePointer<Int8>($0) }
-        let cDestDir = (destDir as NSString).utf8String!
+    static func copyFilesInBulk(sourcePaths: [String], to destDir: String) -> Int {
+        // Convert Swift strings to C strings
+        let cStrings = sourcePaths.map { strdup($0) }
+        defer {
+            // Free the C strings when done
+            cStrings.forEach { free($0) }
+        }
         
-        return Int(bulkCopy(cPathArray, cDestDir, Int32(cPathArray.count)))
+        // Create array of pointers and call C function
+        return cStrings.withUnsafeBufferPointer { buffer in
+            let mutableBuffer = UnsafeMutablePointer<UnsafePointer<CChar>?>.allocate(capacity: buffer.count)
+            defer { mutableBuffer.deallocate() }
+            
+            for (index, cString) in buffer.enumerated() {
+                mutableBuffer[index] = UnsafePointer(cString)
+            }
+            
+            return destDir.withCString { cDestDir in
+                Int(bulkCopy(mutableBuffer, cDestDir, Int32(sourcePaths.count)))
+            }
+        }
     }
     
     /// Bulk move files
-    static func bulkMove(sourcePaths: [String], to destDir: String) -> Int {
-        let cPaths = sourcePaths.map { ($0 as NSString).utf8String! }
-        let cPathArray = cPaths.map { UnsafePointer<Int8>($0) }
-        let cDestDir = (destDir as NSString).utf8String!
+    static func moveFilesInBulk(sourcePaths: [String], to destDir: String) -> Int {
+        // Convert Swift strings to C strings
+        let cStrings = sourcePaths.map { strdup($0) }
+        defer {
+            // Free the C strings when done
+            cStrings.forEach { free($0) }
+        }
         
-        return Int(bulkMove(cPathArray, cDestDir, Int32(cPathArray.count)))
+        // Create array of pointers and call C function
+        return cStrings.withUnsafeBufferPointer { buffer in
+            let mutableBuffer = UnsafeMutablePointer<UnsafePointer<CChar>?>.allocate(capacity: buffer.count)
+            defer { mutableBuffer.deallocate() }
+            
+            for (index, cString) in buffer.enumerated() {
+                mutableBuffer[index] = UnsafePointer(cString)
+            }
+            
+            return destDir.withCString { cDestDir in
+                Int(bulkMove(mutableBuffer, cDestDir, Int32(sourcePaths.count)))
+            }
+        }
     }
     
     /// Validate archive integrity
-    static func validateArchive(at path: String) -> Bool {
-        let cPath = (path as NSString).utf8String
-        guard let cStr = cPath else { return false }
-        
-        return validateArchive(cStr)
+    static func isValidArchive(at path: String) -> Bool {
+        return path.withCString { cStr in
+            validateArchive(cStr)
+        }
     }
     
     /// Compare two files
-    static func compareFiles(_ file1: String, _ file2: String) -> (identical: Bool, diffSize: UInt64) {
-        let cPath1 = (file1 as NSString).utf8String
-        let cPath2 = (file2 as NSString).utf8String
-        guard let cStr1 = cPath1, let cStr2 = cPath2 else {
-            return (false, 0)
+    static func compareFileContents(_ file1: String, _ file2: String) -> (identical: Bool, diffSize: UInt64) {
+        return file1.withCString { cStr1 in
+            file2.withCString { cStr2 in
+                var diffSize: UInt64 = 0
+                let identical = compareFiles(cStr1, cStr2, &diffSize)
+                return (identical, diffSize)
+            }
         }
-        
-        var diffSize: UInt64 = 0
-        let identical = compareFiles(cStr1, cStr2, &diffSize)
-        
-        return (identical, diffSize)
     }
     
     /// Check file integrity against expected hash
-    static func checkIntegrity(at path: String, expectedHash: String) -> Bool {
-        let cPath = (path as NSString).utf8String
-        let cHash = (expectedHash as NSString).utf8String
-        guard let cStr = cPath, let cHashStr = cHash else { return false }
-        
-        return checkIntegrity(cStr, cHashStr)
+    static func verifyFileIntegrity(at path: String, expectedHash: String) -> Bool {
+        return path.withCString { cStr in
+            expectedHash.withCString { cHashStr in
+                checkIntegrity(cStr, cHashStr)
+            }
+        }
     }
     
     /// Get last error message
