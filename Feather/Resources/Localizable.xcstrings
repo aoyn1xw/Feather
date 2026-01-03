@@ -14930,6 +14930,61 @@
         }
       }
     },
+    "subtitle.kravasigner_who" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kravasigner Who?"
+          }
+        }
+      }
+    },
+    "subtitle.most_modern_signer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Most modern signer"
+          }
+        }
+      }
+    },
+    "subtitle.greatest_signer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "greatest signer made (thanks to feather)"
+          }
+        }
+      }
+    },
+    "subtitle.forgotten_signers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other forgotten signers..."
+          }
+        }
+      }
+    },
+    "subtitle.vibecoded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "yes some of it is vibecoded, so what?"
+          }
+        }
+      }
+    },
     "Dynamic Libraries Detected" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14948,6 +15003,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sorry but you may not add any .dylib files to this app. Please resign the app without any additional frameworks to proceed."
+          }
+        }
+      }
+    },
+    "Use new All Apps View" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use new All Apps View"
+          }
+        }
+      }
+    },
+    "Enable the modern yet simple new All Apps view, keep in mind this is buggy when you have too many sources. When disabled, news from sources will not be displayed in the app." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable the modern yet simple new All Apps view, keep in mind this is buggy when you have too many sources. When disabled, news from sources will not be displayed in the app."
+          }
+        }
+      }
+    },
+    "New Apps view couldn't load, using old as fallback" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Apps view couldn't load, using old as fallback"
+          }
+        }
+      }
+    },
+    "Loading Issue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading Issue"
           }
         }
       }

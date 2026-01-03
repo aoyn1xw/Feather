@@ -27,6 +27,9 @@ struct AppearanceView: View {
 	@AppStorage("Feather.animationSpeed")
 	private var _animationSpeed: Double = 0.35
 	
+	@AppStorage("Feather.useNewAllAppsView")
+	private var _useNewAllAppsView: Bool = true
+	
 	// MARK: Body
     var body: some View {
 		NBList(.localized("Appearance")) {
@@ -122,8 +125,16 @@ struct AppearanceView: View {
 						Text(.localized("Show News"))
 					}
 				}
+				
+				Toggle(isOn: $_useNewAllAppsView) {
+					if _showIconsInAppearance {
+						Label(.localized("Use new All Apps View"), systemImage: "square.grid.2x2.fill")
+					} else {
+						Text(.localized("Use new All Apps View"))
+					}
+				}
 			} footer: {
-				Text(.localized("When disabled, news from sources will not be displayed in the app."))
+				Text(.localized("Enable the modern yet simple new All Apps view, keep in mind this is buggy when you have too many sources. When disabled, news from sources will not be displayed in the app."))
 			}
 			
 			NBSection(.localized("Status Bar")) {

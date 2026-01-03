@@ -5,7 +5,6 @@ import NimbleViews
 struct SigningProcessView: View {
     @Environment(\.dismiss) var dismiss
     @State private var progress: Double = 0.0
-    @State private var logs: [String] = []
     @State private var currentStep: String = "Initializing..."
     @State private var isFinished = false
     @State private var dominantColor: Color = .accentColor
@@ -150,77 +149,6 @@ struct SigningProcessView: View {
                 }
                 .padding(.vertical, 20)
                 
-                // Enhanced Logs with gradient styling
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Image(systemName: "terminal.fill")
-                            .font(.caption)
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [dominantColor, secondaryColor],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                        Text("Logs")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.horizontal, 20)
-                    
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 6) {
-                            ForEach(logs, id: \.self) { log in
-                                HStack(spacing: 8) {
-                                    Circle()
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [dominantColor, secondaryColor],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            )
-                                        )
-                                        .frame(width: 4, height: 4)
-                                    
-                                    Text(log)
-                                        .font(.caption2.monospaced())
-                                        .foregroundStyle(.secondary)
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 2)
-                            }
-                        }
-                        .padding(.vertical, 8)
-                    }
-                    .frame(maxHeight: 200)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color(UIColor.secondarySystemBackground),
-                                        Color(UIColor.secondarySystemBackground).opacity(0.8)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .stroke(
-                                        LinearGradient(
-                                            colors: [dominantColor.opacity(0.3), secondaryColor.opacity(0.2)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        ),
-                                        lineWidth: 1.5
-                                    )
-                            )
-                    )
-                }
-                .padding(.horizontal, 20)
-                
                 Spacer()
                 
                 if isFinished {
@@ -341,7 +269,6 @@ struct SigningProcessView: View {
                 try? await Task.sleep(nanoseconds: 800_000_000) // 0.8s delay
                 await MainActor.run {
                     currentStep = step
-                    logs.append("[\(Date().formatted(date: .omitted, time: .standard))] \(step)")
                     withAnimation {
                         progress = Double(index + 1) / Double(steps.count)
                     }

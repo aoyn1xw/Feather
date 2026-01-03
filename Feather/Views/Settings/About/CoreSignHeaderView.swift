@@ -24,7 +24,12 @@ struct CoreSignHeaderView: View {
         "subtitle.want_s",
         "subtitle.use_coresign",
         "subtitle.made_in",
-        "subtitle.swiftui"
+        "subtitle.swiftui",
+        "subtitle.kravasigner_who",
+        "subtitle.most_modern_signer",
+        "subtitle.greatest_signer",
+        "subtitle.forgotten_signers",
+        "subtitle.vibecoded"
     ]
     
     private var currentSubtitle: LocalizedStringKey {
