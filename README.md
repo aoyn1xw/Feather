@@ -1,45 +1,52 @@
-# Feather
+# Portal
 
-[![GitHub Release](https://img.shields.io/github/v/release/khcrysalis/feather?include_prereleases)](https://github.com/khcrysalis/feather/releases)
-[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/khcrysalis/feather/total)](https://github.com/khcrysalis/feather/releases)
-[![GitHub License](https://img.shields.io/github/license/khcrysalis/feather?color=%23C96FAD)](https://github.com/khcrysalis/feather/blob/main/LICENSE)
-[![Sponsor Me](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/khcrysalis)
-[![Discord](https://img.shields.io/discord/1265361879992242196?style=flat&label=discord)](https://discord.gg/TYnUDJkG66)
+[![GitHub Release](https://img.shields.io/github/v/release/aoyn1xw/Feather?include_prereleases)](https://github.com/aoyn1xw/Feather/releases)
+[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/aoyn1xw/Feather/total)](https://github.com/aoyn1xw/Feather/releases)
+[![GitHub License](https://img.shields.io/github/license/aoyn1xw/Feather?color=%23C96FAD)](https://github.com/aoyn1xw/Feather/blob/main/LICENSE)
+[![Sponsor Me](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/aoyn1xw)
+[![Discord](https://img.shields.io/discord/1302670238583623761?style=flat&label=discord)](https://wsfteam.xyz/discord)
 
-This app allows you to install and manage applications contained in a single app, using certificate pairs and various installation techniques to allow apps to install to your device. This is an entirely stock application and uses built-in features to be able to do this!
+Portal is a powerful iOS/iPadOS app signer and installer that lets you sign, manage, and install applications directly on your device. Built with SwiftUI, it provides a native, privacy-focused experience where all signing happens locally on your device — no external servers required for core functionality.
 
-| <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="Images/Image-dark.png"><source media="(prefers-color-scheme: light)" srcset="Images/Image-light.png"><img alt="Pointercrate-pocket." src="Images/Image-light.png"></picture></p> |
+| <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="Images/Image-dark.png"><source media="(prefers-color-scheme: light)" srcset="Images/Image-light.png"><img alt="Portal Screenshot" src="Images/Image-light.png"></picture></p> |
 |:-:|
-| Screenshot of Feather on iOS / iPadOS |
+| Screenshot of Portal on iOS |
 
 ### Features
 
-- User friendly, and clean UI.
-- Sign and install applications.
-- Supports [AltStore](https://faq.altstore.io/distribute-your-apps/make-a-source#apps) repositories.
-- View detailed information about apps and your certificates.
-- Configurable signing options mainly for modifying the app, such as appearance and allowing support for the files app.
-  - This includes patching apps for compatibility and Liquid Glass.
-- Tweak support for advanced users, using [Ellekit](https://github.com/tealbathingsuit/ellekit) for injection. 
-  - Supports injecting `.deb` and `.dylib` files.
-- Actively maintained: always ensuring most apps get installed properly.
-- No tracking or analytics, ensuring user privacy.
-- Of course, open source and free.
+- **Modern SwiftUI Interface** — Clean, intuitive UI with support for light, dark, and tinted app icons.
+- **Sign & Install Apps** — Sign IPA files using your `.p12` certificate and `.mobileprovision` profile, then install directly to your device.
+- **Multiple Installation Methods** — Choose between local server installation or pairing-based installation via VPN for more reliable installs.
+- **Certificate Management** — Import, view, and manage multiple certificates with PPQ check status indicators.
+- **Advanced Signing Options**:
+  - Customize app name, bundle identifier, and appearance (Light/Dark/Default)
+  - PPQ protection with dynamic bundle ID modification
+  - Remove URL schemes, plugins, and provisioning files for detection avoidance
+  - Force localization for custom display names
+  - File sharing and iTunes support toggles
+  - Minimum iOS version patching
+  - **Liquid Glass support** for iOS 26 compatibility
+- **Tweak Injection** — Inject `.dylib` and `.deb` files using [ElleKit](https://github.com/tealbathingsuit/ellekit), with configurable injection paths and folders.
+- **Default Frameworks** — Configure frameworks that are automatically injected into all apps during signing.
+- **Library Management** — Organize imported and signed apps with sorting, filtering, and batch operations.
+- **Notifications** — Get notified when app signing completes.
+- **Privacy First** — No tracking, no analytics. Everything happens on your device.
+- **100% Open Source** — Transparent codebase under GPL-3.0 license.
 
 ## Download
 
-Visit [releases](https://github.com/khcrysalis/Feather/releases) and get the latest `.ipa`.
+Visit [releases](https://github.com/aoyn1xw/Feather/releases) and get the latest `.ipa`.
 
-<a href="https://celloserenity.github.io/altdirect/?url=https://raw.githubusercontent.com/khcrysalis/Feather/refs/heads/main/app-repo.json" target="_blank">
+<a href="https://celloserenity.github.io/altdirect/?url=https://raw.githubusercontent.com/aoyn1xw/Feather/refs/heads/main/app-repo.json" target="_blank">
    <img src="https://github.com/CelloSerenity/altdirect/blob/main/assets/png/AltSource_Blue.png?raw=true" alt="Add AltSource" width="200">
 </a>
-<a href="https://github.com/khcrysalis/Feather/releases/latest/download/Feather.ipa" target="_blank">
+<a href="https://github.com/aoyn1xw/Feather/releases/latest/download/Feather.ipa" target="_blank">
    <img src="https://github.com/CelloSerenity/altdirect/blob/main/assets/png/Download_Blue.png?raw=true" alt="Download .ipa" width="200">
 </a>
 
 ## How does it work?
 
-How Feather works is a bit complicated, with having multiple ways to install, app management, tweaks, etc. However, I'll point out how the important features work here.
+How Portal works is a bit complicated, with having multiple ways to install, app management, tweaks, etc. However, I'll point out how the important features work here.
 
 To start off, we need a validly signed IPA. We can achieve this with Zsign, using a provided IPA using a `.p12` and `.mobileprovision` pair.
 
@@ -69,11 +76,9 @@ Since itms-services initiates the install automatically, we don't need to do any
 
 Due to how it works right now we need both a VPN and a lockdownd pairing file, this means you will need a computer for its initial setup. Though, if you don't want to do these you can just use the server way of installing instead (but at a cost of less reliability). 
 
-## License 
+## Credits
 
-This project is licensed under the GPL-3.0 license. You can see the full details of the license [here](https://github.com/khcrysalis/Feather/blob/main/LICENSE). It's under this specific license because I wanted to make a project that is transparent to the user thats related to certificate paired sideloading, before this project there weren't any open source projects that filled in this gap.
-
-By contributing to this project, you agree to license your code under the GPL-3.0 license as well (including agreeing to license exceptions), ensuring that your work, like all other contributions, remains freely accessible and open.
+- Original [Feather](https://github.com/khcrysalis/Feather) project by [khcrysalis](https://github.com/khcrysalis)
 
 ## Disclaimer
 
