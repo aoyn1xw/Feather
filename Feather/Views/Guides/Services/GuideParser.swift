@@ -209,6 +209,7 @@ class GuideParser {
                             
                             // Check if URL uses accent:// scheme
                             if url.hasPrefix("accent://") {
+                                // Remove the accent:// prefix for display but mark as accent
                                 result.append(.accentLink(url: url, text: linkText))
                             } else {
                                 result.append(.link(url: url, text: linkText))
@@ -232,8 +233,22 @@ class GuideParser {
         // Add any remaining text
         if !currentText.isEmpty {
             // Check if the text contains accent:// (as plain text reference)
-            if currentText.contains("accent://") {
-                result.append(.accentText(currentText))
+            // This handles cases like: "Check out accent://something"
+            if let accentRange = currentText.range(of: "accent://") {
+                // Split the text: before accent, accent part, after accent
+                let beforeAccent = String(currentText[..<accentRange.lowerBound])
+                let accentPart = String(currentText[accentRange.lowerBound...])
+                
+                // Add text before accent if any
+                if !beforeAccent.isEmpty {
+                    result.append(.text(beforeAccent))
+                }
+                
+                // Remove "accent://" prefix and add the rest with accent color
+                let cleanedAccentText = accentPart.replacingOccurrences(of: "accent://", with: "")
+                if !cleanedAccentText.isEmpty {
+                    result.append(.accentText(cleanedAccentText))
+                }
             } else {
                 result.append(.text(currentText))
             }

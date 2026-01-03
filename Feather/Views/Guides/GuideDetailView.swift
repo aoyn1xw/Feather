@@ -291,51 +291,97 @@ struct GuideDetailView: View {
     
     // Simple inline markdown parser for bold, italic, and inline code
     private func parseInlineMarkdown(_ text: String) -> AttributedString {
-        var attributedString = AttributedString(text)
-        let nsString = text as NSString
+        var result = AttributedString()
+        var workingText = text
         
-        // Handle inline code first (backticks)
+        // Track formatting information
+        struct FormattingInfo {
+            let range: Range<String.Index>
+            let type: FormatType
+        }
+        
+        enum FormatType {
+            case code
+            case bold
+            case italic
+        }
+        
+        var formatRanges: [(range: Range<String.Index>, type: FormatType, content: String)] = []
+        
+        // Find inline code (backticks)
         if let regex = Self.codeRegex {
-            let matches = regex.matches(in: text, range: NSRange(location: 0, length: nsString.length))
-            
-            for match in matches.reversed() {
-                if let range = Range(match.range, in: text) {
-                    if let attrRange = Range(range, in: attributedString) {
-                        attributedString[attrRange].font = .system(.body, design: .monospaced)
-                        attributedString[attrRange].backgroundColor = Color.secondary.opacity(0.2)
-                    }
+            let matches = regex.matches(in: workingText, range: NSRange(location: 0, length: (workingText as NSString).length))
+            for match in matches {
+                if match.numberOfRanges >= 2,
+                   let fullRange = Range(match.range, in: workingText),
+                   let contentRange = Range(match.range(at: 1), in: workingText) {
+                    formatRanges.append((range: fullRange, type: .code, content: String(workingText[contentRange])))
                 }
             }
         }
         
-        // Handle bold (**text** or __text__)
+        // Find bold (**text** or __text__)
         if let regex = Self.boldRegex {
-            let matches = regex.matches(in: text, range: NSRange(location: 0, length: nsString.length))
-            
-            for match in matches.reversed() {
-                if match.numberOfRanges >= 3 {
-                    if let range = Range(match.range(at: 2), in: text),
-                       let attrRange = Range(range, in: attributedString) {
-                        attributedString[attrRange].font = .body.bold()
+            let matches = regex.matches(in: workingText, range: NSRange(location: 0, length: (workingText as NSString).length))
+            for match in matches {
+                if match.numberOfRanges >= 3,
+                   let fullRange = Range(match.range, in: workingText),
+                   let contentRange = Range(match.range(at: 2), in: workingText) {
+                    // Check if this range overlaps with code ranges
+                    let overlapsWithCode = formatRanges.contains { $0.type == .code && $0.range.overlaps(fullRange) }
+                    if !overlapsWithCode {
+                        formatRanges.append((range: fullRange, type: .bold, content: String(workingText[contentRange])))
                     }
                 }
             }
         }
         
-        // Handle italic (*text* or _text_)
-        if let regex = Self.italicRegex {
-            let matches = regex.matches(in: text, range: NSRange(location: 0, length: nsString.length))
-            
-            for match in matches.reversed() {
-                if match.numberOfRanges >= 3 {
-                    if let range = Range(match.range(at: 2), in: text),
-                       let attrRange = Range(range, in: attributedString) {
-                        attributedString[attrRange].font = .body.italic()
+        // Find italic (*text* or _text_) - need to avoid matching bold markers
+        if let regex = try? NSRegularExpression(pattern: "(?<!\\*|_)(\\*|_)([^*_]+?)\\1(?!\\*|_)") {
+            let matches = regex.matches(in: workingText, range: NSRange(location: 0, length: (workingText as NSString).length))
+            for match in matches {
+                if match.numberOfRanges >= 3,
+                   let fullRange = Range(match.range, in: workingText),
+                   let contentRange = Range(match.range(at: 2), in: workingText) {
+                    // Check if this range overlaps with code or bold ranges
+                    let overlaps = formatRanges.contains { ($0.type == .code || $0.type == .bold) && $0.range.overlaps(fullRange) }
+                    if !overlaps {
+                        formatRanges.append((range: fullRange, type: .italic, content: String(workingText[contentRange])))
                     }
                 }
             }
         }
         
-        return attributedString
+        // Sort ranges by position (reversed for replacement)
+        formatRanges.sort { $0.range.lowerBound > $1.range.lowerBound }
+        
+        // Replace markdown syntax with clean text
+        for info in formatRanges {
+            workingText.replaceSubrange(info.range, with: info.content)
+        }
+        
+        // Create attributed string with the clean text
+        result = AttributedString(workingText)
+        
+        // Apply formatting based on original positions
+        // Re-sort by position for applying formatting
+        formatRanges.sort { $0.range.lowerBound < $1.range.lowerBound }
+        
+        for info in formatRanges {
+            // Find the content in the cleaned string
+            if let range = result.range(of: info.content) {
+                switch info.type {
+                case .code:
+                    result[range].font = .system(.body, design: .monospaced)
+                    result[range].backgroundColor = Color.secondary.opacity(0.2)
+                case .bold:
+                    result[range].font = .body.bold()
+                case .italic:
+                    result[range].font = .body.italic()
+                }
+            }
+        }
+        
+        return result
     }
 }
