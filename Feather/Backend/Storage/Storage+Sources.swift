@@ -24,6 +24,11 @@ extension Storage {
 			return
 		}
 		
+		// Get the maximum order value from existing sources
+		let request: NSFetchRequest<AltSource> = AltSource.fetchRequest()
+		request.sortDescriptors = [NSSortDescriptor(keyPath: \AltSource.order, ascending: false)]
+		request.fetchLimit = 1
+		let maxOrder = (try? context.fetch(request).first?.order ?? 0) ?? 0
 		
 		let new = AltSource(context: context)
 		new.name = name
@@ -31,6 +36,7 @@ extension Storage {
 		new.identifier = identifier
 		new.sourceURL = url
 		new.iconURL = iconURL
+		new.order = maxOrder + 1
 		
 		do {
 			if !deferSave {
@@ -100,6 +106,31 @@ extension Storage {
 		} catch {
 			Logger.misc.error("Error checking if repository exists: \(error)")
 			return false
+		}
+	}
+	
+	func reorderSources(_ sources: [AltSource]) {
+		for (index, source) in sources.enumerated() {
+			source.order = Int16(index)
+		}
+		saveContext()
+	}
+	
+	/// Initialize order values for existing sources that don't have one
+	func initializeSourceOrders() {
+		let request: NSFetchRequest<AltSource> = AltSource.fetchRequest()
+		request.sortDescriptors = [NSSortDescriptor(keyPath: \AltSource.date, ascending: true)]
+		
+		guard let sources = try? context.fetch(request) else { return }
+		
+		// Check if any source has order == 0 (uninitialized)
+		let needsInitialization = sources.contains { $0.order == 0 }
+		
+		if needsInitialization {
+			for (index, source) in sources.enumerated() {
+				source.order = Int16(index)
+			}
+			saveContext()
 		}
 	}
 }

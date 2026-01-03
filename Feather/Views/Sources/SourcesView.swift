@@ -70,7 +70,7 @@ struct SourcesView: View {
 	
 	@FetchRequest(
 		entity: AltSource.entity(),
-		sortDescriptors: [NSSortDescriptor(keyPath: \AltSource.name, ascending: true)],
+		sortDescriptors: [NSSortDescriptor(keyPath: \AltSource.order, ascending: true)],
 		animation: .easeInOut(duration: 0.35)
 	) private var _sources: FetchedResults<AltSource>
 	
@@ -103,11 +103,13 @@ struct SourcesView: View {
 		.task(id: Array(_sources)) {
 			await viewModel.fetchSources(_sources)
 		}
-		#if !NIGHTLY && !DEBUG
 		.onAppear {
+			// Initialize order for existing sources
+			Storage.shared.initializeSourceOrders()
+			#if !NIGHTLY && !DEBUG
 			showStarPromptIfNeeded()
+			#endif
 		}
-		#endif
 	}
 	
 	// MARK: - View Components
