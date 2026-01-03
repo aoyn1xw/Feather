@@ -96,6 +96,8 @@ struct SourcesView: View {
 				}
 				.sheet(isPresented: $_showEditSourcesView) {
 					EditSourcesView(sources: _sources)
+						.presentationDetents([.large])
+						.presentationDragIndicator(.visible)
 				}
 		}
 		.task(id: Array(_sources)) {
