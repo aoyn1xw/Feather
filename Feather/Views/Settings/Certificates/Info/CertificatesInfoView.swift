@@ -327,19 +327,21 @@ struct CertificatesInfoView: View {
 	// MARK: - Developer Certificates Card
 	@ViewBuilder
 	private func developerCertificatesCard() -> some View {
-		HStack {
-			Text(.localized("Developer Certificates"))
-				.font(.subheadline)
-				.foregroundStyle(.secondary)
-			Spacer()
-			Text("1")
-				.font(.subheadline)
-				.fontWeight(.semibold)
-				.foregroundStyle(.accentColor)
+		if let data = data, let certs = data.DeveloperCertificates {
+			HStack {
+				Text(.localized("Developer Certificates"))
+					.font(.subheadline)
+					.foregroundStyle(.secondary)
+				Spacer()
+				Text("\(certs.count)")
+					.font(.subheadline)
+					.fontWeight(.semibold)
+					.foregroundStyle(.accentColor)
+			}
+			.padding(12)
+			.background(Color(UIColor.secondarySystemGroupedBackground))
+			.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 		}
-		.padding(12)
-		.background(Color(UIColor.secondarySystemGroupedBackground))
-		.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 	}
 	
 	// MARK: - Entitlements Card
@@ -437,6 +439,9 @@ struct CertificatesInfoView: View {
 struct FlowLayout: Layout {
 	var spacing: CGFloat = 8
 	
+	// Default max width for unlimited width scenarios
+	private static let defaultMaxWidth: CGFloat = 1000
+	
 	func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
 		let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
 		var totalHeight: CGFloat = 0
@@ -445,7 +450,7 @@ struct FlowLayout: Layout {
 		var lineHeight: CGFloat = 0
 		
 		// Use a reasonable default width if proposal.width is nil (unlimited)
-		let maxWidth = proposal.width ?? 1000
+		let maxWidth = proposal.width ?? Self.defaultMaxWidth
 		
 		for size in sizes {
 			if lineWidth + size.width > maxWidth {
