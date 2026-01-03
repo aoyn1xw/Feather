@@ -69,6 +69,39 @@ struct SettingsView: View {
                     Text(.localized("View storage usage breakdown and clean up cached files."))
                 }
                 
+                Section {
+                    Button {
+                        UIApplication.open("https://github.com/aoyn1xw/Feather/releases/tag/v0.1")
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.down.circle")
+                                .font(.title3)
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [Color.blue, Color.blue.opacity(0.7)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(.localized("Check for Updates"))
+                                    .fontWeight(.medium)
+                                Text(.localized("View the latest releases on GitHub"))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(.vertical, 6)
+                    }
+                }
+                
                 if isDeveloperModeEnabled {
                     NBSection("Developer") {
                         NavigationLink(destination: DeveloperView()) {
