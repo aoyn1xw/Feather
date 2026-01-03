@@ -24,11 +24,12 @@ struct LibraryView: View {
 	}
 	
 	@State private var _searchText = ""
-	@State private var _viewMode: ViewMode = .list
+	@State private var _filterMode: FilterMode = .all
 	
-	enum ViewMode {
-		case list
-		case grid
+	enum FilterMode {
+		case all
+		case unsigned
+		case signed
 	}
 	
 	@Namespace private var _namespace
@@ -51,8 +52,17 @@ struct LibraryView: View {
 	
 	private var _allApps: [AppInfoPresentable] {
 		var all: [AppInfoPresentable] = []
-		all.append(contentsOf: _filteredSignedApps)
-		all.append(contentsOf: _filteredImportedApps)
+		
+		switch _filterMode {
+		case .all:
+			all.append(contentsOf: _filteredSignedApps)
+			all.append(contentsOf: _filteredImportedApps)
+		case .unsigned:
+			all.append(contentsOf: _filteredImportedApps)
+		case .signed:
+			all.append(contentsOf: _filteredSignedApps)
+		}
+		
 		return all
 	}
 	
@@ -77,76 +87,49 @@ struct LibraryView: View {
 				Color(uiColor: .systemBackground).ignoresSafeArea()
 				
 				ScrollView {
-					VStack(alignment: .leading, spacing: 20) {
-						// Header with Title and Icons
-						VStack(alignment: .leading, spacing: 16) {
-							HStack {
-								Text("Library")
-									.font(.largeTitle)
-									.fontWeight(.bold)
-									.foregroundStyle(.primary)
-								
-								Spacer()
-								
-								// Top right buttons
-								HStack(spacing: 12) {
-									// View mode toggle button
-									Button {
-										withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-											_viewMode = _viewMode == .list ? .grid : .list
-										}
-									} label: {
-										ZStack {
-											Circle()
-												.fill(Color.primary.opacity(0.15))
-												.frame(width: 40, height: 40)
-											
-											Image(systemName: _viewMode == .list ? "square.grid.2x2" : "list.bullet")
-												.font(.system(size: 18, weight: .semibold))
-												.foregroundStyle(.primary)
-										}
-									}
-									
-									// Scan/Selection button
-									Menu {
-										_importActions()
-									} label: {
-										ZStack {
-											Circle()
-												.fill(Color.primary.opacity(0.15))
-												.frame(width: 40, height: 40)
-											
-											Image(systemName: "plus.square.on.square")
-												.font(.system(size: 18, weight: .semibold))
-												.foregroundStyle(.primary)
-										}
-									}
-								}
-							}
-							.padding(.horizontal, 20)
+					VStack(alignment: .center, spacing: 16) {
+						// Centered Title
+						Text("Library")
+							.font(.largeTitle)
+							.fontWeight(.bold)
+							.foregroundStyle(.primary)
+							.frame(maxWidth: .infinity, alignment: .center)
 							.padding(.top, 10)
-							
-							// Search Bar
-							HStack(spacing: 12) {
-								Image(systemName: "magnifyingglass")
-									.foregroundStyle(.secondary)
-									.font(.system(size: 16))
-								
-								TextField("Search", text: $_searchText)
-									.foregroundStyle(.primary)
-									.autocorrectionDisabled()
-									.textInputAutocapitalization(.never)
-							}
-							.padding(.horizontal, 16)
-							.padding(.vertical, 12)
-							.background(
-								Capsule()
-									.fill(Color.secondary.opacity(0.15))
-							)
-							.padding(.horizontal, 20)
-						}
 						
-						// Apps List or Grid
+						// Top right pill with Select and plus icon
+						HStack {
+							Spacer()
+							Menu {
+								_importActions()
+							} label: {
+								HStack(spacing: 8) {
+									Text("Select")
+										.font(.subheadline)
+										.fontWeight(.semibold)
+									Image(systemName: "plus")
+										.font(.system(size: 14, weight: .semibold))
+								}
+								.foregroundStyle(.white)
+								.padding(.horizontal, 16)
+								.padding(.vertical, 10)
+								.background(
+									Capsule()
+										.fill(Color.accentColor)
+								)
+							}
+						}
+						.padding(.horizontal, 20)
+						
+						// Segmented Control for Unsigned/Signed filter
+						Picker("Filter", selection: $_filterMode) {
+							Text("All").tag(FilterMode.all)
+							Text("Unsigned").tag(FilterMode.unsigned)
+							Text("Signed").tag(FilterMode.signed)
+						}
+						.pickerStyle(.segmented)
+						.padding(.horizontal, 20)
+						
+						// Apps List
 						if _allApps.isEmpty {
 							VStack(spacing: 20) {
 								Spacer()
@@ -180,40 +163,26 @@ struct LibraryView: View {
 							.frame(maxWidth: .infinity)
 							.padding()
 						} else {
-							if _viewMode == .list {
-								// List View
-								LazyVStack(spacing: 12) {
-									ForEach(_allApps, id: \.uuid) { app in
-										LibraryCardView(
-											app: app,
-											selectedInfoAppPresenting: $_selectedInfoAppPresenting,
-											selectedSigningAppPresenting: $_selectedSigningAppPresenting,
-											selectedInstallAppPresenting: $_selectedInstallAppPresenting
-										)
-										.compatMatchedTransitionSource(id: app.uuid ?? "", ns: _namespace)
+							// Compact List View
+							LazyVStack(spacing: 0) {
+								ForEach(_allApps, id: \.uuid) { app in
+									CompactLibraryRow(
+										app: app,
+										selectedInfoAppPresenting: $_selectedInfoAppPresenting,
+										selectedSigningAppPresenting: $_selectedSigningAppPresenting,
+										selectedInstallAppPresenting: $_selectedInstallAppPresenting
+									)
+									.compatMatchedTransitionSource(id: app.uuid ?? "", ns: _namespace)
+									
+									if app.uuid != _allApps.last?.uuid {
+										Divider()
+											.padding(.leading, 72)
 									}
 								}
-								.padding(.horizontal, 20)
-							} else {
-								// Grid View
-								let columns = [
-									GridItem(.flexible(), spacing: 12),
-									GridItem(.flexible(), spacing: 12)
-								]
-								
-								LazyVGrid(columns: columns, spacing: 12) {
-									ForEach(_allApps, id: \.uuid) { app in
-										LibraryGridCardView(
-											app: app,
-											selectedInfoAppPresenting: $_selectedInfoAppPresenting,
-											selectedSigningAppPresenting: $_selectedSigningAppPresenting,
-											selectedInstallAppPresenting: $_selectedInstallAppPresenting
-										)
-										.compatMatchedTransitionSource(id: app.uuid ?? "", ns: _namespace)
-									}
-								}
-								.padding(.horizontal, 20)
 							}
+							.background(Color(UIColor.secondarySystemGroupedBackground))
+							.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+							.padding(.horizontal, 20)
 						}
 						
 						Spacer(minLength: 20)
@@ -405,6 +374,102 @@ extension LibraryView {
 		}
 		Button(.localized("Import from URL"), systemImage: "globe") {
 			_isDownloadingPresenting = true
+		}
+	}
+}
+
+// MARK: - Compact Library Row (New Design)
+struct CompactLibraryRow: View {
+	var app: AppInfoPresentable
+	@Binding var selectedInfoAppPresenting: AnyApp?
+	@Binding var selectedSigningAppPresenting: AnyApp?
+	@Binding var selectedInstallAppPresenting: AnyApp?
+	
+	var body: some View {
+		HStack(spacing: 12) {
+			// Left: Smaller App Icon
+			FRAppIconView(app: app, size: 48)
+				.clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+				.shadow(color: .black.opacity(0.15), radius: 2, x: 0, y: 1)
+				.onTapGesture {
+					selectedInfoAppPresenting = AnyApp(base: app)
+				}
+			
+			// Middle: Text Stack (app name, bundle ID, version)
+			VStack(alignment: .leading, spacing: 2) {
+				Text(app.name ?? .localized("Unknown"))
+					.font(.system(size: 15, weight: .semibold))
+					.foregroundStyle(.primary)
+					.lineLimit(1)
+				
+				if let identifier = app.identifier {
+					Text(identifier)
+						.font(.system(size: 12))
+						.foregroundStyle(.secondary)
+						.lineLimit(1)
+				}
+				
+				if let version = app.version {
+					Text("v\(version)")
+						.font(.system(size: 11))
+						.foregroundStyle(.tertiary)
+						.lineLimit(1)
+				}
+			}
+			
+			Spacer()
+			
+			// Right: Small signing icon button (no text)
+			Button {
+				if app.isSigned {
+					selectedInstallAppPresenting = AnyApp(base: app)
+				} else {
+					selectedSigningAppPresenting = AnyApp(base: app)
+				}
+			} label: {
+				Image(systemName: app.isSigned ? "arrow.down.circle.fill" : "signature")
+					.font(.system(size: 20))
+					.foregroundStyle(app.isSigned ? Color.green : Color.accentColor)
+					.frame(width: 32, height: 32)
+			}
+			.buttonStyle(.plain)
+		}
+		.padding(.horizontal, 12)
+		.padding(.vertical, 10)
+		.contentShape(Rectangle())
+		.contextMenu {
+			Button {
+				selectedInfoAppPresenting = AnyApp(base: app)
+			} label: {
+				Label(.localized("Get Info"), systemImage: "info.circle.fill")
+			}
+			
+			if app.isSigned {
+				Button {
+					selectedInstallAppPresenting = AnyApp(base: app)
+				} label: {
+					Label(.localized("Install"), systemImage: "arrow.down.circle.fill")
+				}
+				Button {
+					selectedSigningAppPresenting = AnyApp(base: app)
+				} label: {
+					Label(.localized("Re-sign"), systemImage: "signature")
+				}
+			} else {
+				Button {
+					selectedSigningAppPresenting = AnyApp(base: app)
+				} label: {
+					Label(.localized("Sign"), systemImage: "signature")
+				}
+			}
+			
+			Divider()
+			
+			Button(role: .destructive) {
+				Storage.shared.deleteApp(for: app)
+			} label: {
+				Label(.localized("Delete"), systemImage: "trash.fill")
+			}
 		}
 	}
 }
