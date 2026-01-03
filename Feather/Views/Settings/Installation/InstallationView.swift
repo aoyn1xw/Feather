@@ -6,14 +6,14 @@ struct InstallationView: View {
 	@AppStorage("Feather.installationMethod") private var _installationMethod: Int = 0
 	@AppStorage("Feather.useTunnel") private var _useTunnel: Bool = false
 	
-	// Computed properties for consistent colors
-	private var tunnelActiveGradient: [Color] {
-		[Color.green, Color.mint, Color.green.opacity(0.8)]
-	}
+	// Static constants for gradient colors
+	private static let tunnelActiveGradient: [Color] = [
+		Color.green, Color.mint, Color.green.opacity(0.8)
+	]
 	
-	private var tunnelInactiveGradient: [Color] {
-		[Color.gray.opacity(0.3), Color.gray.opacity(0.2)]
-	}
+	private static let tunnelInactiveGradient: [Color] = [
+		Color.gray.opacity(0.3), Color.gray.opacity(0.2)
+	]
 	
 	// MARK: Body
     var body: some View {
@@ -28,7 +28,7 @@ struct InstallationView: View {
 							Circle()
 								.fill(
 									LinearGradient(
-										colors: _useTunnel ? tunnelActiveGradient : tunnelInactiveGradient,
+										colors: _useTunnel ? Self.tunnelActiveGradient : Self.tunnelInactiveGradient,
 										startPoint: .topLeading,
 										endPoint: .bottomTrailing
 									)

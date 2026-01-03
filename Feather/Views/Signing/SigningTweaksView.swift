@@ -160,6 +160,14 @@ extension SigningTweaksView {
 	private func _addDefaultFrameworks() {
 		Task {
 			var tempDirToCleanup: URL?
+			
+			// Ensure cleanup always happens
+			defer {
+				if let tempDir = tempDirToCleanup {
+					try? FileManager.default.removeItem(at: tempDir)
+				}
+			}
+			
 			do {
 				// Extract dylibs from default frameworks (handles both .dylib and .deb files)
 				let (dylibURLs, tempDir) = try await _defaultFrameworksManager.extractDylibsFromFrameworks()
@@ -185,11 +193,6 @@ extension SigningTweaksView {
 						}
 					}
 					
-					// Clean up temp directory
-					if let tempDir = tempDirToCleanup {
-						try? FileManager.default.removeItem(at: tempDir)
-					}
-					
 					// Provide haptic feedback
 					if addedCount > 0 {
 						HapticsManager.shared.success()
@@ -211,11 +214,6 @@ extension SigningTweaksView {
 				}
 			} catch {
 				await MainActor.run {
-					// Clean up temp directory on error
-					if let tempDir = tempDirToCleanup {
-						try? FileManager.default.removeItem(at: tempDir)
-					}
-					
 					HapticsManager.shared.error()
 					
 					UIAlertController.showAlertWithOk(
