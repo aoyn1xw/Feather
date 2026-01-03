@@ -290,12 +290,14 @@ struct AllAppsView: View {
 			
 			await MainActor.run {
 				_sources = finalSources
-				
-				// Add a small delay before hiding loading screen for better UX
-				DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-					withAnimation(.easeInOut(duration: 0.3)) {
-						_isLoading = false
-					}
+			}
+			
+			// Add a small delay before hiding loading screen for better UX
+			try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+			
+			await MainActor.run {
+				withAnimation(.easeInOut(duration: 0.3)) {
+					_isLoading = false
 				}
 			}
 		}

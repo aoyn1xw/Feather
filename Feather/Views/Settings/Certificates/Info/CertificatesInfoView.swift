@@ -475,7 +475,6 @@ struct CertificatesInfoView: View {
 							Text(key)
 								.font(.caption2)
 								.foregroundStyle(.secondary)
-								.lineLimit(2)
 							Text(String(describing: value))
 								.font(.caption)
 								.foregroundStyle(.secondary.opacity(0.8))
