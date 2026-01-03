@@ -10,7 +10,6 @@ struct EditSourcesView: View {
 	@State private var editMode: EditMode = .active
 	@State private var sourceToDelete: AltSource?
 	@State private var showDeleteAlert = false
-	@State private var dominantColors: [String: Color] = [:]
 	
 	var sources: FetchedResults<AltSource>
 	
@@ -72,9 +71,6 @@ struct EditSourcesView: View {
 				}
 				.frame(width: 50, height: 50)
 				.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-				.onAppear {
-					extractColor(from: iconURL, sourceID: source.objectID.description)
-				}
 			} else {
 				placeholderIcon
 			}
@@ -134,11 +130,11 @@ struct EditSourcesView: View {
 	
 	// MARK: - Actions
 	private func deleteSource(at offsets: IndexSet) {
-		for index in offsets {
-			let source = sources[index]
-			sourceToDelete = source
-			showDeleteAlert = true
-		}
+		// Only handle single deletion - for multiple items, show alert for first one
+		guard let firstIndex = offsets.first else { return }
+		let source = sources[firstIndex]
+		sourceToDelete = source
+		showDeleteAlert = true
 	}
 	
 	private func moveSource(from source: IndexSet, to destination: Int) {
@@ -146,39 +142,5 @@ struct EditSourcesView: View {
 		// without modifying the Core Data model to include an order attribute.
 		// For now, we'll keep this method as a placeholder.
 		// A full implementation would require adding an "order" property to the AltSource entity.
-	}
-	
-	// MARK: - Color Extraction
-	private func extractColor(from url: URL, sourceID: String) {
-		Task {
-			guard let data = try? Data(contentsOf: url),
-				  let uiImage = UIImage(data: data),
-				  let cgImage = uiImage.cgImage else { return }
-			
-			let ciImage = CIImage(cgImage: cgImage)
-			let filter = CIFilter(name: "CIAreaAverage")
-			filter?.setValue(ciImage, forKey: kCIInputImageKey)
-			filter?.setValue(CIVector(cgRect: ciImage.extent), forKey: kCIInputExtentKey)
-			
-			guard let outputImage = filter?.outputImage else { return }
-			
-			var pixel = [UInt8](repeating: 0, count: 4)
-			CIContext().render(
-				outputImage,
-				toBitmap: &pixel,
-				rowBytes: 4,
-				bounds: CGRect(x: 0, y: 0, width: 1, height: 1),
-				format: .RGBA8,
-				colorSpace: nil
-			)
-			
-			let r = Double(pixel[0]) / 255.0
-			let g = Double(pixel[1]) / 255.0
-			let b = Double(pixel[2]) / 255.0
-			
-			await MainActor.run {
-				dominantColors[sourceID] = Color(red: r, green: g, blue: b)
-			}
-		}
 	}
 }
