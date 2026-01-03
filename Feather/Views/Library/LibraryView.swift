@@ -73,13 +73,18 @@ struct LibraryView: View {
 	var body: some View {
 		NavigationView {
 			ZStack {
-				// Subtle gradient background
+				// Enhanced gradient background based on signing status
 				if _useGradients {
+					let hasSignedApps = !_filteredSignedApps.isEmpty
+					let statusColor: Color = hasSignedApps ? .green : .accentColor
+					
 					LinearGradient(
 						colors: [
-							Color.accentColor.opacity(0.08),
+							statusColor.opacity(0.12),
 							Color(uiColor: .systemBackground),
-							Color.accentColor.opacity(0.05)
+							statusColor.opacity(0.08),
+							Color(uiColor: .systemBackground),
+							statusColor.opacity(0.05)
 						],
 						startPoint: .topLeading,
 						endPoint: .bottomTrailing
