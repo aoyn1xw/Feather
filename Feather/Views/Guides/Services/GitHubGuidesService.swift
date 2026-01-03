@@ -4,8 +4,8 @@ import Foundation
 class GitHubGuidesService {
     static let shared = GitHubGuidesService()
     
-    private let baseURL = "https://api.github.com/repos/WhySooooFurious/Ultimate-Sideloading-Guide/contents/wsf-app-guides/en"
-    private let rawBaseURL = "https://raw.githubusercontent.com/WhySooooFurious/Ultimate-Sideloading-Guide/main/wsf-app-guides/en"
+    private let baseURL = "https://api.github.com/repos/WSF-Team/WSF/contents/Portal/Guides"
+    private let rawBaseURL = "https://raw.githubusercontent.com/WSF-Team/WSF/main/Portal/Guides"
     
     private init() {}
     
