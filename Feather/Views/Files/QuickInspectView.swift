@@ -5,10 +5,10 @@ import NimbleViews
 struct QuickInspectView: View {
     let file: FileItem
     @Environment(\.dismiss) private var dismiss
-    @State private var fileInfo: FilesEngine.FileInformation?
-    @State private var hashInfo: FilesEngine.HashInformation?
-    @State private var ipaInfo: FilesEngine.IPAInformation?
-    @State private var machoInfo: FilesEngine.MachOInformation?
+    @State private var fileInfo: FileAnalysisEngine.FileInformation?
+    @State private var hashInfo: FileAnalysisEngine.HashInformation?
+    @State private var ipaInfo: FileAnalysisEngine.IPAInformation?
+    @State private var machoInfo: FileAnalysisEngine.MachOInformation?
     @State private var isLoading = true
     
     var body: some View {
@@ -90,7 +90,7 @@ struct QuickInspectView: View {
     }
     
     @ViewBuilder
-    private func infoSection(_ info: FilesEngine.FileInformation) -> some View {
+    private func infoSection(_ info: FileAnalysisEngine.FileInformation) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(.localized("File Information"))
                 .font(.headline)
@@ -113,7 +113,7 @@ struct QuickInspectView: View {
     }
     
     @ViewBuilder
-    private func hashSection(_ hashes: FilesEngine.HashInformation) -> some View {
+    private func hashSection(_ hashes: FileAnalysisEngine.HashInformation) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(.localized("Hashes"))
                 .font(.headline)
@@ -130,7 +130,7 @@ struct QuickInspectView: View {
     }
     
     @ViewBuilder
-    private func ipaSection(_ ipa: FilesEngine.IPAInformation) -> some View {
+    private func ipaSection(_ ipa: FileAnalysisEngine.IPAInformation) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(.localized("IPA Information"))
                 .font(.headline)
@@ -151,7 +151,7 @@ struct QuickInspectView: View {
     }
     
     @ViewBuilder
-    private func machoSection(_ macho: FilesEngine.MachOInformation) -> some View {
+    private func machoSection(_ macho: FileAnalysisEngine.MachOInformation) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(.localized("Mach-O Information"))
                 .font(.headline)
@@ -178,24 +178,24 @@ struct QuickInspectView: View {
             let path = file.url.path
             
             // Get basic file info
-            let info = FilesEngine.getFileInformation(at: path)
+            let info = FileAnalysisEngine.getFileInformation(at: path)
             
             // Calculate hashes (for smaller files)
-            var hashes: FilesEngine.HashInformation?
+            var hashes: FileAnalysisEngine.HashInformation?
             if file.sizeInBytes ?? 0 < 100_000_000 { // Only for files < 100MB
-                hashes = FilesEngine.computeHashes(for: path)
+                hashes = FileAnalysisEngine.computeHashes(for: path)
             }
             
             // Analyze specific file types
-            var ipa: FilesEngine.IPAInformation?
-            var macho: FilesEngine.MachOInformation?
+            var ipa: FileAnalysisEngine.IPAInformation?
+            var macho: FileAnalysisEngine.MachOInformation?
             
             if file.url.pathExtension.lowercased() == "ipa" {
-                ipa = FilesEngine.analyzeIPAFile(at: path)
+                ipa = FileAnalysisEngine.analyzeIPAFile(at: path)
             }
             
             if info?.type == .machO || file.url.pathExtension.lowercased() == "dylib" {
-                macho = FilesEngine.analyzeMachOFile(at: path)
+                macho = FileAnalysisEngine.analyzeMachOFile(at: path)
             }
             
             // Capture copies for use in MainActor context
