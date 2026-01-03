@@ -45,14 +45,15 @@ struct SourcesCellView: View {
 				)
 			}
 		}
-		.padding(20)
+		.padding(.horizontal, 14)
+		.padding(.vertical, 10)
 		.background(
-			RoundedRectangle(cornerRadius: 16, style: .continuous)
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
 				.fill(
 					LinearGradient(
 						colors: [
-							dominantColor.opacity(0.12),
-							dominantColor.opacity(0.06)
+							dominantColor.opacity(0.08),
+							dominantColor.opacity(0.04)
 						],
 						startPoint: .topLeading,
 						endPoint: .bottomTrailing
@@ -60,10 +61,10 @@ struct SourcesCellView: View {
 				)
 		)
 		.overlay(
-			RoundedRectangle(cornerRadius: 16, style: .continuous)
-				.stroke(dominantColor.opacity(0.25), lineWidth: 1)
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
+				.stroke(dominantColor.opacity(0.2), lineWidth: 0.5)
 		)
-		.shadow(color: dominantColor.opacity(0.2), radius: 10, x: 0, y: 5)
+		.shadow(color: dominantColor.opacity(0.1), radius: 4, x: 0, y: 2)
 		.swipeActions(edge: .leading) {
 			Button {
 				viewModel.togglePin(for: source)

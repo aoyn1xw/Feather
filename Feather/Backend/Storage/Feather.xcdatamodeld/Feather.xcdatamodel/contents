@@ -5,6 +5,7 @@
         <attribute name="iconURL" optional="YES" attributeType="URI"/>
         <attribute name="identifier" attributeType="String"/>
         <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="order" attributeType="Integer 16" defaultValueString="-1" usesScalarValueType="YES"/>
         <attribute name="sourceURL" optional="YES" attributeType="URI"/>
     </entity>
     <entity name="CertificatePair" representedClassName="CertificatePair" syncable="YES" codeGenerationType="class">

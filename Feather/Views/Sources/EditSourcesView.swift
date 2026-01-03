@@ -138,9 +138,8 @@ struct EditSourcesView: View {
 	}
 	
 	private func moveSource(from source: IndexSet, to destination: Int) {
-		// Note: SwiftUI's List with CoreData FetchedResults doesn't support reordering out of the box
-		// without modifying the Core Data model to include an order attribute.
-		// For now, we'll keep this method as a placeholder.
-		// A full implementation would require adding an "order" property to the AltSource entity.
+		var sourcesArray = Array(sources)
+		sourcesArray.move(fromOffsets: source, toOffset: destination)
+		Storage.shared.reorderSources(sourcesArray)
 	}
 }

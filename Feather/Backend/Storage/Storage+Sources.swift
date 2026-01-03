@@ -2,6 +2,9 @@ import CoreData
 import AltSourceKit
 import OSLog
 
+// MARK: - Constants
+private let kSourceOrderMigrationKey = "SourceOrderMigrationCompleted"
+
 // MARK: - Class extension: Sources
 extension Storage {
 	/// Retrieve sources in an array, we don't normally need this in swiftUI but we have it for the copy sources action
@@ -24,6 +27,11 @@ extension Storage {
 			return
 		}
 		
+		// Get the maximum order value from existing sources
+		let request: NSFetchRequest<AltSource> = AltSource.fetchRequest()
+		request.sortDescriptors = [NSSortDescriptor(keyPath: \AltSource.order, ascending: false)]
+		request.fetchLimit = 1
+		let maxOrder = (try? context.fetch(request).first?.order ?? -1) ?? -1
 		
 		let new = AltSource(context: context)
 		new.name = name
@@ -31,6 +39,7 @@ extension Storage {
 		new.identifier = identifier
 		new.sourceURL = url
 		new.iconURL = iconURL
+		new.order = maxOrder + 1
 		
 		do {
 			if !deferSave {
@@ -100,6 +109,56 @@ extension Storage {
 		} catch {
 			Logger.misc.error("Error checking if repository exists: \(error)")
 			return false
+		}
+	}
+	
+	func reorderSources(_ sources: [AltSource]) {
+		// Update the order
+		for (index, source) in sources.enumerated() {
+			source.order = Int16(index)
+		}
+		
+		// Save with error handling
+		do {
+			try context.save()
+		} catch {
+			Logger.misc.error("Error reordering sources: \(error)")
+			// Rollback to revert all changes
+			context.rollback()
+		}
+	}
+	
+	/// Initialize order values for existing sources that don't have one
+	/// This is called once on app launch to migrate existing data
+	func initializeSourceOrders() {
+		// Use a lock to prevent race conditions
+		objc_sync_enter(self)
+		defer { objc_sync_exit(self) }
+		
+		// Check if migration has already been done
+		guard !UserDefaults.standard.bool(forKey: kSourceOrderMigrationKey) else { return }
+		
+		let request: NSFetchRequest<AltSource> = AltSource.fetchRequest()
+		request.sortDescriptors = [NSSortDescriptor(keyPath: \AltSource.date, ascending: true)]
+		
+		do {
+			let sources = try context.fetch(request)
+			
+			// Check if any source has order == -1 (uninitialized)
+			let needsInitialization = sources.contains { $0.order == -1 }
+			
+			if needsInitialization {
+				for (index, source) in sources.enumerated() {
+					source.order = Int16(index)
+				}
+				try context.save()
+			}
+			
+			// Mark migration as complete
+			UserDefaults.standard.set(true, forKey: kSourceOrderMigrationKey)
+		} catch {
+			Logger.misc.error("Error initializing source orders: \(error)")
+			// Don't set migration flag if it failed - we'll try again next time
 		}
 	}
 }

@@ -15,10 +15,11 @@ struct SourcesView: View {
 	@State private var _searchText = ""
 	@State private var _showFilterSheet = false
 	@State private var _showEditSourcesView = false
-	@State private var _sortOrder: SortOrder = .alphabetical
+	@State private var _sortOrder: SortOrder = .custom
 	@State private var _filterByPinned: FilterOption = .all
 	
 	enum SortOrder: String, CaseIterable {
+		case custom = "Custom Order"
 		case alphabetical = "A-Z"
 		case recentlyAdded = "Recently Added"
 		case appCount = "Most Apps"
@@ -49,6 +50,9 @@ struct SourcesView: View {
 		// Apply sorting
 		return filtered.sorted { s1, s2 in
 			switch _sortOrder {
+			case .custom:
+				// FetchRequest already sorts by order, just preserve it
+				return s1.order < s2.order
 			case .alphabetical:
 				let p1 = viewModel.isPinned(s1)
 				let p2 = viewModel.isPinned(s2)
@@ -56,9 +60,8 @@ struct SourcesView: View {
 				if !p1 && p2 { return false }
 				return (s1.name ?? "") < (s2.name ?? "")
 			case .recentlyAdded:
-				// Assuming newer sources have later object IDs or we can use a timestamp if available
-				// For now, sort by name descending as a proxy for "recently added"
-				return (s1.name ?? "") > (s2.name ?? "")
+				// Sort by date descending (most recent first)
+				return (s1.date ?? Date.distantPast) > (s2.date ?? Date.distantPast)
 			case .appCount:
 				let count1 = viewModel.sources[s1]?.apps.count ?? 0
 				let count2 = viewModel.sources[s2]?.apps.count ?? 0
@@ -70,7 +73,7 @@ struct SourcesView: View {
 	
 	@FetchRequest(
 		entity: AltSource.entity(),
-		sortDescriptors: [NSSortDescriptor(keyPath: \AltSource.name, ascending: true)],
+		sortDescriptors: [NSSortDescriptor(keyPath: \AltSource.order, ascending: true)],
 		animation: .easeInOut(duration: 0.35)
 	) private var _sources: FetchedResults<AltSource>
 	
@@ -260,7 +263,7 @@ struct SourcesView: View {
 	private var resetSection: some View {
 		NBSection("") {
 			Button {
-				_sortOrder = .alphabetical
+				_sortOrder = .custom
 				_filterByPinned = .all
 				_searchText = ""
 			} label: {
