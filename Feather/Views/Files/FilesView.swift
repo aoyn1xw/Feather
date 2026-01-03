@@ -914,7 +914,7 @@ struct FilesView: View {
         Task {
             do {
                 let fileManager = FileManager.default
-                let attrs = try fileManager.attributesOfItem(atPath: file.url.path)
+                let _ = try fileManager.attributesOfItem(atPath: file.url.path)
                 
                 // Check if file is readable
                 if fileManager.isReadableFile(atPath: file.url.path) {

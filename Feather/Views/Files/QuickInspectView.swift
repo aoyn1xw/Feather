@@ -198,11 +198,16 @@ struct QuickInspectView: View {
                 macho = FilesEngine.analyzeMachOFile(at: path)
             }
             
+            // Capture copies for use in MainActor context
+            let hashesCopy = hashes
+            let ipaCopy = ipa
+            let machoCopy = macho
+            
             await MainActor.run {
                 self.fileInfo = info
-                self.hashInfo = hashes
-                self.ipaInfo = ipa
-                self.machoInfo = macho
+                self.hashInfo = hashesCopy
+                self.ipaInfo = ipaCopy
+                self.machoInfo = machoCopy
                 self.isLoading = false
             }
         }.value
