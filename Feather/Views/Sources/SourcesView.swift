@@ -337,7 +337,7 @@ private struct AllAppsCardView: View {
 		let isRegular = horizontalSizeClass != .compact
 		
 		VStack(spacing: 0) {
-			// Top gradient banner
+			// Top gradient banner - smaller
 			if _useGradients {
 				gradientBanner
 			} else {
@@ -349,8 +349,8 @@ private struct AllAppsCardView: View {
 		}
 		.background(cardBackground)
 		.overlay(cardStroke)
-		.shadow(color: _useGradients ? appIconColor.opacity(0.15) : Color.black.opacity(0.05), radius: _useGradients ? 20 : 5, x: 0, y: _useGradients ? 8 : 2)
-		.shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 4)
+		.shadow(color: _useGradients ? appIconColor.opacity(0.12) : Color.black.opacity(0.04), radius: _useGradients ? 12 : 4, x: 0, y: _useGradients ? 4 : 2)
+		.shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 2)
 		.onAppear {
 			extractAppIconColor()
 		}
@@ -359,36 +359,36 @@ private struct AllAppsCardView: View {
 	private var flatBanner: some View {
 		ZStack {
 			appIconColor.opacity(0.2)
-				.frame(height: 80)
+				.frame(height: 50)
 		}
-		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+		.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 	}
 	
 	private var gradientBanner: some View {
 		ZStack(alignment: .topTrailing) {
 			LinearGradient(
 				colors: [
-					appIconColor.opacity(0.9),
-					appIconColor.opacity(0.7),
-					appIconColor.opacity(0.5)
+					appIconColor.opacity(0.8),
+					appIconColor.opacity(0.6),
+					appIconColor.opacity(0.4)
 				],
 				startPoint: .topLeading,
 				endPoint: .bottomTrailing
 			)
-			.frame(height: 80)
+			.frame(height: 50)
 			
-			// Decorative circles
+			// Decorative circles - smaller
 			Circle()
 				.fill(Color.white.opacity(0.1))
-				.frame(width: 60, height: 60)
-				.offset(x: 20, y: -20)
+				.frame(width: 40, height: 40)
+				.offset(x: 15, y: -15)
 			
 			Circle()
 				.fill(Color.white.opacity(0.05))
-				.frame(width: 90, height: 90)
-				.offset(x: -30, y: 40)
+				.frame(width: 60, height: 60)
+				.offset(x: -20, y: 25)
 		}
-		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+		.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 	}
 	
 	// Extract color from app icon
@@ -427,7 +427,7 @@ private struct AllAppsCardView: View {
 	private static let sharedCIContext = CIContext(options: [.workingColorSpace: kCFNull as Any])
 	
 	private func contentSection(isRegular: Bool) -> some View {
-		HStack(spacing: 14) {
+		HStack(spacing: 12) {
 			iconView
 			
 			textContent
@@ -436,21 +436,21 @@ private struct AllAppsCardView: View {
 			
 			chevronIcon
 		}
-		.padding(.horizontal, isRegular ? 16 : 14)
-		.padding(.bottom, isRegular ? 16 : 14)
-		.padding(.top, 6)
+		.padding(.horizontal, isRegular ? 14 : 12)
+		.padding(.bottom, isRegular ? 12 : 10)
+		.padding(.top, 4)
 	}
 	
 	private var iconView: some View {
 		ZStack {
 			Circle()
 				.fill(Color.white)
-				.frame(width: 56, height: 56)
-				.shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
+				.frame(width: 44, height: 44)
+				.shadow(color: Color.black.opacity(0.12), radius: 4, x: 0, y: 2)
 			
 			if _useGradients {
 				Image(systemName: "app.badge.fill")
-					.font(.system(size: 26))
+					.font(.system(size: 20))
 					.foregroundStyle(
 						LinearGradient(
 							colors: [appIconColor, appIconColor.opacity(0.7)],
@@ -460,17 +460,17 @@ private struct AllAppsCardView: View {
 					)
 			} else {
 				Image(systemName: "app.badge.fill")
-					.font(.system(size: 26))
+					.font(.system(size: 20))
 					.foregroundStyle(appIconColor)
 			}
 		}
-		.offset(y: -28)
+		.offset(y: -22)
 	}
 	
 	private var textContent: some View {
-		VStack(alignment: .leading, spacing: 4) {
+		VStack(alignment: .leading, spacing: 3) {
 			Text(.localized("All Apps"))
-				.font(.title3.bold())
+				.font(.headline)
 				.foregroundStyle(.primary)
 			Text(.localized("Browse your complete app collection"))
 				.font(.caption)
@@ -478,18 +478,18 @@ private struct AllAppsCardView: View {
 			
 			appsBadge
 		}
-		.padding(.top, 6)
+		.padding(.top, 4)
 	}
 	
 	private var appsBadge: some View {
 		HStack(spacing: 4) {
 			Image(systemName: "square.stack.3d.up.fill")
-				.font(.system(size: 9))
+				.font(.system(size: 8))
 			Text("\(totalApps) Apps Available")
-				.font(.system(size: 10, weight: .bold))
+				.font(.system(size: 9, weight: .bold))
 		}
 		.foregroundStyle(appIconColor)
-		.padding(.horizontal, 8)
+		.padding(.horizontal, 7)
 		.padding(.vertical, 3)
 		.background(
 			Capsule()
@@ -501,20 +501,20 @@ private struct AllAppsCardView: View {
 		Image(systemName: "chevron.right")
 			.font(.body.bold())
 			.foregroundStyle(.secondary)
-			.padding(.top, 6)
+			.padding(.top, 4)
 	}
 	
 	private var cardBackground: some View {
-		RoundedRectangle(cornerRadius: 16, style: .continuous)
+		RoundedRectangle(cornerRadius: 14, style: .continuous)
 			.fill(Color(uiColor: .secondarySystemGroupedBackground))
 	}
 	
 	private var cardStroke: some View {
-		RoundedRectangle(cornerRadius: 16, style: .continuous)
+		RoundedRectangle(cornerRadius: 14, style: .continuous)
 			.stroke(
 				_useGradients ? 
 					LinearGradient(
-						colors: [Color.white.opacity(0.5), Color.clear],
+						colors: [Color.white.opacity(0.4), Color.clear],
 						startPoint: .top,
 						endPoint: .bottom
 					) :

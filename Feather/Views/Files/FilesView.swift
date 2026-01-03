@@ -42,6 +42,14 @@ struct FilesView: View {
     @State private var showTemplatesSheet = false
     @State private var showQuickInspect = false
     @State private var quickInspectFile: FileItem?
+    @State private var dismissedCertificateBanner = false
+    
+    // Constants for Open in Signer
+    private let importPollingIntervalSeconds: Double = 0.5
+    private let importMaxWaitTimeSeconds: Double = 10.0
+    private let importRecentThresholdSeconds: Double = 2.0
+    private let importErrorDomain = "com.feather.files"
+    private let importTimeoutErrorCode = 1001
     
     // Settings
     @AppStorage("files_viewStyle") private var viewStyleSetting: String = "list"
@@ -94,6 +102,11 @@ struct FilesView: View {
     var body: some View {
         NBNavigationView(.localized("Files")) {
             VStack(spacing: 0) {
+                // Certificate Quick Add Banner (at top, before breadcrumb)
+                if hasCertificateFiles && !dismissedCertificateBanner {
+                    certificateQuickAddBanner
+                }
+                
                 // Breadcrumb Navigation
                 BreadcrumbView(
                     currentPath: fileManager.currentDirectory.path,
@@ -102,11 +115,6 @@ struct FilesView: View {
                         fileManager.navigateToDirectory(url)
                     }
                 )
-                
-                // Certificate Quick Add Banner
-                if hasCertificateFiles {
-                    certificateQuickAddBanner
-                }
                 
                 ZStack {
                     if fileManager.currentFiles.isEmpty {
@@ -374,61 +382,84 @@ struct FilesView: View {
     }
     
     private var certificateQuickAddBanner: some View {
-        Button {
-            detectCertificateFiles()
-            showCertificateQuickAdd = true
-        } label: {
-            HStack(spacing: 14) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.25),
-                                    Color.white.opacity(0.15)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
+        HStack(spacing: 10) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.blue.opacity(0.2),
+                                Color.blue.opacity(0.1)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
-                        .frame(width: 50, height: 50)
-                    
-                    Image(systemName: "person.badge.key.fill")
-                        .font(.title2)
-                        .foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
-                }
+                    )
+                    .frame(width: 32, height: 32)
                 
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(.localized("Certificate Files Detected"))
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white)
-                    Text(.localized("Tap to add certificate"))
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.9))
-                }
-                
-                Spacer()
-                
-                Image(systemName: "arrow.right.circle.fill")
-                    .font(.title3)
-                    .foregroundStyle(.white.opacity(0.9))
+                Image(systemName: "person.badge.key.fill")
+                    .font(.caption)
+                    .foregroundStyle(.blue)
             }
-            .padding(16)
-            .background(
-                LinearGradient(
-                    colors: [Color.blue, Color.blue.opacity(0.8), Color.cyan.opacity(0.7)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .shadow(color: .blue.opacity(0.4), radius: 12, x: 0, y: 6)
-            .padding(.horizontal)
-            .padding(.vertical, 8)
+            
+            // Text
+            VStack(alignment: .leading, spacing: 2) {
+                Text(.localized("Certificate Files Detected"))
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+                Text(.localized("Tap to add certificate"))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            
+            Spacer()
+            
+            // Add button
+            Button {
+                detectCertificateFiles()
+                showCertificateQuickAdd = true
+            } label: {
+                Text(.localized("Add"))
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Color.blue)
+                    )
+            }
+            .buttonStyle(.plain)
+            
+            // Dismiss button
+            Button {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    dismissedCertificateBanner = true
+                }
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+        )
+        .padding(.horizontal, 12)
+        .padding(.top, 8)
+        .padding(.bottom, 4)
+        .transition(.move(edge: .top).combined(with: .opacity))
     }
     
     private var selectedFilesArray: [FileItem] {
@@ -793,8 +824,7 @@ struct FilesView: View {
         
         if enableOpenInSigner && file.url.pathExtension.lowercased() == "ipa" {
             Button {
-                // TODO: Open in signer
-                HapticsManager.shared.impact()
+                openInSigner(file)
             } label: {
                 Label(.localized("Open in Signer"), systemImage: "signature")
             }
@@ -927,6 +957,65 @@ struct FilesView: View {
             } catch {
                 AppLogManager.shared.error("Failed to check file structure: \(error.localizedDescription)", category: "Files")
                 HapticsManager.shared.error()
+            }
+        }
+    }
+    
+    private func openInSigner(_ file: FileItem) {
+        HapticsManager.shared.impact()
+        
+        // Import IPA to library and open signing view
+        Task { @MainActor in
+            let id = "FeatherFileOpen_\(UUID().uuidString)"
+            let downloadManager = DownloadManager.shared
+            let dl = downloadManager.startArchive(from: file.url, id: id)
+            
+            do {
+                try downloadManager.handlePachageFile(url: file.url, dl: dl)
+                
+                // Wait for the download/import to complete by checking the download status
+                let maxAttempts = Int(importMaxWaitTimeSeconds / importPollingIntervalSeconds)
+                var attempts = 0
+                
+                while attempts < maxAttempts {
+                    try await Task.sleep(nanoseconds: UInt64(importPollingIntervalSeconds * 1_000_000_000))
+                    
+                    // Check if import is complete by trying to get the latest imported app
+                    // We check if an app was imported very recently
+                    if let importedApp = Storage.shared.getLatestImportedApp(),
+                       let appDate = importedApp.date,
+                       Date().timeIntervalSince(appDate) < importRecentThresholdSeconds {
+                        // This is likely the app we just imported
+                        // Trigger signing with default certificate
+                        NotificationCenter.default.post(
+                            name: Notification.Name("Feather.signApp"),
+                            object: nil,
+                            userInfo: ["app": AnyApp(base: importedApp)]
+                        )
+                        
+                        HapticsManager.shared.success()
+                        return
+                    }
+                    
+                    attempts += 1
+                }
+                
+                // If we get here, the import didn't complete in time
+                throw NSError(
+                    domain: importErrorDomain,
+                    code: importTimeoutErrorCode,
+                    userInfo: [NSLocalizedDescriptionKey: .localized("Import timed out. Please try again.")]
+                )
+                
+            } catch {
+                HapticsManager.shared.error()
+                AppLogManager.shared.error("Failed to open in signer: \(error.localizedDescription)", category: "Files")
+                
+                let errorMessage = String(format: .localized("Failed to import IPA file: %@"), error.localizedDescription)
+                UIAlertController.showAlertWithOk(
+                    title: .localized("Error"),
+                    message: errorMessage
+                )
             }
         }
     }

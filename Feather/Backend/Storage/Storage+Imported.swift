@@ -29,4 +29,11 @@ extension Storage {
 		HapticsManager.shared.impact()
 		completion(nil)
 	}
+	
+	func getLatestImportedApp() -> Imported? {
+		let fetchRequest: NSFetchRequest<Imported> = Imported.fetchRequest()
+		fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Imported.date, ascending: false)]
+		fetchRequest.fetchLimit = 1
+		return (try? context.fetch(fetchRequest))?.first
+	}
 }
