@@ -414,7 +414,7 @@ struct FilesView: View {
                 detectCertificateFiles()
                 showCertificateQuickAdd = true
             } label: {
-                Text("Add")
+                Text(.localized("Add"))
                     .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(.white)
@@ -974,9 +974,11 @@ struct FilesView: View {
                     try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
                     
                     // Check if import is complete by trying to get the latest imported app
+                    // We check if an app was imported very recently (within last 2 seconds)
                     if let importedApp = Storage.shared.getLatestImportedApp(),
-                       let appUUID = importedApp.uuid,
-                       appUUID == dl.uuid {
+                       let appDate = importedApp.date,
+                       Date().timeIntervalSince(appDate) < 2.0 {
+                        // This is likely the app we just imported
                         // Trigger signing with default certificate
                         NotificationCenter.default.post(
                             name: Notification.Name("Feather.signApp"),

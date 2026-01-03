@@ -122,7 +122,7 @@ struct ServerView: View {
 					// Show unavailable badge for Fully Remote and Custom
 					if index == 2 || index == 3 {
 						Spacer()
-						Text("Unavailable")
+						Text(.localized("Unavailable"))
 							.font(.caption2)
 							.fontWeight(.semibold)
 							.foregroundStyle(.white)
