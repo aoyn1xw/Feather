@@ -83,14 +83,14 @@ struct BackupRestoreView: View {
 					.padding(.vertical, 6)
 				}
 			} footer: {
-				Text(.localized("Restores your data from a backup file. CoreSign will restart to apply the changes."))
+				Text(.localized("Restores your data from a backup file. PulseSign will restart to apply the changes."))
 			}
 		}
 		.fileExporter(
 			isPresented: $isExporting,
 			document: exportURL != nil ? BackupDocument(url: exportURL!) : nil,
 			contentType: .zip,
-			defaultFilename: "CoreSign_Backup_\(Date().formatted(date: .numeric, time: .omitted).replacingOccurrences(of: "/", with: "-")).zip"
+			defaultFilename: "PulseSign_Backup_\(Date().formatted(date: .numeric, time: .omitted).replacingOccurrences(of: "/", with: "-")).zip"
 		) { result in
 			switch result {
 			case .success(let url):
@@ -136,7 +136,7 @@ struct BackupRestoreView: View {
 				}
 			}
 		} message: {
-			Text(.localized("CoreSign has to restart in order to apply this backup, do you want to proceed?"))
+			Text(.localized("PulseSign has to restart in order to apply this backup, do you want to proceed?"))
 		}
 	}
 	
@@ -243,7 +243,7 @@ struct BackupRestoreView: View {
 			try (filtered as NSDictionary).write(to: settingsFile)
 			
 			// 5. Create zip file
-			let zipURL = FileManager.default.temporaryDirectory.appendingPathComponent("CoreSign_Backup.zip")
+			let zipURL = FileManager.default.temporaryDirectory.appendingPathComponent("PulseSign_Backup.zip")
 			try? FileManager.default.removeItem(at: zipURL)
 			
 			try FileManager.default.zipItem(at: tempDir, to: zipURL, shouldKeepParent: false)
