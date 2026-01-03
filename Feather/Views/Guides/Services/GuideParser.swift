@@ -209,6 +209,7 @@ class GuideParser {
                             
                             // Check if URL uses accent:// scheme
                             if url.hasPrefix("accent://") {
+                                // Remove the accent:// prefix for display but mark as accent
                                 result.append(.accentLink(url: url, text: linkText))
                             } else {
                                 result.append(.link(url: url, text: linkText))
@@ -232,10 +233,47 @@ class GuideParser {
         // Add any remaining text
         if !currentText.isEmpty {
             // Check if the text contains accent:// (as plain text reference)
-            if currentText.contains("accent://") {
-                result.append(.accentText(currentText))
-            } else {
-                result.append(.text(currentText))
+            // This handles cases like: "Check out accent://something"
+            var remainingText = currentText
+            
+            while let accentRange = remainingText.range(of: "accent://") {
+                // Add text before accent if any
+                let beforeAccent = String(remainingText[..<accentRange.lowerBound])
+                if !beforeAccent.isEmpty {
+                    result.append(.text(beforeAccent))
+                }
+                
+                // Find the end of the accent text (next space, punctuation, or end of string)
+                let afterPrefix = accentRange.upperBound
+                var accentTextEnd = afterPrefix
+                
+                // Continue until we hit a space, newline, or end of string
+                while accentTextEnd < remainingText.endIndex {
+                    let char = remainingText[accentTextEnd]
+                    if char.isWhitespace || char.isPunctuation {
+                        break
+                    }
+                    accentTextEnd = remainingText.index(after: accentTextEnd)
+                }
+                
+                // Extract the accent text (without the accent:// prefix)
+                let accentText = String(remainingText[afterPrefix..<accentTextEnd])
+                if !accentText.isEmpty {
+                    result.append(.accentText(accentText))
+                }
+                
+                // Continue with the rest of the text
+                if accentTextEnd < remainingText.endIndex {
+                    remainingText = String(remainingText[accentTextEnd...])
+                } else {
+                    remainingText = ""
+                    break
+                }
+            }
+            
+            // Add any remaining text after all accent:// occurrences
+            if !remainingText.isEmpty {
+                result.append(.text(remainingText))
             }
         }
         
