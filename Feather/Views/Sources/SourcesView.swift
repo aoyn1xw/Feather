@@ -14,6 +14,7 @@ struct SourcesView: View {
 	@State private var _addingSourceLoading = false
 	@State private var _searchText = ""
 	@State private var _showFilterSheet = false
+	@State private var _showEditSourcesView = false
 	@State private var _sortOrder: SortOrder = .alphabetical
 	@State private var _filterByPinned: FilterOption = .all
 	
@@ -93,6 +94,11 @@ struct SourcesView: View {
 				.sheet(isPresented: $_showFilterSheet) {
 					filterSheet
 				}
+				.sheet(isPresented: $_showEditSourcesView) {
+					EditSourcesView(sources: _sources)
+						.presentationDetents([.large])
+						.presentationDragIndicator(.visible)
+				}
 		}
 		.task(id: Array(_sources)) {
 			await viewModel.fetchSources(_sources)
@@ -135,7 +141,6 @@ struct SourcesView: View {
 	
 	private var repositoriesSection: some View {
 		NBSection(
-			.localized("Repositories"),
 			secondary: _filteredSources.count.description
 		) {
 			ForEach(_filteredSources) { source in
@@ -171,12 +176,12 @@ struct SourcesView: View {
 	@ToolbarContentBuilder
 	private var toolbarContent: some ToolbarContent {
 		NBToolbarButton(
-			systemImage: "line.3.horizontal.decrease.circle",
+			systemImage: "pencil",
 			style: .icon,
 			placement: .topBarLeading,
 			isDisabled: false
 		) {
-			_showFilterSheet = true
+			_showEditSourcesView = true
 		}
 		
 		NBToolbarButton(
