@@ -123,7 +123,7 @@ struct ManageStorageView: View {
                 // Total row - emphasized
                 HStack {
                     Image(systemName: "chart.bar.fill")
-                        .foregroundStyle(.accentColor)
+                        .foregroundStyle(.tint)
                         .font(.system(size: 16))
                     Text(.localized("Total"))
                         .font(.system(.body, design: .default, weight: .bold))
@@ -339,7 +339,7 @@ struct ManageStorageView: View {
     private func storageBreakdownRow(label: LocalizedStringKey, size: Int64, icon: String) -> some View {
         HStack {
             Image(systemName: icon)
-                .foregroundStyle(.accentColor)
+                .foregroundStyle(.tint)
                 .font(.system(size: 16))
             Text(label)
                 .foregroundStyle(.primary)

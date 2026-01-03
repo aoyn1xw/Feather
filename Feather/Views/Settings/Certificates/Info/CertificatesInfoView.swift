@@ -293,7 +293,7 @@ struct CertificatesInfoView: View {
 				Text("\(devices.count)")
 					.font(.subheadline)
 					.fontWeight(.semibold)
-					.foregroundStyle(.accentColor)
+					.foregroundStyle(.tint)
 			}
 			.padding(12)
 			
@@ -336,7 +336,7 @@ struct CertificatesInfoView: View {
 				Text("\(certs.count)")
 					.font(.subheadline)
 					.fontWeight(.semibold)
-					.foregroundStyle(.accentColor)
+					.foregroundStyle(.tint)
 			}
 			.padding(12)
 			.background(Color(UIColor.secondarySystemGroupedBackground))
@@ -358,7 +358,7 @@ struct CertificatesInfoView: View {
 				Text("\(entitlements.count)")
 					.font(.subheadline)
 					.fontWeight(.semibold)
-					.foregroundStyle(.accentColor)
+					.foregroundStyle(.tint)
 			}
 			.padding(12)
 			
@@ -399,7 +399,7 @@ struct CertificatesInfoView: View {
 		} label: {
 			HStack {
 				Image(systemName: "folder.fill")
-					.foregroundStyle(.accentColor)
+					.foregroundStyle(.tint)
 					.font(.title3)
 				Text(.localized("Open in Files"))
 					.font(.subheadline)
