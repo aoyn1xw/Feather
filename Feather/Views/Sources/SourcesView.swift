@@ -51,8 +51,8 @@ struct SourcesView: View {
 		return filtered.sorted { s1, s2 in
 			switch _sortOrder {
 			case .custom:
-				// FetchRequest already sorts by order, just preserve it
-				return s1.order < s2.order
+				// FetchRequest already sorts by order, preserve existing order
+				return false
 			case .alphabetical:
 				let p1 = viewModel.isPinned(s1)
 				let p2 = viewModel.isPinned(s2)

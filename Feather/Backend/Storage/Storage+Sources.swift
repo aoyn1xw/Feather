@@ -4,6 +4,7 @@ import OSLog
 
 // MARK: - Constants
 private let kSourceOrderMigrationKey = "SourceOrderMigrationCompleted"
+private let migrationQueue = DispatchQueue(label: "com.feather.sourceOrderMigration", qos: .userInitiated)
 
 // MARK: - Class extension: Sources
 extension Storage {
@@ -31,7 +32,7 @@ extension Storage {
 		let request: NSFetchRequest<AltSource> = AltSource.fetchRequest()
 		request.sortDescriptors = [NSSortDescriptor(keyPath: \AltSource.order, ascending: false)]
 		request.fetchLimit = 1
-		let maxOrder = (try? context.fetch(request).first?.order ?? -1) ?? -1
+		let maxOrder = (try? context.fetch(request).first?.order) ?? -1
 		
 		let new = AltSource(context: context)
 		new.name = name
@@ -131,34 +132,33 @@ extension Storage {
 	/// Initialize order values for existing sources that don't have one
 	/// This is called once on app launch to migrate existing data
 	func initializeSourceOrders() {
-		// Use a lock to prevent race conditions
-		objc_sync_enter(self)
-		defer { objc_sync_exit(self) }
-		
-		// Check if migration has already been done
-		guard !UserDefaults.standard.bool(forKey: kSourceOrderMigrationKey) else { return }
-		
-		let request: NSFetchRequest<AltSource> = AltSource.fetchRequest()
-		request.sortDescriptors = [NSSortDescriptor(keyPath: \AltSource.date, ascending: true)]
-		
-		do {
-			let sources = try context.fetch(request)
+		// Use a serial queue to prevent race conditions
+		migrationQueue.sync {
+			// Check if migration has already been done
+			guard !UserDefaults.standard.bool(forKey: kSourceOrderMigrationKey) else { return }
 			
-			// Check if any source has order == -1 (uninitialized)
-			let needsInitialization = sources.contains { $0.order == -1 }
+			let request: NSFetchRequest<AltSource> = AltSource.fetchRequest()
+			request.sortDescriptors = [NSSortDescriptor(keyPath: \AltSource.date, ascending: true)]
 			
-			if needsInitialization {
-				for (index, source) in sources.enumerated() {
-					source.order = Int16(index)
+			do {
+				let sources = try context.fetch(request)
+				
+				// Check if any source has order == -1 (uninitialized)
+				let needsInitialization = sources.contains { $0.order == -1 }
+				
+				if needsInitialization {
+					for (index, source) in sources.enumerated() {
+						source.order = Int16(index)
+					}
+					try context.save()
 				}
-				try context.save()
+				
+				// Mark migration as complete
+				UserDefaults.standard.set(true, forKey: kSourceOrderMigrationKey)
+			} catch {
+				Logger.misc.error("Error initializing source orders: \(error)")
+				// Don't set migration flag if it failed - we'll try again next time
 			}
-			
-			// Mark migration as complete
-			UserDefaults.standard.set(true, forKey: kSourceOrderMigrationKey)
-		} catch {
-			Logger.misc.error("Error initializing source orders: \(error)")
-			// Don't set migration flag if it failed - we'll try again next time
 		}
 	}
 }
