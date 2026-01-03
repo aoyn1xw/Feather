@@ -1004,7 +1004,7 @@ struct FilesView: View {
                 throw NSError(
                     domain: importErrorDomain,
                     code: importTimeoutErrorCode,
-                    userInfo: [NSLocalizedDescriptionKey: .localized("Import timed out. Please try again.")]
+                    userInfo: [NSLocalizedDescriptionKey: "Import timed out. Please try again.".localized]
                 )
                 
             } catch {
