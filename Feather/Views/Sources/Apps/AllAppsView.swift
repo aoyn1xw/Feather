@@ -184,7 +184,7 @@ struct AllAppsRowView: View {
 		// Check if app is injected or modified based on version info or other metadata
 		if app.beta ?? false {
 			return "Beta"
-		} else if let _ = app.developerName {
+		} else if let _ = app.developer {
 			return "Official"
 		}
 		return ""
