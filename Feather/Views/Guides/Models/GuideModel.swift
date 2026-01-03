@@ -1,5 +1,16 @@
 import Foundation
 
+// MARK: - Guide Plist Entry (for ordering and display names)
+struct GuidePlistEntry: Codable {
+    let fileTitle: String
+    let fileName: String
+    
+    enum CodingKeys: String, CodingKey {
+        case fileTitle = "file_title"
+        case fileName = "file_name"
+    }
+}
+
 // MARK: - Guide Model
 struct Guide: Identifiable, Codable {
     let id: String
@@ -7,6 +18,7 @@ struct Guide: Identifiable, Codable {
     let path: String
     let type: GuideType
     var content: String?
+    var customDisplayName: String?
     
     enum GuideType: String, Codable {
         case file
@@ -14,7 +26,11 @@ struct Guide: Identifiable, Codable {
     }
     
     var displayName: String {
-        // Remove .md extension and format name
+        // Use custom display name from plist if available
+        if let custom = customDisplayName {
+            return custom
+        }
+        // Fallback: Remove .md extension and format name
         let nameWithoutExtension = name.replacingOccurrences(of: ".md", with: "")
         return nameWithoutExtension.replacingOccurrences(of: "-", with: " ")
             .replacingOccurrences(of: "_", with: " ")

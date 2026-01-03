@@ -115,12 +115,32 @@ struct GuideDetailView: View {
     }
     
     private func renderHeading(level: Int, text: String) -> some View {
-        Text(text)
+        // Parse accent:// links in headings like [Certificate Information](accent://)
+        let (displayText, isAccent) = parseAccentHeading(text)
+        
+        return Text(displayText)
             .font(headingFont(for: level))
             .fontWeight(.bold)
-            .foregroundStyle(.primary)
+            .foregroundStyle(isAccent ? accentColor : .primary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, level == 1 ? 8 : 4)
+    }
+    
+    /// Parses heading text to extract display text and check if it uses accent:// scheme
+    /// Example: "[Certificate Information](accent://)" returns ("Certificate Information", true)
+    private func parseAccentHeading(_ text: String) -> (String, Bool) {
+        // Pattern: [Text](accent://)
+        let pattern = #"^\[([^\]]+)\]\(accent://[^\)]*\)$"#
+        
+        if let regex = try? NSRegularExpression(pattern: pattern, options: []),
+           let match = regex.firstMatch(in: text, options: [], range: NSRange(text.startIndex..., in: text)) {
+            if let textRange = Range(match.range(at: 1), in: text) {
+                return (String(text[textRange]), true)
+            }
+        }
+        
+        // Fallback: return original text, not accent
+        return (text, false)
     }
     
     private func headingFont(for level: Int) -> Font {

@@ -40,17 +40,17 @@ jobs:
         id: get_version
         run: |
           VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" Payload/*.app/Info.plist)
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Portal v${{ env.VERSION }}
-          tag_name: v${{ env.VERSION }}
+          name: Portal v${{ steps.get_version.outputs.VERSION }}
+          tag_name: v${{ steps.get_version.outputs.VERSION }}
           body: |
             Latest stable release to download
 
-            Full Changelog: https://github.com/${{ github.repository }}/commits/v${{ env.VERSION }}
+            Full Changelog: https://github.com/${{ github.repository }}/commits/v${{ steps.get_version.outputs.VERSION }}
           files: |
             upload/*ipa
           fail_on_unmatched_files: true

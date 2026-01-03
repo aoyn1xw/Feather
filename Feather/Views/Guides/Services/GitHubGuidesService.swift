@@ -6,6 +6,7 @@ class GitHubGuidesService {
     
     private let baseURL = "https://api.github.com/repos/WSF-Team/WSF/contents/Portal/Guides"
     private let rawBaseURL = "https://raw.githubusercontent.com/WSF-Team/WSF/main/Portal/Guides"
+    private let plistURL = "https://raw.githubusercontent.com/WSF-Team/WSF/main/Portal/Guides/Markdown_filenames.plist"
     
     private init() {}
     
@@ -32,40 +33,44 @@ class GitHubGuidesService {
         }
     }
     
-    // Fetch list of guides from the GitHub repository
-    func fetchGuides() async throws -> [Guide] {
-        guard let url = URL(string: baseURL) else {
+    // Fetch the ordering plist from GitHub
+    private func fetchGuidesOrder() async throws -> [GuidePlistEntry] {
+        guard let url = URL(string: plistURL) else {
             throw ServiceError.invalidURL
         }
         
-        var request = URLRequest(url: url)
-        request.setValue("application/vnd.github.v3+json", forHTTPHeaderField: "Accept")
-        
-        let (data, _) = try await URLSession.shared.data(for: request)
+        let (data, _) = try await URLSession.shared.data(from: url)
         
         do {
-            let contents = try JSONDecoder().decode([GitHubContent].self, from: data)
-            
-            // Convert to Guide models, filtering for .md files and directories
-            let guides = contents.compactMap { content -> Guide? in
-                // Only include markdown files and directories
-                if content.type == "file" && !content.name.hasSuffix(".md") {
-                    return nil
-                }
-                
-                return Guide(
-                    id: content.sha,
-                    name: content.name,
-                    path: content.path,
-                    type: content.type == "dir" ? .directory : .file,
-                    content: nil
-                )
-            }.sorted { $0.displayName < $1.displayName }
-            
-            return guides
+            let decoder = PropertyListDecoder()
+            let entries = try decoder.decode([GuidePlistEntry].self, from: data)
+            return entries
         } catch {
             throw ServiceError.decodingError(error)
         }
+    }
+    
+    // Fetch list of guides from the GitHub repository using plist for ordering
+    func fetchGuides() async throws -> [Guide] {
+        // Fetch the plist for ordering and display names
+        let plistEntries = try await fetchGuidesOrder()
+        
+        // Create guides based on plist order
+        var guides: [Guide] = []
+        
+        for (index, entry) in plistEntries.enumerated() {
+            let guide = Guide(
+                id: "\(index)-\(entry.fileName)",
+                name: entry.fileName,
+                path: "Portal/Guides/\(entry.fileName)",
+                type: .file,
+                content: nil,
+                customDisplayName: entry.fileTitle
+            )
+            guides.append(guide)
+        }
+        
+        return guides
     }
     
     // Fetch content of a specific guide
