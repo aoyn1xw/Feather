@@ -26,9 +26,38 @@ struct SigningAlternativeIconView: View {
 						.disabled(!isModifing)
 					}
 				} else {
-					Text(.localized("No Icons Found."))
-						.font(.footnote)
-						.foregroundColor(.disabled())
+					HStack {
+						Spacer()
+						VStack(spacing: 12) {
+							ZStack {
+								Circle()
+									.fill(
+										LinearGradient(
+											colors: [Color.secondary.opacity(0.2), Color.secondary.opacity(0.1)],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
+									.frame(width: 60, height: 60)
+								
+								Image(systemName: "app.badge.questionmark")
+									.font(.system(size: 28))
+									.foregroundStyle(
+										LinearGradient(
+											colors: [Color.secondary.opacity(0.7), Color.secondary.opacity(0.5)],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
+							}
+							
+							Text(.localized("No Icons Found."))
+								.font(.subheadline)
+								.foregroundColor(.secondary)
+						}
+						.padding(.vertical, 30)
+						Spacer()
+					}
 				}
 			}
 			.onAppear(perform: _loadAlternateIcons)
@@ -49,11 +78,18 @@ extension SigningAlternativeIconView {
 			if let image = _iconUrl(icon.path) {
 				Image(uiImage: image)
 					.appIconStyle(size: 32)
+					.shadow(color: Color.accentColor.opacity(0.2), radius: 4, x: 0, y: 2)
 			}
 			
 			Text(icon.name)
 				.font(.headline)
-				.foregroundColor(.primary)
+				.foregroundStyle(
+					LinearGradient(
+						colors: [Color.primary, Color.primary.opacity(0.8)],
+						startPoint: .leading,
+						endPoint: .trailing
+					)
+				)
 		}
 		.padding(.vertical, 4)
 	}

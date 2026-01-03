@@ -26,7 +26,7 @@ struct SigningDylibView: View {
 					Image(systemName: "puzzlepiece.fill")
 						.foregroundStyle(
 							LinearGradient(
-								colors: [Color.accentColor, Color.accentColor.opacity(0.6)],
+								colors: [Color.accentColor, Color.accentColor.opacity(0.7), Color.accentColor.opacity(0.5)],
 								startPoint: .topLeading,
 								endPoint: .bottomTrailing
 							)
@@ -34,16 +34,41 @@ struct SigningDylibView: View {
 					Text(.localized("Dynamic Libraries"))
 						.font(.subheadline)
 						.fontWeight(.semibold)
+						.foregroundStyle(
+							LinearGradient(
+								colors: [Color.primary, Color.primary.opacity(0.8)],
+								startPoint: .leading,
+								endPoint: .trailing
+							)
+						)
 				}
 				.textCase(.none)
-				.foregroundStyle(.primary)
 			}
 			.disabled(options == nil)
 			
 			NBSection(.localized("Hidden")) {
 				HStack {
-					Image(systemName: "eye.slash.fill")
-						.foregroundStyle(.secondary)
+					ZStack {
+						Circle()
+							.fill(
+								LinearGradient(
+									colors: [Color.secondary.opacity(0.2), Color.secondary.opacity(0.1)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+							.frame(width: 28, height: 28)
+						
+						Image(systemName: "eye.slash.fill")
+							.font(.caption)
+							.foregroundStyle(
+								LinearGradient(
+									colors: [Color.secondary.opacity(0.8), Color.secondary.opacity(0.6)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+					}
 					
 					Text(verbatim: .localized("%lld required system dylibs not shown.", arguments: _hiddenDylibCount))
 						.font(.footnote)
