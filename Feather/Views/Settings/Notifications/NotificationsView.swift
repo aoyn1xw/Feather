@@ -87,7 +87,7 @@ struct NotificationsView: View {
                         }
                     }
                 } footer: {
-                    Text(.localized("Manage notification settings for Feather in System Settings."))
+                    Text(.localized("Manage notification settings for PulseSign in System Settings."))
                 }
             }
         }
@@ -97,7 +97,7 @@ struct NotificationsView: View {
             }
             Button(.localized("Cancel"), role: .cancel) { }
         } message: {
-            Text(.localized("Please enable notifications for Feather in System Settings to receive updates when apps are signed."))
+            Text(.localized("Please enable notifications for PulseSign in System Settings to receive updates when apps are signed."))
         }
         .onAppear {
             notificationManager.checkAuthorizationStatus()

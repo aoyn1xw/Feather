@@ -1417,7 +1417,7 @@ struct TestNotificationsView: View {
     
     var body: some View {
         List {
-            Section(header: Text("Test Notifications"), footer: Text("This will send a test notification after a 3-second countdown. Make sure notifications are enabled for Feather in Settings.")) {
+            Section(header: Text("Test Notifications"), footer: Text("This will send a test notification after a 3-second countdown. Make sure notifications are enabled for PulseSign in Settings.")) {
                 Button {
                     startNotificationTest()
                 } label: {

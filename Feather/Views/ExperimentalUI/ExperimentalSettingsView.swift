@@ -126,7 +126,7 @@ struct ExperimentalProfileCard: View {
             
             // User Info
             VStack(alignment: .leading, spacing: 4) {
-                Text("Feather User")
+                Text("PulseSign User")
                     .font(ExperimentalUITheme.Typography.headline)
                     .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
                 

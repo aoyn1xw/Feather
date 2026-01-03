@@ -24,7 +24,7 @@ struct ExperimentalGuidesView: View {
                     // Hero Header
                     ExperimentalHeroHeader(
                         title: "Guides",
-                        subtitle: "Learn how to use Feather",
+                        subtitle: "Learn how to use PulseSign",
                         icon: "book.fill"
                     )
                     
@@ -104,7 +104,7 @@ struct ExperimentalGuideCard: View {
                     .font(ExperimentalUITheme.Typography.headline)
                     .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
                 
-                Text("Learn how to effectively use Feather with this comprehensive guide covering all essential features.")
+                Text("Learn how to effectively use PulseSign with this comprehensive guide covering all essential features.")
                     .font(ExperimentalUITheme.Typography.callout)
                     .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
                     .lineLimit(2)
