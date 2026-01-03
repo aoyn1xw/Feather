@@ -62,6 +62,14 @@ struct SettingsView: View {
                 }
                 
                 Section {
+                    NavigationLink(destination: ManageStorageView()) {
+                        ConditionalLabel(title: .localized("Manage Storage"), systemImage: "internaldrive")
+                    }
+                } footer: {
+                    Text(.localized("View storage usage breakdown and clean up cached files."))
+                }
+                
+                Section {
                     NavigationLink(destination: ResetView()) {
                         ConditionalLabel(title: .localized("Reset"), systemImage: "trash")
                     }
