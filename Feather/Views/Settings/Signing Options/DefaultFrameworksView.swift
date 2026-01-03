@@ -18,7 +18,7 @@ struct DefaultFrameworksView: View {
 					_emptyState()
 				}
 			} footer: {
-				Text(.localized("Default frameworks are automatically injected into all apps during signing. Add .dylib or .deb files that contain frameworks you want to include in every app."))
+				Text(.localized("Add any default frameworks you wish to add every time you sign an app. When signing an app, go to Tweaks, then click the "Add Default Frameworks" button so all your desired frameworks can get added."))
 					.font(.footnote)
 					.foregroundColor(.secondary)
 			}
