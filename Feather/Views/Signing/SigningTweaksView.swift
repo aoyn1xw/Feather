@@ -40,16 +40,17 @@ struct SigningTweaksView: View {
 								Circle()
 									.fill(
 										LinearGradient(
-											colors: [Color.blue.opacity(0.2), Color.blue.opacity(0.05)],
+											colors: [Color.blue, Color.cyan, Color.blue.opacity(0.7)],
 											startPoint: .topLeading,
 											endPoint: .bottomTrailing
 										)
 									)
 									.frame(width: 40, height: 40)
+									.shadow(color: Color.blue.opacity(0.4), radius: 8, x: 0, y: 3)
 								
 								Image(systemName: "plus.rectangle.on.folder.fill")
 									.font(.system(size: 18))
-									.foregroundStyle(Color.blue)
+									.foregroundStyle(.white)
 							}
 							
 							VStack(alignment: .leading, spacing: 2) {
@@ -81,13 +82,42 @@ struct SigningTweaksView: View {
 					HStack {
 						Spacer()
 						VStack(spacing: 12) {
-							Image(systemName: "puzzlepiece.extension")
-								.font(.system(size: 40))
-								.foregroundColor(.secondary.opacity(0.6))
+							ZStack {
+								Circle()
+									.fill(
+										LinearGradient(
+											colors: [
+												Color.purple.opacity(0.3),
+												Color.pink.opacity(0.2),
+												Color.purple.opacity(0.1)
+											],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
+									.frame(width: 50, height: 50)
+									.shadow(color: Color.purple.opacity(0.4), radius: 10, x: 0, y: 4)
+								
+								Image(systemName: "puzzlepiece.extension")
+									.font(.system(size: 40))
+									.foregroundStyle(
+										LinearGradient(
+											colors: [Color.purple, Color.pink, Color.purple.opacity(0.7)],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
+							}
 							
 							Text(verbatim: .localized("No files chosen."))
 								.font(.subheadline)
-								.foregroundColor(.secondary)
+								.foregroundStyle(
+									LinearGradient(
+										colors: [Color.secondary, Color.secondary.opacity(0.7)],
+										startPoint: .leading,
+										endPoint: .trailing
+									)
+								)
 						}
 						.padding(.vertical, 20)
 						Spacer()
@@ -192,16 +222,17 @@ extension SigningTweaksView {
 				Circle()
 					.fill(
 						LinearGradient(
-							colors: [Color.accentColor.opacity(0.2), Color.accentColor.opacity(0.05)],
+							colors: [Color.accentColor, Color.accentColor.opacity(0.8), Color.accentColor.opacity(0.6)],
 							startPoint: .topLeading,
 							endPoint: .bottomTrailing
 						)
 					)
 					.frame(width: 40, height: 40)
+					.shadow(color: Color.accentColor.opacity(0.4), radius: 8, x: 0, y: 3)
 				
 				Image(systemName: "puzzlepiece.extension.fill")
 					.font(.system(size: 18))
-					.foregroundStyle(Color.accentColor)
+					.foregroundStyle(.white)
 			}
 			
 			VStack(alignment: .leading, spacing: 2) {

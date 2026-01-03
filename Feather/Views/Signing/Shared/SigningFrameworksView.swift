@@ -31,7 +31,7 @@ struct SigningFrameworksView: View {
 							Image(systemName: "cube.box.fill")
 								.foregroundStyle(
 									LinearGradient(
-										colors: [Color.accentColor, Color.accentColor.opacity(0.7), Color.accentColor.opacity(0.5)],
+										colors: [Color.blue, Color.blue.opacity(0.7), Color.cyan],
 										startPoint: .topLeading,
 										endPoint: .bottomTrailing
 									)
@@ -41,7 +41,7 @@ struct SigningFrameworksView: View {
 								.fontWeight(.semibold)
 								.foregroundStyle(
 									LinearGradient(
-										colors: [Color.primary, Color.primary.opacity(0.8)],
+										colors: [Color.primary, Color.blue.opacity(0.6)],
 										startPoint: .leading,
 										endPoint: .trailing
 									)
@@ -66,7 +66,7 @@ struct SigningFrameworksView: View {
 							Image(systemName: "puzzlepiece.extension.fill")
 								.foregroundStyle(
 									LinearGradient(
-										colors: [Color.purple, Color.purple.opacity(0.7), Color.purple.opacity(0.5)],
+										colors: [Color.purple, Color.pink, Color.purple.opacity(0.7)],
 										startPoint: .topLeading,
 										endPoint: .bottomTrailing
 									)
@@ -76,7 +76,7 @@ struct SigningFrameworksView: View {
 								.fontWeight(.semibold)
 								.foregroundStyle(
 									LinearGradient(
-										colors: [Color.primary, Color.primary.opacity(0.8)],
+										colors: [Color.primary, Color.purple.opacity(0.6)],
 										startPoint: .leading,
 										endPoint: .trailing
 									)
@@ -97,18 +97,23 @@ struct SigningFrameworksView: View {
 								Circle()
 									.fill(
 										LinearGradient(
-											colors: [Color.secondary.opacity(0.2), Color.secondary.opacity(0.1)],
+											colors: [
+												Color.blue.opacity(0.2),
+												Color.cyan.opacity(0.15),
+												Color.blue.opacity(0.1)
+											],
 											startPoint: .topLeading,
 											endPoint: .bottomTrailing
 										)
 									)
 									.frame(width: 60, height: 60)
+									.shadow(color: Color.blue.opacity(0.3), radius: 10, x: 0, y: 4)
 								
 								Image(systemName: "cube.transparent")
 									.font(.system(size: 30))
 									.foregroundStyle(
 										LinearGradient(
-											colors: [Color.secondary.opacity(0.7), Color.secondary.opacity(0.5)],
+											colors: [Color.blue, Color.cyan, Color.blue.opacity(0.7)],
 											startPoint: .topLeading,
 											endPoint: .bottomTrailing
 										)
@@ -117,7 +122,13 @@ struct SigningFrameworksView: View {
 							
 							Text(.localized("No Frameworks or PlugIns Found."))
 								.font(.subheadline)
-								.foregroundColor(.secondary)
+								.foregroundStyle(
+									LinearGradient(
+										colors: [Color.secondary, Color.secondary.opacity(0.7)],
+										startPoint: .leading,
+										endPoint: .trailing
+									)
+								)
 						}
 						.padding(.vertical, 30)
 						Spacer()

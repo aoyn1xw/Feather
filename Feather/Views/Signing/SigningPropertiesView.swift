@@ -18,8 +18,34 @@ struct SigningPropertiesView: View {
 	// MARK: Body
 	var body: some View {
 		NBList(title) {
-			TextField(initialValue, text: $text)
-				.textInputAutocapitalization(.none)
+			VStack(spacing: 0) {
+				TextField(initialValue, text: $text)
+					.textInputAutocapitalization(.none)
+					.padding()
+					.background(
+						LinearGradient(
+							colors: [
+								Color(UIColor.secondarySystemGroupedBackground),
+								Color(UIColor.secondarySystemGroupedBackground).opacity(0.95),
+								Color.accentColor.opacity(0.02)
+							],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						)
+					)
+					.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+					.overlay(
+						RoundedRectangle(cornerRadius: 12, style: .continuous)
+							.stroke(
+								LinearGradient(
+									colors: [Color.accentColor.opacity(0.2), Color.accentColor.opacity(0.1)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								),
+								lineWidth: 1
+							)
+					)
+			}
 		}
 		.toolbar {
 			NBToolbarButton(

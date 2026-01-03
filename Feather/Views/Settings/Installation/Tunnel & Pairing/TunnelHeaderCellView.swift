@@ -4,11 +4,39 @@ struct TunnelHeaderView: View {
 	@State var lastHeartbeatTime = Date()
 	
 	var body: some View {
-		HStack {
+		HStack(spacing: 16) {
+			ZStack {
+				Circle()
+					.fill(
+						LinearGradient(
+							colors: [
+								Color.green.opacity(0.15),
+								Color.mint.opacity(0.1)
+							],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						)
+					)
+					.frame(width: 44, height: 44)
+					.shadow(color: Color.green.opacity(0.2), radius: 6, x: 0, y: 3)
+				
+				TunnelPulseRing(lastHeartbeat: $lastHeartbeatTime)
+			}
+			
 			Text(.localized("Status"))
+				.font(.body)
+				.fontWeight(.medium)
+				.foregroundStyle(
+					LinearGradient(
+						colors: [Color.primary, Color.primary.opacity(0.8)],
+						startPoint: .leading,
+						endPoint: .trailing
+					)
+				)
+			
 			Spacer()
-			TunnelPulseRing(lastHeartbeat: $lastHeartbeatTime)
 		}
+		.padding(.vertical, 4)
 		.onReceive(NotificationCenter.default.publisher(for: .heartbeat)) { _ in
 			lastHeartbeatTime = Date()
 		}
@@ -33,16 +61,64 @@ struct TunnelPulseRing: View {
 				max(0.0, (timeSinceHeartbeat - _colorStartThreshold) / _colorTransitionDuration)
 			)
 			
-			Circle()
-				.fill(Color(
-					red: colorTransitionProgress,
-					green: 1.0 - (0.7 * colorTransitionProgress),
-					blue: 0.0
-				))
-				.frame(width: 10, height: 10)
-				.scaleEffect(1.0 - (0.5 * progress))
-				.opacity(1.0 - (0.7 * progress))
-				.animation(.easeInOut(duration: 0.3), value: lastHeartbeat)
+			ZStack {
+				// Outer glow ring
+				Circle()
+					.stroke(
+						LinearGradient(
+							colors: [
+								Color(
+									red: colorTransitionProgress,
+									green: 1.0 - (0.7 * colorTransitionProgress),
+									blue: 0.0
+								).opacity(0.3),
+								Color(
+									red: colorTransitionProgress,
+									green: 1.0 - (0.7 * colorTransitionProgress),
+									blue: 0.0
+								).opacity(0.1)
+							],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						),
+						lineWidth: 2
+					)
+					.frame(width: 18 + (6 * (1.0 - progress)), height: 18 + (6 * (1.0 - progress)))
+					.opacity(1.0 - (0.8 * progress))
+				
+				// Inner solid circle
+				Circle()
+					.fill(
+						LinearGradient(
+							colors: [
+								Color(
+									red: colorTransitionProgress,
+									green: 1.0 - (0.7 * colorTransitionProgress),
+									blue: 0.0
+								),
+								Color(
+									red: colorTransitionProgress,
+									green: 1.0 - (0.7 * colorTransitionProgress),
+									blue: 0.0
+								).opacity(0.8)
+							],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						)
+					)
+					.frame(width: 14, height: 14)
+					.shadow(
+						color: Color(
+							red: colorTransitionProgress,
+							green: 1.0 - (0.7 * colorTransitionProgress),
+							blue: 0.0
+						).opacity(0.6),
+						radius: 6,
+						x: 0,
+						y: 2
+					)
+			}
+			.animation(.easeInOut(duration: 0.3), value: lastHeartbeat)
 		}
 	}
 }
