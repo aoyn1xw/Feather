@@ -110,13 +110,25 @@ extension Storage {
 	}
 	
 	func reorderSources(_ sources: [AltSource]) {
+		// Create a snapshot of the original order in case we need to revert
+		let originalOrders = sources.map { ($0, $0.order) }
+		
+		// Update the order
 		for (index, source) in sources.enumerated() {
 			source.order = Int16(index)
 		}
+		
+		// Save with error handling
 		do {
 			try context.save()
 		} catch {
+			// Revert changes on failure
+			for (source, originalOrder) in originalOrders {
+				source.order = originalOrder
+			}
 			Logger.misc.error("Error reordering sources: \(error)")
+			// Refresh context to ensure consistency
+			context.rollback()
 		}
 	}
 	
@@ -130,25 +142,24 @@ extension Storage {
 		let request: NSFetchRequest<AltSource> = AltSource.fetchRequest()
 		request.sortDescriptors = [NSSortDescriptor(keyPath: \AltSource.date, ascending: true)]
 		
-		guard let sources = try? context.fetch(request) else { return }
-		
-		// Check if any source has order == -1 (uninitialized)
-		let needsInitialization = sources.contains { $0.order == -1 }
-		
-		if needsInitialization {
-			for (index, source) in sources.enumerated() {
-				source.order = Int16(index)
-			}
-			do {
+		do {
+			let sources = try context.fetch(request)
+			
+			// Check if any source has order == -1 (uninitialized)
+			let needsInitialization = sources.contains { $0.order == -1 }
+			
+			if needsInitialization {
+				for (index, source) in sources.enumerated() {
+					source.order = Int16(index)
+				}
 				try context.save()
-				// Mark migration as complete
-				UserDefaults.standard.set(true, forKey: migrationKey)
-			} catch {
-				Logger.misc.error("Error initializing source orders: \(error)")
 			}
-		} else {
-			// No migration needed, mark as complete
+			
+			// Mark migration as complete
 			UserDefaults.standard.set(true, forKey: migrationKey)
+		} catch {
+			Logger.misc.error("Error initializing source orders: \(error)")
+			// Don't set migration flag if it failed - we'll try again next time
 		}
 	}
 }
