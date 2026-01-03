@@ -17,6 +17,7 @@ struct SourcesView: View {
 	@State private var _showEditSourcesView = false
 	@State private var _sortOrder: SortOrder = .alphabetical
 	@State private var _filterByPinned: FilterOption = .all
+	@State private var _hasInitialized = false
 	
 	enum SortOrder: String, CaseIterable {
 		case alphabetical = "A-Z"
@@ -104,8 +105,11 @@ struct SourcesView: View {
 			await viewModel.fetchSources(_sources)
 		}
 		.onAppear {
-			// Initialize order for existing sources
-			Storage.shared.initializeSourceOrders()
+			// Initialize order for existing sources (one-time migration)
+			if !_hasInitialized {
+				Storage.shared.initializeSourceOrders()
+				_hasInitialized = true
+			}
 			#if !NIGHTLY && !DEBUG
 			showStarPromptIfNeeded()
 			#endif

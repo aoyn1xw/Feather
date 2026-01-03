@@ -28,7 +28,7 @@ extension Storage {
 		let request: NSFetchRequest<AltSource> = AltSource.fetchRequest()
 		request.sortDescriptors = [NSSortDescriptor(keyPath: \AltSource.order, ascending: false)]
 		request.fetchLimit = 1
-		let maxOrder = (try? context.fetch(request).first?.order ?? 0) ?? 0
+		let maxOrder = (try? context.fetch(request).first?.order ?? -1) ?? -1
 		
 		let new = AltSource(context: context)
 		new.name = name
@@ -113,24 +113,42 @@ extension Storage {
 		for (index, source) in sources.enumerated() {
 			source.order = Int16(index)
 		}
-		saveContext()
+		do {
+			try context.save()
+		} catch {
+			Logger.misc.error("Error reordering sources: \(error)")
+		}
 	}
 	
 	/// Initialize order values for existing sources that don't have one
+	/// This is called once on app launch to migrate existing data
 	func initializeSourceOrders() {
+		// Check if migration has already been done
+		let migrationKey = "SourceOrderMigrationCompleted"
+		guard !UserDefaults.standard.bool(forKey: migrationKey) else { return }
+		
 		let request: NSFetchRequest<AltSource> = AltSource.fetchRequest()
 		request.sortDescriptors = [NSSortDescriptor(keyPath: \AltSource.date, ascending: true)]
 		
 		guard let sources = try? context.fetch(request) else { return }
 		
-		// Check if any source has order == 0 (uninitialized)
-		let needsInitialization = sources.contains { $0.order == 0 }
+		// Check if any source has order == -1 (uninitialized)
+		let needsInitialization = sources.contains { $0.order == -1 }
 		
 		if needsInitialization {
 			for (index, source) in sources.enumerated() {
 				source.order = Int16(index)
 			}
-			saveContext()
+			do {
+				try context.save()
+				// Mark migration as complete
+				UserDefaults.standard.set(true, forKey: migrationKey)
+			} catch {
+				Logger.misc.error("Error initializing source orders: \(error)")
+			}
+		} else {
+			// No migration needed, mark as complete
+			UserDefaults.standard.set(true, forKey: migrationKey)
 		}
 	}
 }
