@@ -107,15 +107,10 @@ class DefaultFrameworksManager: ObservableObject {
 	}
 	
 	/// Get all .dylib files from default frameworks, extracting from .deb files if needed
-	/// - Returns: Array of .dylib file URLs
-	func extractDylibsFromFrameworks() async throws -> [URL] {
+	/// - Returns: Tuple containing array of .dylib file URLs and the temp directory path for cleanup
+	func extractDylibsFromFrameworks() async throws -> (dylibURLs: [URL], tempDir: URL) {
 		var dylibURLs: [URL] = []
 		let tempDir = _fileManager.temporaryDirectory.appendingPathComponent("DefaultFrameworks_\(UUID().uuidString)", isDirectory: true)
-		
-		defer {
-			// Clean up temp directory
-			try? _fileManager.removeItem(at: tempDir)
-		}
 		
 		try _fileManager.createDirectoryIfNeeded(at: tempDir)
 		
@@ -139,7 +134,7 @@ class DefaultFrameworksManager: ObservableObject {
 			}
 		}
 		
-		return dylibURLs
+		return (dylibURLs, tempDir)
 	}
 	
 	/// Extract .dylib files from a .deb archive
