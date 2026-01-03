@@ -33,18 +33,23 @@ struct SigningAlternativeIconView: View {
 								Circle()
 									.fill(
 										LinearGradient(
-											colors: [Color.secondary.opacity(0.2), Color.secondary.opacity(0.1)],
+											colors: [
+												Color.indigo.opacity(0.3),
+												Color.purple.opacity(0.2),
+												Color.indigo.opacity(0.1)
+											],
 											startPoint: .topLeading,
 											endPoint: .bottomTrailing
 										)
 									)
 									.frame(width: 60, height: 60)
+									.shadow(color: Color.indigo.opacity(0.4), radius: 12, x: 0, y: 5)
 								
 								Image(systemName: "app.badge.questionmark")
 									.font(.system(size: 28))
 									.foregroundStyle(
 										LinearGradient(
-											colors: [Color.secondary.opacity(0.7), Color.secondary.opacity(0.5)],
+											colors: [Color.indigo, Color.purple, Color.indigo.opacity(0.8)],
 											startPoint: .topLeading,
 											endPoint: .bottomTrailing
 										)
@@ -53,7 +58,13 @@ struct SigningAlternativeIconView: View {
 							
 							Text(.localized("No Icons Found."))
 								.font(.subheadline)
-								.foregroundColor(.secondary)
+								.foregroundStyle(
+									LinearGradient(
+										colors: [Color.secondary, Color.secondary.opacity(0.7)],
+										startPoint: .leading,
+										endPoint: .trailing
+									)
+								)
 						}
 						.padding(.vertical, 30)
 						Spacer()
@@ -78,14 +89,14 @@ extension SigningAlternativeIconView {
 			if let image = _iconUrl(icon.path) {
 				Image(uiImage: image)
 					.appIconStyle(size: 32)
-					.shadow(color: Color.accentColor.opacity(0.2), radius: 4, x: 0, y: 2)
+					.shadow(color: Color.accentColor.opacity(0.3), radius: 6, x: 0, y: 3)
 			}
 			
 			Text(icon.name)
 				.font(.headline)
 				.foregroundStyle(
 					LinearGradient(
-						colors: [Color.primary, Color.primary.opacity(0.8)],
+						colors: [Color.primary, Color.accentColor.opacity(0.6), Color.primary.opacity(0.8)],
 						startPoint: .leading,
 						endPoint: .trailing
 					)

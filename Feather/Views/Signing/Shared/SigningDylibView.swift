@@ -26,7 +26,7 @@ struct SigningDylibView: View {
 					Image(systemName: "puzzlepiece.fill")
 						.foregroundStyle(
 							LinearGradient(
-								colors: [Color.accentColor, Color.accentColor.opacity(0.7), Color.accentColor.opacity(0.5)],
+								colors: [Color.orange, Color.red, Color.orange.opacity(0.7)],
 								startPoint: .topLeading,
 								endPoint: .bottomTrailing
 							)
@@ -36,7 +36,7 @@ struct SigningDylibView: View {
 						.fontWeight(.semibold)
 						.foregroundStyle(
 							LinearGradient(
-								colors: [Color.primary, Color.primary.opacity(0.8)],
+								colors: [Color.primary, Color.orange.opacity(0.6)],
 								startPoint: .leading,
 								endPoint: .trailing
 							)
@@ -52,18 +52,23 @@ struct SigningDylibView: View {
 						Circle()
 							.fill(
 								LinearGradient(
-									colors: [Color.secondary.opacity(0.2), Color.secondary.opacity(0.1)],
+									colors: [
+										Color.gray.opacity(0.3),
+										Color.gray.opacity(0.2),
+										Color.gray.opacity(0.1)
+									],
 									startPoint: .topLeading,
 									endPoint: .bottomTrailing
 								)
 							)
 							.frame(width: 28, height: 28)
+							.shadow(color: Color.gray.opacity(0.3), radius: 4, x: 0, y: 2)
 						
 						Image(systemName: "eye.slash.fill")
 							.font(.caption)
 							.foregroundStyle(
 								LinearGradient(
-									colors: [Color.secondary.opacity(0.8), Color.secondary.opacity(0.6)],
+									colors: [Color.gray, Color.gray.opacity(0.7), Color.gray.opacity(0.5)],
 									startPoint: .topLeading,
 									endPoint: .bottomTrailing
 								)
@@ -72,7 +77,13 @@ struct SigningDylibView: View {
 					
 					Text(verbatim: .localized("%lld required system dylibs not shown.", arguments: _hiddenDylibCount))
 						.font(.footnote)
-						.foregroundColor(.secondary)
+						.foregroundStyle(
+							LinearGradient(
+								colors: [Color.secondary, Color.secondary.opacity(0.8)],
+								startPoint: .leading,
+								endPoint: .trailing
+							)
+						)
 				}
 			}
 		}
