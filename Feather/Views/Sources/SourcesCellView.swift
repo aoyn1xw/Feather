@@ -44,11 +44,6 @@ struct SourcesCellView: View {
 						.fill(dominantColor.opacity(0.12))
 				)
 			}
-			
-			// Chevron icon instead of Get button
-			Image(systemName: "chevron.right")
-				.font(.body.bold())
-				.foregroundStyle(.secondary)
 		}
 		.padding(20)
 		.background(
