@@ -5,26 +5,26 @@ import NimbleViews
 // MARK: - Did You Know Facts
 struct DidYouKnowFacts {
 	static let facts = [
-		"Feather is fully open-source and community-driven!",
+		"CoreSign is fully open-source and community-driven!",
 		"You can sign apps with your own Apple Developer certificate.",
-		"Feather supports multiple app sources for easy discovery.",
-		"Apps signed with Feather can be installed directly on your device.",
+		"CoreSign supports multiple app sources for easy discovery.",
+		"Apps signed with CoreSign can be installed directly on your device.",
 		"You can import apps from URLs or local files.",
-		"Feather respects your privacy - all signing happens on your device.",
+		"CoreSign respects your privacy - all signing happens on your device.",
 		"Regular certificate rotation helps avoid revocations.",
-		"You can manage multiple certificates in Feather.",
+		"You can manage multiple certificates in CoreSign.",
 		"Source repositories can be added from any compatible URL.",
-		"Feather uses modern SwiftUI for a native iOS experience.",
+		"CoreSign uses modern SwiftUI for a native iOS experience.",
 		"App entitlements control what permissions an app has.",
 		"Provisioning profiles contain your app signing information.",
 		"Free developer accounts can sign apps for 7 days.",
 		"Paid developer accounts provide 1-year certificates.",
 		"The PPQ check helps identify at-risk certificates.",
 		"You can backup your certificates to Files app.",
-		"Feather supports both IPA and TIPA file formats.",
+		"CoreSign supports both IPA and TIPA file formats.",
 		"App icons can be customized before installation.",
 		"Bundle IDs should be unique to avoid conflicts.",
-		"Feather can re-sign previously signed apps."
+		"CoreSign can re-sign previously signed apps."
 	]
 	
 	static func random() -> String {
@@ -588,3 +588,69 @@ struct SearchSheetView: View {
 
 // MARK: - Import Combine for Publishers
 import Combine
+
+// MARK: - AllAppsWrapperView
+/// Wrapper view that switches between AllAppsView and SourceAppsView based on settings and app count
+struct AllAppsWrapperView: View {
+	@AppStorage("Feather.useNewAllAppsView") private var useNewAllAppsView: Bool = true
+	
+	var object: [AltSource]
+	@ObservedObject var viewModel: SourcesViewModel
+	
+	@State private var totalAppCount: Int = 0
+	@State private var shouldUseFallback: Bool = false
+	@State private var hasShownToast: Bool = false
+	
+	var body: some View {
+		Group {
+			if shouldUseFallback || !useNewAllAppsView || totalAppCount > 250 {
+				SourceAppsView(object: object, viewModel: viewModel)
+			} else {
+				AllAppsView(object: object, viewModel: viewModel)
+					.onAppear {
+						calculateTotalApps()
+						// Monitor if AllAppsView fails to load properly
+						checkViewLoadingHealth()
+					}
+			}
+		}
+		.onAppear {
+			calculateTotalApps()
+			// Automatically switch to old view if more than 250 apps
+			if totalAppCount > 250 && !hasShownToast {
+				shouldUseFallback = true
+			}
+		}
+	}
+	
+	private func calculateTotalApps() {
+		totalAppCount = object.reduce(0) { count, source in
+			count + (viewModel.sources[source]?.apps.count ?? 0)
+		}
+	}
+	
+	private func checkViewLoadingHealth() {
+		// Set a timeout to detect if the view is stuck loading
+		Task {
+			try? await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
+			
+			await MainActor.run {
+				// If still loading after 30 seconds, switch to fallback
+				if !viewModel.isFinished && !shouldUseFallback {
+					shouldUseFallback = true
+					showFallbackToast()
+				}
+			}
+		}
+	}
+	
+	private func showFallbackToast() {
+		guard !hasShownToast else { return }
+		hasShownToast = true
+		
+		UIAlertController.showAlertWithOk(
+			title: .localized("Loading Issue"),
+			message: .localized("New Apps view couldn't load, using old as fallback")
+		)
+	}
+}

@@ -118,7 +118,7 @@ struct SourcesView: View {
 	private var allAppsSection: some View {
 		Section {
 			NavigationLink {
-				AllAppsView(object: Array(_sources), viewModel: viewModel)
+				AllAppsWrapperView(object: Array(_sources), viewModel: viewModel)
 			} label: {
 				AllAppsCardView(
 					horizontalSizeClass: horizontalSizeClass,

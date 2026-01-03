@@ -135,16 +135,33 @@ struct CertificatesInfoView: View {
 			Text(data.Name)
 				.font(.title2)
 				.fontWeight(.bold)
-				.foregroundStyle(.primary)
+				.foregroundStyle(
+					LinearGradient(
+						colors: [Color.primary, Color.primary.opacity(0.8)],
+						startPoint: .leading,
+						endPoint: .trailing
+					)
+				)
 				.fixedSize(horizontal: false, vertical: true)
 			
 			Divider()
 			
 			// App ID row
 			HStack {
-				Text(.localized("App ID"))
-					.font(.subheadline)
-					.foregroundStyle(.secondary)
+				HStack(spacing: 6) {
+					Image(systemName: "app.badge.fill")
+						.font(.caption)
+						.foregroundStyle(
+							LinearGradient(
+								colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+					Text(.localized("App ID"))
+						.font(.subheadline)
+						.foregroundStyle(.secondary)
+				}
 				Spacer()
 				Text(data.AppIDName)
 					.font(.subheadline)
@@ -153,8 +170,30 @@ struct CertificatesInfoView: View {
 			}
 		}
 		.padding(16)
-		.background(Color(UIColor.secondarySystemGroupedBackground))
-		.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+		.background(
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
+				.fill(
+					LinearGradient(
+						colors: [
+							Color(UIColor.secondarySystemGroupedBackground),
+							Color(UIColor.secondarySystemGroupedBackground).opacity(0.95)
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+				)
+		)
+		.overlay(
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
+				.stroke(
+					LinearGradient(
+						colors: [Color.accentColor.opacity(0.2), Color.accentColor.opacity(0.1)],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					),
+					lineWidth: 1
+				)
+		)
 	}
 	
 	// MARK: - Status Card
@@ -163,17 +202,40 @@ struct CertificatesInfoView: View {
 		VStack(spacing: 0) {
 			// Active/Revoked status
 			HStack {
-				Text(.localized("Status"))
-					.font(.subheadline)
-					.foregroundStyle(.secondary)
+				HStack(spacing: 6) {
+					Image(systemName: cert.revoked ? "xmark.circle.fill" : "checkmark.circle.fill")
+						.font(.caption)
+						.foregroundStyle(
+							LinearGradient(
+								colors: cert.revoked ? [Color.red, Color.red.opacity(0.7)] : [Color.green, Color.green.opacity(0.7)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+					Text(.localized("Status"))
+						.font(.subheadline)
+						.foregroundStyle(.secondary)
+				}
 				Spacer()
 				HStack(spacing: 6) {
 					Circle()
-						.fill(cert.revoked ? Color.red : Color.green)
+						.fill(
+							LinearGradient(
+								colors: cert.revoked ? [Color.red, Color.red.opacity(0.8)] : [Color.green, Color.green.opacity(0.8)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
 						.frame(width: 8, height: 8)
 					Text(cert.revoked ? "Revoked" : "Active")
 						.font(.subheadline)
-						.foregroundStyle(cert.revoked ? .red : .green)
+						.foregroundStyle(
+							LinearGradient(
+								colors: cert.revoked ? [Color.red, Color.red.opacity(0.8)] : [Color.green, Color.green.opacity(0.8)],
+								startPoint: .leading,
+								endPoint: .trailing
+							)
+						)
 						.fontWeight(.medium)
 				}
 			}
@@ -185,25 +247,70 @@ struct CertificatesInfoView: View {
 			// PPQ Check status
 			if let ppq = data.PPQCheck {
 				HStack {
-					Text(.localized("PPQ Check"))
-						.font(.subheadline)
-						.foregroundStyle(.secondary)
+					HStack(spacing: 6) {
+						Image(systemName: ppq ? "exclamationmark.triangle.fill" : "checkmark.shield.fill")
+							.font(.caption)
+							.foregroundStyle(
+								LinearGradient(
+									colors: ppq ? [Color.orange, Color.orange.opacity(0.7)] : [Color.green, Color.green.opacity(0.7)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+						Text(.localized("PPQ Check"))
+							.font(.subheadline)
+							.foregroundStyle(.secondary)
+					}
 					Spacer()
 					HStack(spacing: 6) {
 						Image(systemName: ppq ? "checkmark.circle.fill" : "xmark.circle.fill")
-							.foregroundStyle(ppq ? .orange : .green)
+							.foregroundStyle(
+								LinearGradient(
+									colors: ppq ? [Color.orange, Color.orange.opacity(0.7)] : [Color.green, Color.green.opacity(0.7)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
 							.font(.caption)
 						Text(ppq ? "Yes" : "No")
 							.font(.subheadline)
-							.foregroundStyle(ppq ? .orange : .green)
+							.foregroundStyle(
+								LinearGradient(
+									colors: ppq ? [Color.orange, Color.orange.opacity(0.8)] : [Color.green, Color.green.opacity(0.8)],
+									startPoint: .leading,
+									endPoint: .trailing
+								)
+							)
 							.fontWeight(.medium)
 					}
 				}
 				.padding(12)
 			}
 		}
-		.background(Color(UIColor.secondarySystemGroupedBackground))
-		.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+		.background(
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
+				.fill(
+					LinearGradient(
+						colors: [
+							Color(UIColor.secondarySystemGroupedBackground),
+							Color(UIColor.secondarySystemGroupedBackground).opacity(0.95)
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+				)
+		)
+		.overlay(
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
+				.stroke(
+					LinearGradient(
+						colors: [Color.blue.opacity(0.2), Color.purple.opacity(0.1)],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					),
+					lineWidth: 1
+				)
+		)
 	}
 	
 	// MARK: - Team Information Card
@@ -212,12 +319,29 @@ struct CertificatesInfoView: View {
 		VStack(alignment: .leading, spacing: 0) {
 			// Team Name
 			VStack(alignment: .leading, spacing: 4) {
-				Text(.localized("Team Name"))
-					.font(.caption)
-					.foregroundStyle(.secondary)
+				HStack(spacing: 6) {
+					Image(systemName: "person.3.fill")
+						.font(.caption2)
+						.foregroundStyle(
+							LinearGradient(
+								colors: [Color.blue, Color.blue.opacity(0.7)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+					Text(.localized("Team Name"))
+						.font(.caption)
+						.foregroundStyle(.secondary)
+				}
 				Text(data.TeamName)
 					.font(.subheadline)
-					.foregroundStyle(.primary)
+					.foregroundStyle(
+						LinearGradient(
+							colors: [Color.primary, Color.primary.opacity(0.8)],
+							startPoint: .leading,
+							endPoint: .trailing
+						)
+					)
 			}
 			.padding(12)
 			
@@ -226,18 +350,57 @@ struct CertificatesInfoView: View {
 			
 			// Team Identifier
 			VStack(alignment: .leading, spacing: 4) {
-				Text(.localized("Team Identifier"))
-					.font(.caption)
-					.foregroundStyle(.secondary)
+				HStack(spacing: 6) {
+					Image(systemName: "tag.fill")
+						.font(.caption2)
+						.foregroundStyle(
+							LinearGradient(
+								colors: [Color.purple, Color.purple.opacity(0.7)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+					Text(.localized("Team Identifier"))
+						.font(.caption)
+						.foregroundStyle(.secondary)
+				}
 				Text(data.TeamIdentifier.joined(separator: ", "))
 					.font(.subheadline)
-					.foregroundStyle(.primary)
+					.foregroundStyle(
+						LinearGradient(
+							colors: [Color.primary, Color.primary.opacity(0.8)],
+							startPoint: .leading,
+							endPoint: .trailing
+						)
+					)
 			}
 			.padding(12)
 		}
 		.frame(maxWidth: .infinity, alignment: .leading)
-		.background(Color(UIColor.secondarySystemGroupedBackground))
-		.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+		.background(
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
+				.fill(
+					LinearGradient(
+						colors: [
+							Color(UIColor.secondarySystemGroupedBackground),
+							Color(UIColor.secondarySystemGroupedBackground).opacity(0.95)
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+				)
+		)
+		.overlay(
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
+				.stroke(
+					LinearGradient(
+						colors: [Color.blue.opacity(0.15), Color.purple.opacity(0.15)],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					),
+					lineWidth: 1
+				)
+		)
 	}
 	
 	// MARK: - Validity Card
@@ -247,9 +410,20 @@ struct CertificatesInfoView: View {
 			// Created and Expires on one row
 			HStack {
 				VStack(alignment: .leading, spacing: 4) {
-					Text(.localized("Created"))
-						.font(.caption)
-						.foregroundStyle(.secondary)
+					HStack(spacing: 4) {
+						Image(systemName: "calendar.badge.plus")
+							.font(.caption2)
+							.foregroundStyle(
+								LinearGradient(
+									colors: [Color.green, Color.green.opacity(0.7)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+						Text(.localized("Created"))
+							.font(.caption)
+							.foregroundStyle(.secondary)
+					}
 					Text(data.CreationDate.formatted(date: .abbreviated, time: .omitted))
 						.font(.subheadline)
 						.foregroundStyle(.primary)
@@ -258,12 +432,29 @@ struct CertificatesInfoView: View {
 				Spacer()
 				
 				VStack(alignment: .trailing, spacing: 4) {
-					Text(.localized("Expires"))
-						.font(.caption)
-						.foregroundStyle(.secondary)
+					HStack(spacing: 4) {
+						Image(systemName: "calendar.badge.exclamationmark")
+							.font(.caption2)
+							.foregroundStyle(
+								LinearGradient(
+									colors: [data.ExpirationDate.expirationInfo().color, data.ExpirationDate.expirationInfo().color.opacity(0.7)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+						Text(.localized("Expires"))
+							.font(.caption)
+							.foregroundStyle(.secondary)
+					}
 					Text(data.ExpirationDate.formatted(date: .abbreviated, time: .omitted))
 						.font(.subheadline)
-						.foregroundStyle(data.ExpirationDate.expirationInfo().color)
+						.foregroundStyle(
+							LinearGradient(
+								colors: [data.ExpirationDate.expirationInfo().color, data.ExpirationDate.expirationInfo().color.opacity(0.8)],
+								startPoint: .leading,
+								endPoint: .trailing
+							)
+						)
 				}
 			}
 			
@@ -271,12 +462,24 @@ struct CertificatesInfoView: View {
 			GeometryReader { geometry in
 				ZStack(alignment: .leading) {
 					RoundedRectangle(cornerRadius: 4)
-						.fill(Color.secondary.opacity(0.2))
+						.fill(
+							LinearGradient(
+								colors: [Color.secondary.opacity(0.2), Color.secondary.opacity(0.15)],
+								startPoint: .leading,
+								endPoint: .trailing
+							)
+						)
 						.frame(height: 6)
 					
 					let progress = calculateProgress(created: data.CreationDate, expires: data.ExpirationDate)
 					RoundedRectangle(cornerRadius: 4)
-						.fill(progressColor(for: progress))
+						.fill(
+							LinearGradient(
+								colors: [progressColor(for: progress), progressColor(for: progress).opacity(0.7)],
+								startPoint: .leading,
+								endPoint: .trailing
+							)
+						)
 						.frame(width: geometry.size.width * CGFloat(progress), height: 6)
 				}
 			}
@@ -286,7 +489,13 @@ struct CertificatesInfoView: View {
 			HStack {
 				Text(data.ExpirationDate.expirationInfo().formatted)
 					.font(.caption)
-					.foregroundStyle(data.ExpirationDate.expirationInfo().color)
+					.foregroundStyle(
+						LinearGradient(
+							colors: [data.ExpirationDate.expirationInfo().color, data.ExpirationDate.expirationInfo().color.opacity(0.8)],
+							startPoint: .leading,
+							endPoint: .trailing
+						)
+					)
 				
 				Spacer()
 				
@@ -297,18 +506,57 @@ struct CertificatesInfoView: View {
 			}
 		}
 		.padding(12)
-		.background(Color(UIColor.secondarySystemGroupedBackground))
-		.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+		.background(
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
+				.fill(
+					LinearGradient(
+						colors: [
+							Color(UIColor.secondarySystemGroupedBackground),
+							Color(UIColor.secondarySystemGroupedBackground).opacity(0.95)
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+				)
+		)
+		.overlay(
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
+				.stroke(
+					LinearGradient(
+						colors: [Color.green.opacity(0.15), Color.orange.opacity(0.15)],
+						startPoint: .leading,
+						endPoint: .trailing
+					),
+					lineWidth: 1
+				)
+		)
 	}
 	
 	// MARK: - Platform Card
 	@ViewBuilder
 	private func platformCard(data: Certificate) -> some View {
 		VStack(alignment: .leading, spacing: 12) {
-			Text(.localized("Platform"))
-				.font(.subheadline)
-				.fontWeight(.semibold)
-				.foregroundStyle(.primary)
+			HStack(spacing: 6) {
+				Image(systemName: "square.stack.3d.up.fill")
+					.font(.caption)
+					.foregroundStyle(
+						LinearGradient(
+							colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						)
+					)
+				Text(.localized("Platform"))
+					.font(.subheadline)
+					.fontWeight(.semibold)
+					.foregroundStyle(
+						LinearGradient(
+							colors: [Color.primary, Color.primary.opacity(0.8)],
+							startPoint: .leading,
+							endPoint: .trailing
+						)
+					)
+			}
 			
 			// Platform pills with icons
 			FlowLayout(spacing: 8) {
@@ -326,15 +574,44 @@ struct CertificatesInfoView: View {
 					.padding(.vertical, 6)
 					.background(
 						Capsule()
-							.fill(Color.accentColor)
+							.fill(
+								LinearGradient(
+									colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+									startPoint: .leading,
+									endPoint: .trailing
+								)
+							)
 					)
+					.shadow(color: Color.accentColor.opacity(0.3), radius: 4, x: 0, y: 2)
 				}
 			}
 		}
 		.padding(12)
 		.frame(maxWidth: .infinity, alignment: .leading)
-		.background(Color(UIColor.secondarySystemGroupedBackground))
-		.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+		.background(
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
+				.fill(
+					LinearGradient(
+						colors: [
+							Color(UIColor.secondarySystemGroupedBackground),
+							Color(UIColor.secondarySystemGroupedBackground).opacity(0.95)
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+				)
+		)
+		.overlay(
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
+				.stroke(
+					LinearGradient(
+						colors: [Color.accentColor.opacity(0.2), Color.accentColor.opacity(0.1)],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					),
+					lineWidth: 1
+				)
+		)
 	}
 	
 	// MARK: - Helper for Platform Icons
