@@ -59,13 +59,25 @@ struct SigningView: View {
 				.padding(.horizontal)
 				.padding(.top, 12)
 			}
-			.background(Color(UIColor.systemGroupedBackground))
+			.background(
+				LinearGradient(
+					colors: [
+						Color(UIColor.systemGroupedBackground),
+						Color(UIColor.systemGroupedBackground).opacity(0.95),
+						Color.accentColor.opacity(0.02),
+						Color(UIColor.systemGroupedBackground)
+					],
+					startPoint: .top,
+					endPoint: .bottom
+				)
+			)
 			.overlay(alignment: .bottom) {
 				VStack(spacing: 0) {
 					// Gradient fade effect
 					LinearGradient(
 						colors: [
 							Color(UIColor.systemGroupedBackground).opacity(0),
+							Color(UIColor.systemGroupedBackground).opacity(0.8),
 							Color(UIColor.systemGroupedBackground).opacity(0.95),
 							Color(UIColor.systemGroupedBackground)
 						],
@@ -74,7 +86,7 @@ struct SigningView: View {
 					)
 					.frame(height: 40)
 					
-					// Modern floating button
+					// Modern floating button with gradient
 					Button {
 						_start()
 					} label: {
@@ -88,18 +100,43 @@ struct SigningView: View {
 						.frame(maxWidth: .infinity)
 						.padding(.vertical, 16)
 						.background(
-							LinearGradient(
-								colors: [Color.accentColor, Color.accentColor.opacity(0.85)],
-								startPoint: .leading,
-								endPoint: .trailing
-							)
+							ZStack {
+								// Shadow layer
+								Capsule()
+									.fill(Color.accentColor.opacity(0.3))
+									.blur(radius: 6)
+									.offset(y: 3)
+								
+								// Main gradient with multiple colors
+								Capsule()
+									.fill(
+										LinearGradient(
+											colors: [
+												Color.accentColor,
+												Color.accentColor.opacity(0.9),
+												Color.accentColor.opacity(0.85)
+											],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
+							}
 						)
-						.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-						.shadow(color: Color.accentColor.opacity(0.4), radius: 12, x: 0, y: 6)
+						.clipShape(Capsule())
+						.shadow(color: Color.accentColor.opacity(0.5), radius: 15, x: 0, y: 8)
 					}
 					.padding(.horizontal, 20)
 					.padding(.vertical, 12)
-					.background(Color(UIColor.systemGroupedBackground))
+					.background(
+						LinearGradient(
+							colors: [
+								Color(UIColor.systemGroupedBackground),
+								Color(UIColor.systemGroupedBackground).opacity(0.98)
+							],
+							startPoint: .top,
+							endPoint: .bottom
+						)
+					)
 				}
 				.ignoresSafeArea(edges: .bottom)
 			}
@@ -141,7 +178,10 @@ struct SigningView: View {
 			.animation(animationForPlatform(), value: _isSigning)
             .fullScreenCover(isPresented: $_isSigningProcessPresented) {
                 if #available(iOS 17.0, *) {
-                    SigningProcessView(appName: _temporaryOptions.appName ?? app.name ?? "App")
+                    SigningProcessView(
+                        appName: _temporaryOptions.appName ?? app.name ?? "App",
+                        appIcon: appIcon
+                    )
                 } else {
                     VStack(spacing: 20) {
                         ProgressView()
@@ -224,7 +264,7 @@ extension SigningView {
 				.padding(.horizontal, 4)
 			
 			VStack(spacing: 0) {
-				// Enhanced icon selection with glass effect
+				// Enhanced icon selection with gradient background
 				HStack(spacing: 16) {
 					Menu {
 						Button(.localized("Select Alternative Icon"), systemImage: "app.dashed") { _isAltPickerPresenting = true }
@@ -235,10 +275,10 @@ extension SigningView {
 							if let icon = appIcon {
 								Image(uiImage: icon)
 									.appIconStyle()
-									.shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 3)
+									.shadow(color: Color.accentColor.opacity(0.25), radius: 8, x: 0, y: 4)
 							} else {
 								FRAppIconView(app: app, size: 64)
-									.shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 3)
+									.shadow(color: Color.accentColor.opacity(0.25), radius: 8, x: 0, y: 4)
 							}
 						}
 					}
@@ -247,7 +287,13 @@ extension SigningView {
 						Text(app.name ?? .localized("Unknown"))
 							.font(.title3)
 							.fontWeight(.bold)
-							.foregroundStyle(.primary)
+							.foregroundStyle(
+								LinearGradient(
+									colors: [Color.primary, Color.primary.opacity(0.8)],
+									startPoint: .leading,
+									endPoint: .trailing
+								)
+							)
 						
 						Text(.localized("Tap icon to change"))
 							.font(.caption)
@@ -257,8 +303,29 @@ extension SigningView {
 					Spacer()
 				}
 				.padding()
-				.background(Color(UIColor.secondarySystemGroupedBackground))
+				.background(
+					LinearGradient(
+						colors: [
+							Color(UIColor.secondarySystemGroupedBackground),
+							Color(UIColor.secondarySystemGroupedBackground).opacity(0.95),
+							Color.accentColor.opacity(0.02)
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+				)
 				.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+				.overlay(
+					RoundedRectangle(cornerRadius: 14, style: .continuous)
+						.stroke(
+							LinearGradient(
+								colors: [Color.accentColor.opacity(0.15), Color.accentColor.opacity(0.05)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							),
+							lineWidth: 1
+						)
+				)
 				
 				Divider()
 					.padding(.vertical, 8)
@@ -304,17 +371,53 @@ extension SigningView {
 						CertificatesCellView(cert: cert)
 							.padding()
 					}
-					.background(Color(UIColor.secondarySystemGroupedBackground))
+					.background(
+						LinearGradient(
+							colors: [
+								Color(UIColor.secondarySystemGroupedBackground),
+								Color(UIColor.secondarySystemGroupedBackground).opacity(0.95),
+								Color.accentColor.opacity(0.02)
+							],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						)
+					)
 					.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+					.overlay(
+						RoundedRectangle(cornerRadius: 14, style: .continuous)
+							.stroke(
+								LinearGradient(
+									colors: [Color.accentColor.opacity(0.15), Color.accentColor.opacity(0.05)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								),
+								lineWidth: 1
+							)
+					)
 				} else {
 					VStack(spacing: 16) {
 						HStack(spacing: 12) {
-							Image(systemName: "exclamationmark.triangle.fill")
-								.font(.title2)
-								.foregroundStyle(Color.orange)
-								.frame(width: 44, height: 44)
-								.background(Color.orange.opacity(0.15))
-								.clipShape(Circle())
+							ZStack {
+								Circle()
+									.fill(
+										LinearGradient(
+											colors: [Color.orange.opacity(0.2), Color.orange.opacity(0.15)],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
+									.frame(width: 44, height: 44)
+								
+								Image(systemName: "exclamationmark.triangle.fill")
+									.font(.title3)
+									.foregroundStyle(
+										LinearGradient(
+											colors: [Color.orange, Color.orange.opacity(0.8)],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
+							}
 							
 							VStack(alignment: .leading, spacing: 4) {
 								Text(.localized("No Certificate"))
@@ -339,13 +442,41 @@ extension SigningView {
 							.foregroundStyle(.white)
 							.frame(maxWidth: .infinity)
 							.padding(.vertical, 14)
-							.background(Color.accentColor)
+							.background(
+								LinearGradient(
+									colors: [Color.accentColor, Color.accentColor.opacity(0.9), Color.accentColor.opacity(0.8)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
 							.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+							.shadow(color: Color.accentColor.opacity(0.4), radius: 10, x: 0, y: 5)
 						}
 					}
 					.padding()
-					.background(Color(UIColor.secondarySystemGroupedBackground))
+					.background(
+						LinearGradient(
+							colors: [
+								Color(UIColor.secondarySystemGroupedBackground),
+								Color(UIColor.secondarySystemGroupedBackground).opacity(0.95),
+								Color.orange.opacity(0.03)
+							],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						)
+					)
 					.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+					.overlay(
+						RoundedRectangle(cornerRadius: 14, style: .continuous)
+							.stroke(
+								LinearGradient(
+									colors: [Color.orange.opacity(0.2), Color.orange.opacity(0.1)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								),
+								lineWidth: 1.5
+							)
+					)
 				}
 			}
 		}

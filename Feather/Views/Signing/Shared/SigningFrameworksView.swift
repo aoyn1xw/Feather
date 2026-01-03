@@ -31,7 +31,7 @@ struct SigningFrameworksView: View {
 							Image(systemName: "cube.box.fill")
 								.foregroundStyle(
 									LinearGradient(
-										colors: [Color.accentColor, Color.accentColor.opacity(0.6)],
+										colors: [Color.accentColor, Color.accentColor.opacity(0.7), Color.accentColor.opacity(0.5)],
 										startPoint: .topLeading,
 										endPoint: .bottomTrailing
 									)
@@ -39,9 +39,15 @@ struct SigningFrameworksView: View {
 							Text(_frameworksPath)
 								.font(.subheadline)
 								.fontWeight(.semibold)
+								.foregroundStyle(
+									LinearGradient(
+										colors: [Color.primary, Color.primary.opacity(0.8)],
+										startPoint: .leading,
+										endPoint: .trailing
+									)
+								)
 						}
 						.textCase(.none)
-						.foregroundStyle(.primary)
 					}
 				}
 				
@@ -60,7 +66,7 @@ struct SigningFrameworksView: View {
 							Image(systemName: "puzzlepiece.extension.fill")
 								.foregroundStyle(
 									LinearGradient(
-										colors: [Color.purple, Color.purple.opacity(0.6)],
+										colors: [Color.purple, Color.purple.opacity(0.7), Color.purple.opacity(0.5)],
 										startPoint: .topLeading,
 										endPoint: .bottomTrailing
 									)
@@ -68,9 +74,15 @@ struct SigningFrameworksView: View {
 							Text(_pluginsPath)
 								.font(.subheadline)
 								.fontWeight(.semibold)
+								.foregroundStyle(
+									LinearGradient(
+										colors: [Color.primary, Color.primary.opacity(0.8)],
+										startPoint: .leading,
+										endPoint: .trailing
+									)
+								)
 						}
 						.textCase(.none)
-						.foregroundStyle(.primary)
 					}
 				}
 				
@@ -81,15 +93,33 @@ struct SigningFrameworksView: View {
 					HStack {
 						Spacer()
 						VStack(spacing: 12) {
-							Image(systemName: "cube.transparent")
-								.font(.system(size: 40))
-								.foregroundColor(.secondary.opacity(0.6))
+							ZStack {
+								Circle()
+									.fill(
+										LinearGradient(
+											colors: [Color.secondary.opacity(0.2), Color.secondary.opacity(0.1)],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
+									.frame(width: 60, height: 60)
+								
+								Image(systemName: "cube.transparent")
+									.font(.system(size: 30))
+									.foregroundStyle(
+										LinearGradient(
+											colors: [Color.secondary.opacity(0.7), Color.secondary.opacity(0.5)],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
+									)
+							}
 							
 							Text(.localized("No Frameworks or PlugIns Found."))
 								.font(.subheadline)
 								.foregroundColor(.secondary)
 						}
-						.padding(.vertical, 20)
+						.padding(.vertical, 30)
 						Spacer()
 					}
 				}
