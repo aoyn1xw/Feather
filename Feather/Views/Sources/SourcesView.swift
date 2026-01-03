@@ -119,7 +119,7 @@ struct SourcesView: View {
 	private var allAppsSection: some View {
 		Section {
 			NavigationLink {
-				SourceAppsView(object: Array(_sources), viewModel: viewModel)
+				AllAppsView(object: Array(_sources), viewModel: viewModel)
 			} label: {
 				AllAppsCardView(
 					horizontalSizeClass: horizontalSizeClass,
