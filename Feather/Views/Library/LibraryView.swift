@@ -73,26 +73,8 @@ struct LibraryView: View {
 	var body: some View {
 		NavigationView {
 			ZStack {
-				// Enhanced gradient background based on signing status
-				if _useGradients {
-					let hasSignedApps = !_filteredSignedApps.isEmpty
-					let statusColor: Color = hasSignedApps ? .green : .accentColor
-					
-					LinearGradient(
-						colors: [
-							statusColor.opacity(0.12),
-							Color(uiColor: .systemBackground),
-							statusColor.opacity(0.08),
-							Color(uiColor: .systemBackground),
-							statusColor.opacity(0.05)
-						],
-						startPoint: .topLeading,
-						endPoint: .bottomTrailing
-					)
-					.ignoresSafeArea()
-				} else {
-					Color(uiColor: .systemBackground).ignoresSafeArea()
-				}
+				// Background - no gradients
+				Color(uiColor: .systemBackground).ignoresSafeArea()
 				
 				ScrollView {
 					VStack(alignment: .leading, spacing: 20) {
@@ -347,42 +329,11 @@ struct LibraryView: View {
 							ZStack {
 								Circle()
 									.fill(
-										_useGradients ?
-											(_importStatus == .success 
-												? LinearGradient(
-													colors: [Color.green.opacity(0.8), Color.green.opacity(0.4)],
-													startPoint: .topLeading,
-													endPoint: .bottomTrailing
-												)
-												: _importStatus == .failed
-												? LinearGradient(
-													colors: [Color.red.opacity(0.8), Color.red.opacity(0.4)],
-													startPoint: .topLeading,
-													endPoint: .bottomTrailing
-												)
-												: LinearGradient(
-													colors: [Color.blue.opacity(0.8), Color.blue.opacity(0.4)],
-													startPoint: .topLeading,
-													endPoint: .bottomTrailing
-												))
-											:
-											(_importStatus == .success
-												? LinearGradient(
-													colors: [Color.green, Color.green],
-													startPoint: .topLeading,
-													endPoint: .bottomTrailing
-												)
-												: _importStatus == .failed
-												? LinearGradient(
-													colors: [Color.red, Color.red],
-													startPoint: .topLeading,
-													endPoint: .bottomTrailing
-												)
-												: LinearGradient(
-													colors: [Color.blue, Color.blue],
-													startPoint: .topLeading,
-													endPoint: .bottomTrailing
-												))
+										_importStatus == .success 
+											? Color.green
+											: _importStatus == .failed
+											? Color.red
+											: Color.blue
 									)
 									.frame(width: 100, height: 100)
 									.scaleEffect(_showImportAnimation ? 1.0 : 0.5)
@@ -433,26 +384,7 @@ struct LibraryView: View {
 						.padding(40)
 						.background(
 							RoundedRectangle(cornerRadius: 30, style: .continuous)
-								.fill(
-									_useGradients ?
-										LinearGradient(
-											colors: [
-												Color(uiColor: .systemBackground),
-												Color(uiColor: .secondarySystemBackground)
-											],
-											startPoint: .topLeading,
-											endPoint: .bottomTrailing
-										)
-										:
-										LinearGradient(
-											colors: [
-												Color(uiColor: .systemBackground),
-												Color(uiColor: .systemBackground)
-											],
-											startPoint: .topLeading,
-											endPoint: .bottomTrailing
-										)
-								)
+								.fill(Color(uiColor: .systemBackground))
 								.shadow(color: .black.opacity(0.3), radius: 30, x: 0, y: 10)
 						)
 						.scaleEffect(_showImportAnimation ? 1.0 : 0.8)
@@ -585,19 +517,6 @@ struct LibraryCardView: View {
 		}
 		.padding(12)
 		.background(Color(UIColor.secondarySystemGroupedBackground))
-		.overlay(
-			RoundedRectangle(cornerRadius: 16, style: .continuous)
-				.strokeBorder(
-					LinearGradient(
-						colors: app.isSigned 
-							? [Color.green.opacity(0.6), Color.green.opacity(0.3)]
-							: [Color.orange.opacity(0.6), Color.orange.opacity(0.3)],
-						startPoint: .topLeading,
-						endPoint: .bottomTrailing
-					),
-					lineWidth: 2
-				)
-		)
 		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 	}
 }
@@ -695,19 +614,6 @@ struct LibraryGridCardView: View {
 		.frame(maxWidth: .infinity)
 		.padding(12)
 		.background(Color(UIColor.secondarySystemGroupedBackground))
-		.overlay(
-			RoundedRectangle(cornerRadius: 16, style: .continuous)
-				.strokeBorder(
-					LinearGradient(
-						colors: app.isSigned 
-							? [Color.green.opacity(0.6), Color.green.opacity(0.3)]
-							: [Color.orange.opacity(0.6), Color.orange.opacity(0.3)],
-						startPoint: .topLeading,
-						endPoint: .bottomTrailing
-					),
-					lineWidth: 2
-				)
-		)
 		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 	}
 }

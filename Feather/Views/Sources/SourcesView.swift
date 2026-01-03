@@ -337,58 +337,16 @@ private struct AllAppsCardView: View {
 		let isRegular = horizontalSizeClass != .compact
 		
 		VStack(spacing: 0) {
-			// Top gradient banner - smaller
-			if _useGradients {
-				gradientBanner
-			} else {
-				flatBanner
-			}
-			
-			// Content
+			// Content only - no gradient banner
 			contentSection(isRegular: isRegular)
 		}
 		.background(cardBackground)
 		.overlay(cardStroke)
-		.shadow(color: _useGradients ? appIconColor.opacity(0.12) : Color.black.opacity(0.04), radius: _useGradients ? 12 : 4, x: 0, y: _useGradients ? 4 : 2)
+		.shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
 		.shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 2)
 		.onAppear {
 			extractAppIconColor()
 		}
-	}
-	
-	private var flatBanner: some View {
-		ZStack {
-			appIconColor.opacity(0.2)
-				.frame(height: 40)
-		}
-		.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-	}
-	
-	private var gradientBanner: some View {
-		ZStack(alignment: .topTrailing) {
-			LinearGradient(
-				colors: [
-					appIconColor.opacity(0.8),
-					appIconColor.opacity(0.6),
-					appIconColor.opacity(0.4)
-				],
-				startPoint: .topLeading,
-				endPoint: .bottomTrailing
-			)
-			.frame(height: 40)
-			
-			// Decorative circles - smaller
-			Circle()
-				.fill(Color.white.opacity(0.1))
-				.frame(width: 30, height: 30)
-				.offset(x: 10, y: -10)
-			
-			Circle()
-				.fill(Color.white.opacity(0.05))
-				.frame(width: 50, height: 50)
-				.offset(x: -15, y: 20)
-		}
-		.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 	}
 	
 	// Extract color from app icon
@@ -437,8 +395,7 @@ private struct AllAppsCardView: View {
 			chevronIcon
 		}
 		.padding(.horizontal, isRegular ? 12 : 10)
-		.padding(.bottom, isRegular ? 10 : 8)
-		.padding(.top, 4)
+		.padding(.vertical, isRegular ? 10 : 8)
 	}
 	
 	private var iconView: some View {
@@ -448,23 +405,10 @@ private struct AllAppsCardView: View {
 				.frame(width: 40, height: 40)
 				.shadow(color: Color.black.opacity(0.12), radius: 4, x: 0, y: 2)
 			
-			if _useGradients {
-				Image(systemName: "app.badge.fill")
-					.font(.system(size: 18))
-					.foregroundStyle(
-						LinearGradient(
-							colors: [appIconColor, appIconColor.opacity(0.7)],
-							startPoint: .topLeading,
-							endPoint: .bottomTrailing
-						)
-					)
-			} else {
-				Image(systemName: "app.badge.fill")
-					.font(.system(size: 18))
-					.foregroundStyle(appIconColor)
-			}
+			Image(systemName: "app.badge.fill")
+				.font(.system(size: 18))
+				.foregroundStyle(appIconColor)
 		}
-		.offset(y: -20)
 	}
 	
 	private var textContent: some View {
@@ -478,7 +422,6 @@ private struct AllAppsCardView: View {
 			
 			appsBadge
 		}
-		.padding(.top, 4)
 	}
 	
 	private var appsBadge: some View {
@@ -501,7 +444,6 @@ private struct AllAppsCardView: View {
 		Image(systemName: "chevron.right")
 			.font(.body.bold())
 			.foregroundStyle(.secondary)
-			.padding(.top, 4)
 	}
 	
 	private var cardBackground: some View {
@@ -511,19 +453,6 @@ private struct AllAppsCardView: View {
 	
 	private var cardStroke: some View {
 		RoundedRectangle(cornerRadius: 14, style: .continuous)
-			.stroke(
-				_useGradients ? 
-					LinearGradient(
-						colors: [Color.white.opacity(0.4), Color.clear],
-						startPoint: .top,
-						endPoint: .bottom
-					) :
-					LinearGradient(
-						colors: [Color.primary.opacity(0.1), Color.clear],
-						startPoint: .top,
-						endPoint: .bottom
-					),
-				lineWidth: 1
-			)
+			.stroke(Color.primary.opacity(0.1), lineWidth: 1)
 	}
 }

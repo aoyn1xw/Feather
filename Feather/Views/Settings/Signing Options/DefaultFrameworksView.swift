@@ -131,7 +131,7 @@ extension DefaultFrameworksView {
 				
 				Text(.localized("Tap + to add frameworks"))
 					.font(.caption)
-					.foregroundColor(.tertiary)
+					.foregroundColor(Color(uiColor: .tertiaryLabel))
 			}
 			.padding(.vertical, 20)
 			Spacer()
