@@ -43,15 +43,10 @@ extension ServerView {
 struct ServerView: View {
 	@AppStorage("Feather.ipFix") private var _ipFix: Bool = false
 	@AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
-	@AppStorage("Feather.customSigningAPI") private var _customSigningAPI: String = ""
-	@State private var showUnavailableDialog = false
-	@State private var unavailableFeatureName = ""
 	
 	private let _serverMethods: [(name: String, description: String)] = [
 		(.localized("Fully Local"), .localized("Signs and installs apps entirely on your device without external servers")),
-		(.localized("Semi Local"), .localized("Signs locally but uses a local server for installation via Wi-Fi")),
-		(.localized("Fully Remote"), .localized("Uses a remote server to sign and provides a direct installation link")),
-		(.localized("Custom"), .localized("Use your own custom API endpoint for remote signing"))
+		(.localized("Semi Local"), .localized("Signs locally but uses a local server for installation via Wi-Fi"))
 	]
 	
 	private let _dataService = NBFetchService()
@@ -64,16 +59,9 @@ struct ServerView: View {
 		Group {
 			serverTypeSection
 			
-			customAPISection
-			
 			sslCertificatesSection
 			
 			successAnimationSection
-		}
-		.alert(.localized("Feature Unavailable"), isPresented: $showUnavailableDialog) {
-			Button(.localized("OK"), role: .cancel) { }
-		} message: {
-			Text(.localized("These features are unavailable because they are still under development."))
 		}
 	}
 	
@@ -97,13 +85,7 @@ struct ServerView: View {
 	@ViewBuilder
 	private func serverMethodItem(at index: Int) -> some View {
 		Button {
-			// Check if Fully Remote (2) or Custom (3) are being selected
-			if index == 2 || index == 3 {
-				unavailableFeatureName = _serverMethods[index].name
-				showUnavailableDialog = true
-			} else {
-				_serverMethod = index
-			}
+			_serverMethod = index
 		} label: {
 			VStack(alignment: .leading, spacing: 6) {
 				HStack(spacing: 10) {
@@ -118,21 +100,6 @@ struct ServerView: View {
 					Text(_serverMethods[index].name)
 						.font(.body)
 						.fontWeight(.medium)
-					
-					// Show unavailable badge for Fully Remote and Custom
-					if index == 2 || index == 3 {
-						Spacer()
-						Text(.localized("Unavailable"))
-							.font(.caption2)
-							.fontWeight(.semibold)
-							.foregroundStyle(.white)
-							.padding(.horizontal, 8)
-							.padding(.vertical, 4)
-							.background(
-								Capsule()
-									.fill(Color.orange)
-							)
-					}
 				}
 				Text(_serverMethods[index].description)
 					.font(.caption)
@@ -140,45 +107,8 @@ struct ServerView: View {
 					.padding(.leading, 42)
 			}
 			.padding(.vertical, 6)
-			.opacity((index == 2 || index == 3) ? 0.6 : 1.0)
 		}
 		.tag(index)
-		.disabled(index == 2 || index == 3)
-	}
-	
-	@ViewBuilder
-	private var customAPISection: some View {
-		// Custom API Section
-		if _serverMethod == 3 {
-			Section {
-				VStack(alignment: .leading, spacing: 12) {
-					HStack {
-						Image(systemName: "link.circle.fill")
-							.foregroundStyle(Color.accentColor)
-							.font(.title3)
-						Text(.localized("Custom Signing API URL"))
-							.font(.subheadline)
-							.fontWeight(.semibold)
-					}
-					
-					TextField(.localized("https://your-api.com/sign"), text: $_customSigningAPI)
-						.textInputAutocapitalization(.never)
-						.autocorrectionDisabled()
-						.keyboardType(.URL)
-						.padding(12)
-						.background(
-							RoundedRectangle(cornerRadius: 10)
-								.fill(Color(UIColor.tertiarySystemGroupedBackground))
-						)
-				}
-				.padding(.vertical, 4)
-			} header: {
-				Label(.localized("Custom API Configuration"), systemImage: "gearshape.2.fill")
-			} footer: {
-				Text(.localized("Enter the URL of your custom signing API. The API should accept multipart/form-data with ipa, p12, mobileprovision files and return a JSON with 'directInstallLink' field."))
-					.font(.caption)
-			}
-		}
 	}
 	
 	private var sslCertificatesSection: some View {
@@ -250,8 +180,6 @@ struct ServerView: View {
 		switch index {
 		case 0: return "iphone" // Fully Local
 		case 1: return "wifi" // Semi Local
-		case 2: return "cloud" // Fully Remote
-		case 3: return "gearshape.2" // Custom
 		default: return "server.rack"
 		}
 	}

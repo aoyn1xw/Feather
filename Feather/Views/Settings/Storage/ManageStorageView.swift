@@ -108,20 +108,23 @@ struct ManageStorageView: View {
     private var storageBreakdownSection: some View {
         Section {
             VStack(spacing: 0) {
-                storageBreakdownRow(label: .localized("Signed Apps"), size: signedAppsSize)
+                storageBreakdownRow(label: .localized("Signed Apps"), size: signedAppsSize, icon: "doc.badge.checkmark")
                 Divider()
-                storageBreakdownRow(label: .localized("Imported Apps"), size: importedAppsSize)
+                storageBreakdownRow(label: .localized("Imported Apps"), size: importedAppsSize, icon: "square.and.arrow.down")
                 Divider()
-                storageBreakdownRow(label: .localized("Certificates"), size: certificatesSize)
+                storageBreakdownRow(label: .localized("Certificates"), size: certificatesSize, icon: "key.horizontal")
                 Divider()
-                storageBreakdownRow(label: .localized("Cache"), size: cacheSize)
+                storageBreakdownRow(label: .localized("Cache"), size: cacheSize, icon: "arrow.clockwise.circle")
                 Divider()
-                storageBreakdownRow(label: .localized("Archives"), size: archivesSize)
+                storageBreakdownRow(label: .localized("Archives"), size: archivesSize, icon: "archivebox")
                 Divider()
                     .padding(.vertical, 8)
                 
                 // Total row - emphasized
                 HStack {
+                    Image(systemName: "chart.bar.fill")
+                        .foregroundStyle(.accentColor)
+                        .font(.system(size: 16))
                     Text(.localized("Total"))
                         .font(.system(.body, design: .default, weight: .bold))
                         .foregroundStyle(.primary)
@@ -333,8 +336,11 @@ struct ManageStorageView: View {
     }
     
     // MARK: - Helper Views
-    private func storageBreakdownRow(label: LocalizedStringKey, size: Int64) -> some View {
+    private func storageBreakdownRow(label: LocalizedStringKey, size: Int64, icon: String) -> some View {
         HStack {
+            Image(systemName: icon)
+                .foregroundStyle(.accentColor)
+                .font(.system(size: 16))
             Text(label)
                 .foregroundStyle(.primary)
             Spacer()
