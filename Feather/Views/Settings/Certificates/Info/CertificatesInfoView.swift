@@ -444,8 +444,11 @@ struct FlowLayout: Layout {
 		var lineWidth: CGFloat = 0
 		var lineHeight: CGFloat = 0
 		
+		// Use a reasonable default width if proposal.width is nil (unlimited)
+		let maxWidth = proposal.width ?? 1000
+		
 		for size in sizes {
-			if lineWidth + size.width > proposal.width ?? 0 {
+			if lineWidth + size.width > maxWidth {
 				totalHeight += lineHeight + spacing
 				lineWidth = size.width
 				lineHeight = size.height
