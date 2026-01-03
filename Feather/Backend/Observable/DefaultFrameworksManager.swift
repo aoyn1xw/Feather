@@ -12,7 +12,7 @@ class DefaultFrameworksManager: ObservableObject {
 	
 	private init() {
 		// Store frameworks in Documents/Feather/DefaultFrameworks
-		_frameworksDirectory = _fileManager.documentsDirectory
+		_frameworksDirectory = _fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
 			.appendingPathComponent("Feather", isDirectory: true)
 			.appendingPathComponent("DefaultFrameworks", isDirectory: true)
 		
