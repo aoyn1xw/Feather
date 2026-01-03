@@ -242,9 +242,10 @@ struct ManageStorageView: View {
                     systemImage: "network.badge.shield.half.filled",
                     description: .localized("Clear cached images and network data"),
                     action: {
+                        let cacheSize = URLCache.shared.currentDiskUsage
                         showResetAlert(
                             title: .localized("Reset Network Cache"),
-                            message: formatBytes(Int64(URLCache.shared.currentDiskUsage)),
+                            message: formatBytes(Int64(cacheSize)),
                             action: clearNetworkCache
                         )
                     }
