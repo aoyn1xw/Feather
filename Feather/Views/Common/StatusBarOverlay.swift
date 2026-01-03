@@ -67,15 +67,13 @@ struct StatusBarOverlay: View {
     var body: some View {
         if showCustomText || showSFSymbol {
             ZStack {
-                // Overlay to hide default status bar area when option is enabled
-                if hideDefaultStatusBar {
-                    Color.black
-                        .opacity(nearlyTransparentOpacity)
-                        .frame(height: 50) // Cover status bar area
-                        .frame(maxWidth: .infinity)
-                        .ignoresSafeArea(edges: .top)
-                        .allowsHitTesting(false)
-                }
+                // Always overlay to hide default status bar area
+                Color.black
+                    .opacity(nearlyTransparentOpacity)
+                    .frame(height: 50) // Cover status bar area
+                    .frame(maxWidth: .infinity)
+                    .ignoresSafeArea(edges: .top)
+                    .allowsHitTesting(false)
                 
                 VStack(spacing: 0) {
                     ZStack(alignment: selectedAlignment) {
@@ -139,7 +137,7 @@ struct StatusBarOverlay: View {
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
             }
-            .zIndex(hideDefaultStatusBar ? 10000 : 9999)
+            .zIndex(10000)
             .onAppear {
                 if enableAnimation {
                     withAnimation(contentAnimation) {

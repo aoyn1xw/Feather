@@ -41,7 +41,7 @@ struct TunnelView: View {
 				Button {
 					_isImportingPairingPresenting = true
 				} label: {
-					HStack(spacing: 16) {
+					HStack(spacing: 12) {
 						ZStack {
 							Circle()
 								.fill(
@@ -51,17 +51,17 @@ struct TunnelView: View {
 										endPoint: .bottomTrailing
 									)
 								)
-								.frame(width: 44, height: 44)
-								.shadow(color: Color.blue.opacity(0.4), radius: 10, x: 0, y: 4)
+								.frame(width: 36, height: 36)
+								.shadow(color: Color.blue.opacity(0.3), radius: 6, x: 0, y: 2)
 							
 							Image(systemName: "square.and.arrow.down")
-								.font(.title3)
+								.font(.system(size: 16))
 								.foregroundStyle(.white)
 						}
 						
 						VStack(alignment: .leading, spacing: 2) {
 							Text(.localized("Import Pairing File"))
-								.font(.body)
+								.font(.subheadline)
 								.fontWeight(.semibold)
 								.foregroundStyle(.primary)
 							Text(.localized("Required for device connection"))
@@ -75,7 +75,7 @@ struct TunnelView: View {
 							.font(.caption)
 							.foregroundStyle(.tertiary)
 					}
-					.padding(.vertical, 4)
+					.padding(.vertical, 2)
 				}
 				
 				Button {
@@ -92,7 +92,7 @@ struct TunnelView: View {
 						}
 					}
 				} label: {
-					HStack(spacing: 16) {
+					HStack(spacing: 12) {
 						ZStack {
 							Circle()
 								.fill(
@@ -102,17 +102,17 @@ struct TunnelView: View {
 										endPoint: .bottomTrailing
 									)
 								)
-								.frame(width: 44, height: 44)
-								.shadow(color: Color.green.opacity(0.4), radius: 10, x: 0, y: 4)
+								.frame(width: 36, height: 36)
+								.shadow(color: Color.green.opacity(0.3), radius: 6, x: 0, y: 2)
 							
 							Image(systemName: "arrow.counterclockwise")
-								.font(.title3)
+								.font(.system(size: 16))
 								.foregroundStyle(.white)
 						}
 						
 						VStack(alignment: .leading, spacing: 2) {
 							Text(.localized("Restart Heartbeat"))
-								.font(.body)
+								.font(.subheadline)
 								.fontWeight(.semibold)
 								.foregroundStyle(.primary)
 							Text(.localized("Reconnect to device"))
@@ -126,7 +126,7 @@ struct TunnelView: View {
 							.font(.caption)
 							.foregroundStyle(.tertiary)
 					}
-					.padding(.vertical, 4)
+					.padding(.vertical, 2)
 				}
 			}
 			
@@ -134,7 +134,7 @@ struct TunnelView: View {
 				Button {
 					UIApplication.open("https://github.com/StephenDev0/StikDebug-Guide/blob/main/pairing_file.md")
 				} label: {
-					HStack(spacing: 16) {
+					HStack(spacing: 12) {
 						ZStack {
 							Circle()
 								.fill(
@@ -144,17 +144,17 @@ struct TunnelView: View {
 										endPoint: .bottomTrailing
 									)
 								)
-								.frame(width: 44, height: 44)
-								.shadow(color: Color.purple.opacity(0.4), radius: 10, x: 0, y: 4)
+								.frame(width: 36, height: 36)
+								.shadow(color: Color.purple.opacity(0.3), radius: 6, x: 0, y: 2)
 							
 							Image(systemName: "questionmark.circle")
-								.font(.title3)
+								.font(.system(size: 16))
 								.foregroundStyle(.white)
 						}
 						
 						VStack(alignment: .leading, spacing: 2) {
 							Text(.localized("Pairing File Guide"))
-								.font(.body)
+								.font(.subheadline)
 								.fontWeight(.semibold)
 								.foregroundStyle(.primary)
 							Text(.localized("Learn how to get it"))
@@ -168,14 +168,14 @@ struct TunnelView: View {
 							.font(.caption)
 							.foregroundStyle(.tertiary)
 					}
-					.padding(.vertical, 4)
+					.padding(.vertical, 2)
 				}
 				
 				if isLocalDevVpnAvailable {
 					Button {
 						UIApplication.open("localdevvpn://enable?scheme=feather")
 					} label: {
-						HStack(spacing: 16) {
+						HStack(spacing: 12) {
 							ZStack {
 								Circle()
 									.fill(
@@ -185,17 +185,17 @@ struct TunnelView: View {
 											endPoint: .bottomTrailing
 										)
 									)
-									.frame(width: 44, height: 44)
-									.shadow(color: Color.indigo.opacity(0.4), radius: 10, x: 0, y: 4)
+									.frame(width: 36, height: 36)
+									.shadow(color: Color.indigo.opacity(0.3), radius: 6, x: 0, y: 2)
 								
 								Image(systemName: "link")
-									.font(.title3)
+									.font(.system(size: 16))
 									.foregroundStyle(.white)
 							}
 							
 							VStack(alignment: .leading, spacing: 2) {
 								Text(.localized("Connect to LocalDevVPN"))
-									.font(.body)
+									.font(.subheadline)
 									.fontWeight(.semibold)
 									.foregroundStyle(.primary)
 								Text(.localized("Enable VPN connection"))
@@ -209,13 +209,13 @@ struct TunnelView: View {
 								.font(.caption)
 								.foregroundStyle(.tertiary)
 						}
-						.padding(.vertical, 4)
+						.padding(.vertical, 2)
 					}
 				} else {
 					Button {
 						UIApplication.open("https://apps.apple.com/us/app/localdevvpn/id6755608044")
 					} label: {
-						HStack(spacing: 16) {
+						HStack(spacing: 12) {
 							ZStack {
 								Circle()
 									.fill(
@@ -225,17 +225,17 @@ struct TunnelView: View {
 											endPoint: .bottomTrailing
 										)
 									)
-									.frame(width: 44, height: 44)
-									.shadow(color: Color.orange.opacity(0.4), radius: 10, x: 0, y: 4)
+									.frame(width: 36, height: 36)
+									.shadow(color: Color.orange.opacity(0.3), radius: 6, x: 0, y: 2)
 								
 								Image(systemName: "arrow.down.app")
-									.font(.title3)
+									.font(.system(size: 16))
 									.foregroundStyle(.white)
 							}
 							
 							VStack(alignment: .leading, spacing: 2) {
 								Text(.localized("Download LocalDevVPN"))
-									.font(.body)
+									.font(.subheadline)
 									.fontWeight(.semibold)
 									.foregroundStyle(.primary)
 								Text(.localized("Required for installation"))
@@ -249,7 +249,7 @@ struct TunnelView: View {
 								.font(.caption)
 								.foregroundStyle(.tertiary)
 						}
-						.padding(.vertical, 4)
+						.padding(.vertical, 2)
 					}
 				}
 			}
@@ -280,7 +280,7 @@ struct TunnelView: View {
 	
 	@ViewBuilder
 	private func _tunnelInfo() -> some View {
-		HStack(spacing: 16) {
+		HStack(spacing: 12) {
 			ZStack {
 				Circle()
 					.fill(
@@ -294,11 +294,11 @@ struct TunnelView: View {
 							endPoint: .bottomTrailing
 						)
 					)
-					.frame(width: 60, height: 60)
-					.shadow(color: Color.blue.opacity(0.3), radius: 10, x: 0, y: 4)
+					.frame(width: 48, height: 48)
+					.shadow(color: Color.blue.opacity(0.2), radius: 6, x: 0, y: 2)
 				
 				Image(systemName: "heart.circle.fill")
-					.font(.system(size: 32))
+					.font(.system(size: 26))
 					.foregroundStyle(
 						LinearGradient(
 							colors: [Color.blue, Color.cyan, Color.blue.opacity(0.8)],
@@ -308,9 +308,10 @@ struct TunnelView: View {
 					)
 			}
 			
-			VStack(alignment: .leading, spacing: 6) {
+			VStack(alignment: .leading, spacing: 4) {
 				Text(.localized("Heartbeat"))
-					.font(.headline)
+					.font(.subheadline)
+					.fontWeight(.semibold)
 					.foregroundStyle(
 						LinearGradient(
 							colors: [Color.primary, Color.blue.opacity(0.6)],
@@ -319,11 +320,11 @@ struct TunnelView: View {
 						)
 					)
 				Text(.localized("The heartbeat is activated in the background, it will restart when the app is re-opened or prompted. If the status below is pulsing, that means its healthy."))
-					.font(.subheadline)
+					.font(.caption)
 					.foregroundStyle(.secondary)
 			}
 			.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
 		}
-		.padding(.vertical, 8)
+		.padding(.vertical, 4)
 	}
 }

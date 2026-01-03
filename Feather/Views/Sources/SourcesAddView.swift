@@ -92,9 +92,6 @@ struct SourcesAddView: View {
 			// Regular UI when not showing import results
 			_sourceURLSection
 			
-			// Import/Export Section
-			_importExportSection
-			
 			// Export mode UI
 			if _isExportMode {
 				_exportSelectionSection()
@@ -192,6 +189,40 @@ struct SourcesAddView: View {
 						.keyboardType(.URL)
 						.textInputAutocapitalization(.never)
 						.font(.body)
+					
+					// Import button icon
+					Button {
+						_isImporting = true
+						_fetchImportedRepositories(UIPasteboard.general.string) {
+							// Don't dismiss anymore - show results instead
+						}
+					} label: {
+						Image(systemName: "square.and.arrow.down")
+							.font(.title3)
+							.foregroundStyle(.blue)
+					}
+					.buttonStyle(.plain)
+					
+					// Export button icon
+					Button {
+						_isExportMode = true
+						let sources = Storage.shared.getSources()
+						guard !sources.isEmpty else {
+							UIAlertController.showAlertWithOk(
+								title: .localized("Error"),
+								message: .localized("No sources to export")
+							)
+							_isExportMode = false
+							return
+						}
+						// Initialize selection with all sources
+						_selectedSourcesForExport = Set(sources.compactMap { $0.sourceURL?.absoluteString })
+					} label: {
+						Image(systemName: "doc.on.doc")
+							.font(.title3)
+							.foregroundStyle(.green)
+					}
+					.buttonStyle(.plain)
 				}
 				.padding()
 				.background(Color(UIColor.secondarySystemGroupedBackground))
@@ -202,6 +233,9 @@ struct SourcesAddView: View {
 				Text(.localized("The only supported repositories are AltStore repositories."))
 					.font(.caption)
 					.foregroundStyle(.secondary)
+				Text(.localized("Supports importing from KravaShit/MapleSign and ESign."))
+					.font(.caption)
+					.foregroundStyle(.secondary)
 				Text(verbatim: "[\(String.localized("Learn more about how to setup a repository..."))](https://faq.altstore.io/developers/make-a-source)")
 					.font(.caption)
 					.foregroundStyle(.secondary)
@@ -209,128 +243,6 @@ struct SourcesAddView: View {
 			.padding(.horizontal, 4)
 		}
 		.padding(.horizontal)
-	}
-	
-	// MARK: - Import/Export Section
-	@ViewBuilder
-	private var _importExportSection: some View {
-		VStack(alignment: .leading, spacing: 16) {
-			HStack(spacing: 0) {
-				_importButton
-				_exportButton
-			}
-			.padding(.horizontal)
-			
-			VStack(alignment: .leading, spacing: 8) {
-				Text(.localized("Supports importing from KravaShit/MapleSign and ESign."))
-					.font(.caption)
-					.foregroundStyle(.secondary)
-			}
-			.padding(.horizontal, 20)
-		}
-	}
-	
-	// MARK: - Import Button
-	@ViewBuilder
-	private var _importButton: some View {
-		Button {
-			_isImporting = true
-			_fetchImportedRepositories(UIPasteboard.general.string) {
-				// Don't dismiss anymore - show results instead
-			}
-		} label: {
-			HStack(spacing: 16) {
-				ZStack {
-					Circle()
-						.fill(Color.blue.opacity(0.15))
-						.frame(width: 44, height: 44)
-						.blur(radius: 2)
-						.offset(y: 2)
-					
-					Circle()
-						.fill(
-							LinearGradient(
-								colors: [Color.blue, Color.blue.opacity(0.7)],
-								startPoint: .topLeading,
-								endPoint: .bottomTrailing
-							)
-						)
-						.frame(width: 44, height: 44)
-					
-					Image(systemName: "square.and.arrow.down")
-						.font(.title3)
-						.foregroundStyle(.white)
-				}
-				.shadow(color: Color.blue.opacity(0.3), radius: 8, x: 0, y: 4)
-				
-				Text(.localized("Import"))
-					.fontWeight(.semibold)
-					.foregroundStyle(.primary)
-				Spacer()
-				Image(systemName: "chevron.right")
-					.font(.caption)
-					.foregroundStyle(.tertiary)
-			}
-			.padding()
-		}
-		.background(Color(UIColor.secondarySystemGroupedBackground))
-		.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-	}
-	
-	// MARK: - Export Button
-	@ViewBuilder
-	private var _exportButton: some View {
-		Button {
-			_isExportMode = true
-			let sources = Storage.shared.getSources()
-			guard !sources.isEmpty else {
-				UIAlertController.showAlertWithOk(
-					title: .localized("Error"),
-					message: .localized("No sources to export")
-				)
-				_isExportMode = false
-				return
-			}
-			// Initialize selection with all sources
-			_selectedSourcesForExport = Set(sources.compactMap { $0.sourceURL?.absoluteString })
-		} label: {
-			HStack(spacing: 16) {
-				// Enhanced icon with glass effect
-				ZStack {
-					Circle()
-						.fill(Color.green.opacity(0.15))
-						.frame(width: 44, height: 44)
-						.blur(radius: 2)
-						.offset(y: 2)
-					
-					Circle()
-						.fill(
-							LinearGradient(
-								colors: [Color.green, Color.green.opacity(0.7)],
-								startPoint: .topLeading,
-								endPoint: .bottomTrailing
-							)
-						)
-						.frame(width: 44, height: 44)
-					
-					Image(systemName: "doc.on.doc")
-						.font(.title3)
-						.foregroundStyle(.white)
-				}
-				.shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
-				
-				Text(.localized("Export"))
-					.fontWeight(.semibold)
-					.foregroundStyle(.primary)
-				Spacer()
-				Image(systemName: "chevron.right")
-					.font(.caption)
-					.foregroundStyle(.tertiary)
-			}
-			.padding()
-		}
-		.background(Color(UIColor.secondarySystemGroupedBackground))
-		.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 	}
 	
 	// MARK: - Featured Sources Section
