@@ -691,7 +691,7 @@ public struct DateParsed: Codable, Equatable, Hashable, Comparable, Sendable {
 }
 
 
-public struct OSVersion: Decodable, Hashable, CustomStringConvertible, Sendable {
+public struct OSVersion: Codable, Hashable, CustomStringConvertible, Sendable {
 	public var description: String {
 		return "\(majorVersion).\(minorVersion).\(patchVersion)"
 	}
@@ -709,5 +709,10 @@ public struct OSVersion: Decodable, Hashable, CustomStringConvertible, Sendable 
 		self.majorVersion = components[safe: 0] ?? 0
 		self.minorVersion = components[safe: 1] ?? 0
 		self.patchVersion = components[safe: 2] ?? 0
+	}
+
+	public func encode(to encoder: any Encoder) throws {
+		var container = encoder.singleValueContainer()
+		try container.encode(description)
 	}
 }
