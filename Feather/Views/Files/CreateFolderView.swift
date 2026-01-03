@@ -11,11 +11,29 @@ struct CreateFolderView: View {
         NBNavigationView(.localized("Create Folder"), displayMode: .inline) {
             Form {
                 Section {
-                    TextField(.localized("Folder Name"), text: $folderName)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.blue.opacity(0.15))
+                                .frame(width: 36, height: 36)
+                            
+                            Image(systemName: "folder.badge.plus")
+                                .font(.body)
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [Color.blue, Color.blue.opacity(0.7)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        }
+                        
+                        TextField(.localized("Folder Name"), text: $folderName)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                    }
                 } header: {
-                    Text(.localized("Name"))
+                    Label(.localized("Name"), systemImage: "textformat")
                 } footer: {
                     Text(.localized("Enter a name for the new folder."))
                 }
@@ -28,8 +46,14 @@ struct CreateFolderView: View {
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(.localized("Create")) {
+                    Button {
                         createFolder()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.body)
+                            Text(.localized("Create"))
+                        }
                     }
                     .disabled(folderName.isEmpty)
                 }

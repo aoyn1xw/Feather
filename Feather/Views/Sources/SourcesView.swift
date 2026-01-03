@@ -359,7 +359,7 @@ private struct AllAppsCardView: View {
 	private var flatBanner: some View {
 		ZStack {
 			appIconColor.opacity(0.2)
-				.frame(height: 50)
+				.frame(height: 40)
 		}
 		.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 	}
@@ -375,18 +375,18 @@ private struct AllAppsCardView: View {
 				startPoint: .topLeading,
 				endPoint: .bottomTrailing
 			)
-			.frame(height: 50)
+			.frame(height: 40)
 			
 			// Decorative circles - smaller
 			Circle()
 				.fill(Color.white.opacity(0.1))
-				.frame(width: 40, height: 40)
-				.offset(x: 15, y: -15)
+				.frame(width: 30, height: 30)
+				.offset(x: 10, y: -10)
 			
 			Circle()
 				.fill(Color.white.opacity(0.05))
-				.frame(width: 60, height: 60)
-				.offset(x: -20, y: 25)
+				.frame(width: 50, height: 50)
+				.offset(x: -15, y: 20)
 		}
 		.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 	}
@@ -436,8 +436,8 @@ private struct AllAppsCardView: View {
 			
 			chevronIcon
 		}
-		.padding(.horizontal, isRegular ? 14 : 12)
-		.padding(.bottom, isRegular ? 12 : 10)
+		.padding(.horizontal, isRegular ? 12 : 10)
+		.padding(.bottom, isRegular ? 10 : 8)
 		.padding(.top, 4)
 	}
 	
@@ -445,12 +445,12 @@ private struct AllAppsCardView: View {
 		ZStack {
 			Circle()
 				.fill(Color.white)
-				.frame(width: 44, height: 44)
+				.frame(width: 40, height: 40)
 				.shadow(color: Color.black.opacity(0.12), radius: 4, x: 0, y: 2)
 			
 			if _useGradients {
 				Image(systemName: "app.badge.fill")
-					.font(.system(size: 20))
+					.font(.system(size: 18))
 					.foregroundStyle(
 						LinearGradient(
 							colors: [appIconColor, appIconColor.opacity(0.7)],
@@ -460,11 +460,11 @@ private struct AllAppsCardView: View {
 					)
 			} else {
 				Image(systemName: "app.badge.fill")
-					.font(.system(size: 20))
+					.font(.system(size: 18))
 					.foregroundStyle(appIconColor)
 			}
 		}
-		.offset(y: -22)
+		.offset(y: -20)
 	}
 	
 	private var textContent: some View {

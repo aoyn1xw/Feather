@@ -81,23 +81,39 @@ struct SourcesAddView: View {
 							dismiss()
 						}
 					} label: {
-						HStack {
-							Image(systemName: "square.and.arrow.down")
-								.font(.title3)
-								.foregroundStyle(
-									LinearGradient(
-										colors: [Color.blue, Color.blue.opacity(0.7)],
-										startPoint: .topLeading,
-										endPoint: .bottomTrailing
+						HStack(spacing: 16) {
+							ZStack {
+								Circle()
+									.fill(Color.blue.opacity(0.15))
+									.frame(width: 44, height: 44)
+									.blur(radius: 2)
+									.offset(y: 2)
+								
+								Circle()
+									.fill(
+										LinearGradient(
+											colors: [Color.blue, Color.blue.opacity(0.7)],
+											startPoint: .topLeading,
+											endPoint: .bottomTrailing
+										)
 									)
-								)
+									.frame(width: 44, height: 44)
+								
+								Image(systemName: "square.and.arrow.down")
+									.font(.title3)
+									.foregroundStyle(.white)
+							}
+							.shadow(color: Color.blue.opacity(0.3), radius: 8, x: 0, y: 4)
+							
 							Text(.localized("Import"))
-								.fontWeight(.medium)
+								.fontWeight(.semibold)
+								.foregroundStyle(.primary)
 							Spacer()
 							Image(systemName: "chevron.right")
 								.font(.caption)
-								.foregroundStyle(.secondary)
+								.foregroundStyle(.tertiary)
 						}
+						.padding(.vertical, 4)
 					}
 					
 				Button {

@@ -32,39 +32,84 @@ struct FileCompareView: View {
     var body: some View {
         NBNavigationView(.localized("Compare Files"), displayMode: .inline) {
             VStack(spacing: 0) {
-                // File headers
+                // File headers with modern icons
                 HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(file1.name)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        if let size = file1.size {
-                            Text(size)
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
+                    HStack(spacing: 8) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [file1.iconColor.opacity(0.15), file1.iconColor.opacity(0.08)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 28, height: 28)
+                            
+                            Image(systemName: file1.icon)
+                                .font(.caption)
+                                .foregroundStyle(file1.iconColor)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(file1.name)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                            if let size = file1.size {
+                                Text(size)
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
+                            }
                         }
                     }
                     
                     Spacer()
                     
-                    Image(systemName: "arrow.left.arrow.right")
-                        .foregroundStyle(.blue)
+                    ZStack {
+                        Circle()
+                            .fill(Color.blue.opacity(0.15))
+                            .frame(width: 32, height: 32)
+                        
+                        Image(systemName: "arrow.left.arrow.right")
+                            .font(.caption)
+                            .foregroundStyle(.blue)
+                    }
                     
                     Spacer()
                     
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text(file2.name)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        if let size = file2.size {
-                            Text(size)
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
+                    HStack(spacing: 8) {
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text(file2.name)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                            if let size = file2.size {
+                                Text(size)
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
+                            }
+                        }
+                        
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [file2.iconColor.opacity(0.15), file2.iconColor.opacity(0.08)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 28, height: 28)
+                            
+                            Image(systemName: file2.icon)
+                                .font(.caption)
+                                .foregroundStyle(file2.iconColor)
                         }
                     }
                 }
                 .padding()
-                .background(Color(.systemGray6))
+                .background(Color(UIColor.secondarySystemGroupedBackground))
                 
                 if isLoading {
                     Spacer()

@@ -29,12 +29,17 @@ struct BatchRenameView: View {
                 Section {
                     Picker(.localized("Rename Method"), selection: $selectedMode) {
                         ForEach(RenameMode.allCases, id: \.self) { mode in
-                            Text(mode.rawValue).tag(mode)
+                            HStack {
+                                Image(systemName: iconForMode(mode))
+                                    .font(.caption)
+                                Text(mode.rawValue)
+                            }
+                            .tag(mode)
                         }
                     }
                     .pickerStyle(.segmented)
                 } header: {
-                    Text(.localized("Method"))
+                    Label(.localized("Method"), systemImage: "slider.horizontal.3")
                 }
                 
                 Section {
@@ -47,31 +52,41 @@ struct BatchRenameView: View {
                         prefixSuffixFields
                     }
                 } header: {
-                    Text(.localized("Options"))
+                    Label(.localized("Options"), systemImage: "gearshape")
                 }
                 
                 Section {
                     ForEach(Array(files.enumerated()), id: \.element.id) { index, file in
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(spacing: 8) {
+                                Image(systemName: file.icon)
+                                    .font(.caption)
+                                    .foregroundStyle(file.iconColor.opacity(0.6))
                                 Text(file.name)
+                                    .font(.caption)
                                     .foregroundStyle(.secondary)
                                     .strikethrough()
                                 Image(systemName: "arrow.right")
                                     .foregroundStyle(.secondary)
-                                    .font(.caption)
+                                    .font(.caption2)
                             }
                             
                             if index < previewNames.count {
-                                Text(previewNames[index])
-                                    .foregroundStyle(.primary)
-                                    .fontWeight(.medium)
+                                HStack(spacing: 8) {
+                                    Image(systemName: file.icon)
+                                        .font(.caption)
+                                        .foregroundStyle(file.iconColor)
+                                    Text(previewNames[index])
+                                        .font(.caption)
+                                        .foregroundStyle(.primary)
+                                        .fontWeight(.medium)
+                                }
                             }
                         }
                         .padding(.vertical, 4)
                     }
                 } header: {
-                    Text(.localized("Preview"))
+                    Label(.localized("Preview"), systemImage: "eye")
                 } footer: {
                     Text(.localized("\(files.count) file(s) will be renamed"))
                 }
@@ -93,8 +108,14 @@ struct BatchRenameView: View {
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(.localized("Rename")) {
+                    Button {
                         performBatchRename()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.body)
+                            Text(.localized("Rename"))
+                        }
                     }
                     .disabled(isProcessing || !isValidConfiguration)
                 }
@@ -109,6 +130,17 @@ struct BatchRenameView: View {
             .onAppear {
                 updatePreview()
             }
+        }
+    }
+    
+    private func iconForMode(_ mode: RenameMode) -> String {
+        switch mode {
+        case .findReplace:
+            return "magnifyingglass"
+        case .sequential:
+            return "number.square"
+        case .prefixSuffix:
+            return "textformat"
         }
     }
     

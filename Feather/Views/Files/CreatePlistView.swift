@@ -17,11 +17,29 @@ struct CreatePlistView: View {
         NBNavigationView(.localized("Create Plist File"), displayMode: .inline) {
             Form {
                 Section {
-                    TextField(.localized("File Name"), text: $fileName)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.purple.opacity(0.15))
+                                .frame(width: 36, height: 36)
+                            
+                            Image(systemName: "doc.badge.gearshape.fill")
+                                .font(.body)
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [Color.purple, Color.purple.opacity(0.7)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        }
+                        
+                        TextField(.localized("File Name"), text: $fileName)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                    }
                 } header: {
-                    Text(.localized("Name"))
+                    Label(.localized("Name"), systemImage: "textformat")
                 } footer: {
                     Text(.localized("Enter a name for the plist file (without .plist extension)"))
                 }
@@ -29,12 +47,17 @@ struct CreatePlistView: View {
                 Section {
                     Picker(.localized("Format"), selection: $selectedFormat) {
                         ForEach(PlistFormat.allCases, id: \.self) { format in
-                            Text(format.rawValue).tag(format)
+                            HStack {
+                                Image(systemName: format == .xml ? "chevron.left.forwardslash.chevron.right" : "01.square.fill")
+                                    .font(.caption)
+                                Text(format.rawValue)
+                            }
+                            .tag(format)
                         }
                     }
                     .pickerStyle(.segmented)
                 } header: {
-                    Text(.localized("Plist Format"))
+                    Label(.localized("Plist Format"), systemImage: "doc.badge.gearshape")
                 } footer: {
                     Text(.localized("XML format is human-readable, Binary format is more compact"))
                 }
@@ -47,8 +70,14 @@ struct CreatePlistView: View {
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(.localized("Create")) {
+                    Button {
                         createPlist()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.body)
+                            Text(.localized("Create"))
+                        }
                     }
                     .disabled(fileName.isEmpty)
                 }
