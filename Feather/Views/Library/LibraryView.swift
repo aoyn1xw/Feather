@@ -88,37 +88,38 @@ struct LibraryView: View {
 				
 				ScrollView {
 					VStack(alignment: .center, spacing: 16) {
-						// Centered Title
-						Text("Library")
-							.font(.largeTitle)
-							.fontWeight(.bold)
-							.foregroundStyle(.primary)
-							.frame(maxWidth: .infinity, alignment: .center)
-							.padding(.top, 10)
-						
-						// Top right pill with Select and plus icon
+						// Header with title and plus button
 						HStack {
 							Spacer()
-							Menu {
-								_importActions()
-							} label: {
-								HStack(spacing: 8) {
-									Text("Select")
-										.font(.subheadline)
-										.fontWeight(.semibold)
-									Image(systemName: "plus")
-										.font(.system(size: 14, weight: .semibold))
-								}
-								.foregroundStyle(.white)
-								.padding(.horizontal, 16)
-								.padding(.vertical, 10)
-								.background(
-									Capsule()
-										.fill(Color.accentColor)
-								)
-							}
+							
+							Text("Library")
+								.font(.title2)
+								.fontWeight(.semibold)
+								.foregroundStyle(.primary)
+							
+							Spacer()
 						}
-						.padding(.horizontal, 20)
+						.padding(.top, 10)
+						.overlay(
+							// Top right plus button
+							HStack {
+								Spacer()
+								Menu {
+									_importActions()
+								} label: {
+									Image(systemName: "plus")
+										.font(.system(size: 18, weight: .semibold))
+										.foregroundStyle(.white)
+										.frame(width: 32, height: 32)
+										.background(
+											Circle()
+												.fill(Color.accentColor)
+										)
+								}
+							}
+							.padding(.horizontal, 20),
+							alignment: .topTrailing
+						)
 						
 						// Segmented Control for Unsigned/Signed filter
 						Picker("Filter", selection: $_filterMode) {
