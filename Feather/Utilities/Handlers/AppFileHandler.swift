@@ -94,13 +94,13 @@ final class AppFileHandler: NSObject, @unchecked Sendable {
 		// Get default frameworks
 		let dylibURLs = try await DefaultFrameworksManager.shared.extractDylibsFromFrameworks()
 		
-		guard !dylibURLs.isEmpty else {
+		guard !dylibURLs.dylibURLs.isEmpty else {
 			Logger.misc.info("[\(self._uuid)] No default frameworks to load")
 			return
 		}
 		
-		Logger.misc.info("[\(self._uuid)] Loading \(dylibURLs.count) default framework(s)")
-		AppLogManager.shared.info("Loading \(dylibURLs.count) default framework(s) into app", category: "DefaultFrameworks")
+		Logger.misc.info("[\(self._uuid)] Loading \(dylibURLs.dylibURLs.count) default framework(s)")
+		AppLogManager.shared.info("Loading \(dylibURLs.dylibURLs.count) default framework(s) into app", category: "DefaultFrameworks")
 		
 		// Create Frameworks directory if needed
 		let frameworksDir = appURL.appendingPathComponent("Frameworks")
@@ -108,7 +108,7 @@ final class AppFileHandler: NSObject, @unchecked Sendable {
 		
 		// Copy dylibs to app
 		var successCount = 0
-		for dylibURL in dylibURLs {
+		for dylibURL in dylibURLs.dylibURLs {
 			do {
 				let destURL = frameworksDir.appendingPathComponent(dylibURL.lastPathComponent)
 				
