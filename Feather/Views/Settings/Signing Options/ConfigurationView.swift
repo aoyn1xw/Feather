@@ -10,6 +10,18 @@ struct ConfigurationView: View {
 	// MARK: Body
     var body: some View {
 		NBList(.localized("Signing Options")) {
+			Section {
+				NavigationLink {
+					DefaultFrameworksView()
+				} label: {
+					Label(.localized("Default Frameworks"), systemImage: "puzzlepiece.extension")
+				}
+			} footer: {
+				Text(.localized("Manage frameworks that are automatically injected into all apps during signing."))
+					.font(.footnote)
+					.foregroundColor(.secondary)
+			}
+			
             SigningOptionsView(options: $_optionsManager.options)
 		}
 		.toolbar {
