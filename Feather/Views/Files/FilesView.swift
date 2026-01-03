@@ -966,24 +966,38 @@ struct FilesView: View {
             do {
                 try downloadManager.handlePachageFile(url: file.url, dl: dl)
                 
-                // Give it a moment to process
-                try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                // Wait for the download/import to complete by checking the download status
+                var attempts = 0
+                let maxAttempts = 20 // 10 seconds max wait
                 
-                // Get the imported app
-                if let importedApp = Storage.shared.getLatestImportedApp() {
-                    // Trigger signing with default certificate
-                    NotificationCenter.default.post(
-                        name: Notification.Name("Feather.signApp"),
-                        object: nil,
-                        userInfo: ["app": AnyApp(base: importedApp)]
-                    )
+                while attempts < maxAttempts {
+                    try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
                     
-                    HapticsManager.shared.success()
-                } else {
-                    throw NSError(domain: "FilesView", code: 1, userInfo: [
-                        NSLocalizedDescriptionKey: "Failed to import IPA file"
-                    ])
+                    // Check if import is complete by trying to get the latest imported app
+                    if let importedApp = Storage.shared.getLatestImportedApp(),
+                       let appUUID = importedApp.uuid,
+                       appUUID == dl.uuid {
+                        // Trigger signing with default certificate
+                        NotificationCenter.default.post(
+                            name: Notification.Name("Feather.signApp"),
+                            object: nil,
+                            userInfo: ["app": AnyApp(base: importedApp)]
+                        )
+                        
+                        HapticsManager.shared.success()
+                        return
+                    }
+                    
+                    attempts += 1
                 }
+                
+                // If we get here, the import didn't complete in time
+                throw NSError(
+                    domain: "com.feather.files",
+                    code: 1001,
+                    userInfo: [NSLocalizedDescriptionKey: "Import timed out. Please try again."]
+                )
+                
             } catch {
                 HapticsManager.shared.error()
                 AppLogManager.shared.error("Failed to open in signer: \(error.localizedDescription)", category: "Files")
