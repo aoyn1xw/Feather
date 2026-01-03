@@ -15039,6 +15039,17 @@
           }
         }
       }
+    },
+    "Loading Issue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading Issue"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
