@@ -144,6 +144,7 @@ struct SourcesView: View {
 	
 	private var repositoriesSection: some View {
 		NBSection(
+			.localized("Repositories"),
 			secondary: _filteredSources.count.description
 		) {
 			ForEach(_filteredSources) { source in
