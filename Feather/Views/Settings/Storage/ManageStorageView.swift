@@ -302,7 +302,9 @@ struct ManageStorageView: View {
     }
     
     private func calculateOldCacheSize(olderThan days: Int) -> Int64 {
-        let cutoffDate = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
+        guard let cutoffDate = Calendar.current.date(byAdding: .day, value: -days, to: Date()) else {
+            return 0
+        }
         var oldCacheSize: Int64 = 0
         
         let tmpDirectory = FileManager.default.temporaryDirectory
@@ -323,20 +325,31 @@ struct ManageStorageView: View {
     
     // MARK: - Cleanup Action
     private func performCleanup() {
+        guard let cutoffDate = Calendar.current.date(byAdding: .day, value: -cleanupPeriod.days, to: Date()) else {
+            return
+        }
+        
         isCalculating = true
         
-        let cutoffDate = Calendar.current.date(byAdding: .day, value: -cleanupPeriod.days, to: Date()) ?? Date()
-        
         DispatchQueue.global(qos: .userInitiated).async {
-            let tmpDirectory = FileManager.default.temporaryDirectory
+            let fileManager = FileManager.default
+            let tmpDirectory = fileManager.temporaryDirectory
             
-            if let enumerator = FileManager.default.enumerator(at: tmpDirectory, includingPropertiesForKeys: [.contentModificationDateKey], options: [.skipsHiddenFiles]) {
+            // Collect files to delete first to avoid race conditions
+            var filesToDelete: [URL] = []
+            
+            if let enumerator = fileManager.enumerator(at: tmpDirectory, includingPropertiesForKeys: [.contentModificationDateKey], options: [.skipsHiddenFiles]) {
                 for case let fileURL as URL in enumerator {
                     if let modificationDate = try? fileURL.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate,
                        modificationDate < cutoffDate {
-                        try? FileManager.default.removeItem(at: fileURL)
+                        filesToDelete.append(fileURL)
                     }
                 }
+            }
+            
+            // Now delete the collected files
+            for fileURL in filesToDelete {
+                try? fileManager.removeItem(at: fileURL)
             }
             
             // Clear network cache
