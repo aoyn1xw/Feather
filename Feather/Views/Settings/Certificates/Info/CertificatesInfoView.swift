@@ -2,11 +2,64 @@ import SwiftUI
 import NimbleViews
 import ZsignSwift
 
+// MARK: - Entitlement Mapping Helper
+struct EntitlementMapping {
+	static func humanReadableName(for entitlement: String) -> String {
+		let mappings: [String: String] = [
+			"com.apple.developer.applesignin": "Sign in with Apple",
+			"com.apple.developer.associated-domains": "Associated Domains",
+			"com.apple.developer.authentication-services.autofill-credential-provider": "AutoFill Credential Provider",
+			"com.apple.developer.default-data-protection": "Default Data Protection",
+			"com.apple.developer.healthkit": "HealthKit",
+			"com.apple.developer.homekit": "HomeKit",
+			"com.apple.developer.icloud-container-identifiers": "iCloud Container Identifiers",
+			"com.apple.developer.icloud-services": "iCloud Services",
+			"com.apple.developer.in-app-payments": "In-App Payments",
+			"com.apple.developer.networking.wifi-info": "Wi-Fi Information",
+			"com.apple.developer.networking.networkextension": "Network Extension",
+			"com.apple.developer.networking.vpn.api": "VPN API",
+			"com.apple.developer.nfc.readersession.formats": "NFC Reader Session",
+			"com.apple.developer.pass-type-identifiers": "Pass Type Identifiers",
+			"com.apple.developer.siri": "Siri",
+			"com.apple.developer.usernotifications.filtering": "User Notifications Filtering",
+			"com.apple.developer.usernotifications.time-sensitive": "Time-Sensitive Notifications",
+			"com.apple.external-accessory.wireless-configuration": "External Accessory Wireless Configuration",
+			"com.apple.security.application-groups": "App Groups",
+			"keychain-access-groups": "Keychain Access Groups",
+			"aps-environment": "Push Notifications",
+			"com.apple.developer.game-center": "Game Center",
+			"com.apple.developer.maps": "Maps",
+			"com.apple.developer.ClassKit-environment": "ClassKit",
+			"com.apple.developer.devicecheck.appattest-environment": "App Attest",
+			"com.apple.developer.kernel.extended-virtual-addressing": "Extended Virtual Addressing",
+			"com.apple.developer.networking.multipath": "Multipath Networking",
+			"com.apple.developer.associated-domains.mdm-managed": "MDM Managed Associated Domains",
+			"com.apple.developer.automatic-assessment-configuration": "Automatic Assessment Configuration",
+			"com.apple.developer.group-session": "Group Activities",
+			"com.apple.developer.contacts.notes": "Contacts Notes",
+			"com.apple.developer.shared-with-you": "Shared with You",
+			"com.apple.developer.family-controls": "Family Controls",
+			"com.apple.developer.proximity-reader.payment.acceptance": "Tap to Pay on iPhone",
+			"inter-app-audio": "Inter-App Audio",
+			"com.apple.developer.carplay-audio": "CarPlay Audio",
+			"com.apple.developer.carplay-communication": "CarPlay Communication",
+			"com.apple.developer.carplay-messaging": "CarPlay Messaging",
+			"com.apple.developer.carplay-navigation": "CarPlay Navigation",
+			"com.apple.developer.carplay-parking": "CarPlay Parking",
+			"com.apple.developer.carplay-playback": "CarPlay Playback",
+			"com.apple.developer.coremedia.hls.low-latency": "Low-Latency HLS",
+			"com.apple.developer.weatherkit": "WeatherKit"
+		]
+		return mappings[entitlement] ?? entitlement
+	}
+}
+
 // MARK: - View
 struct CertificatesInfoView: View {
 	@Environment(\.dismiss) var dismiss
 	@State var data: Certificate?
 	@State private var showPPQInfo = false
+	@State private var isEntitlementsExpanded = false
 	
 	var cert: CertificatePair
 	
@@ -15,10 +68,10 @@ struct CertificatesInfoView: View {
 		NBNavigationView("", displayMode: .inline) {
 			ScrollView {
 				VStack(spacing: 16) {
-					// Centered Header Title (no actions)
+					// Centered Header Title (smaller for native sheet look)
 					Text(cert.nickname ?? "Certificate")
-						.font(.title)
-						.fontWeight(.bold)
+						.font(.title3)
+						.fontWeight(.semibold)
 						.foregroundStyle(.primary)
 						.frame(maxWidth: .infinity, alignment: .center)
 						.padding(.top, 8)
@@ -257,19 +310,24 @@ struct CertificatesInfoView: View {
 				.fontWeight(.semibold)
 				.foregroundStyle(.primary)
 			
-			// Platform pills
+			// Platform pills with icons
 			FlowLayout(spacing: 8) {
 				ForEach(data.Platform, id: \.self) { platform in
-					Text(platform)
-						.font(.caption)
-						.fontWeight(.medium)
-						.foregroundStyle(.white)
-						.padding(.horizontal, 12)
-						.padding(.vertical, 6)
-						.background(
-							Capsule()
-								.fill(Color.accentColor)
-						)
+					HStack(spacing: 6) {
+						Image(systemName: platformIcon(for: platform))
+							.font(.caption)
+							.foregroundStyle(.white)
+						Text(platform)
+							.font(.caption)
+							.fontWeight(.medium)
+							.foregroundStyle(.white)
+					}
+					.padding(.horizontal, 12)
+					.padding(.vertical, 6)
+					.background(
+						Capsule()
+							.fill(Color.accentColor)
+					)
 				}
 			}
 		}
@@ -277,6 +335,26 @@ struct CertificatesInfoView: View {
 		.frame(maxWidth: .infinity, alignment: .leading)
 		.background(Color(UIColor.secondarySystemGroupedBackground))
 		.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+	}
+	
+	// MARK: - Helper for Platform Icons
+	private func platformIcon(for platform: String) -> String {
+		let lowercased = platform.lowercased()
+		if lowercased.contains("ios") {
+			return "iphone"
+		} else if lowercased.contains("visionos") || lowercased.contains("vision") {
+			return "visionpro"
+		} else if lowercased.contains("macos") || lowercased.contains("mac") {
+			return "desktopcomputer"
+		} else if lowercased.contains("tvos") || lowercased.contains("tv") {
+			return "appletv"
+		} else if lowercased.contains("watchos") || lowercased.contains("watch") {
+			return "applewatch"
+		} else if lowercased.contains("ipados") || lowercased.contains("ipad") {
+			return "ipad"
+		} else {
+			return "app.badge"
+		}
 	}
 	
 	// MARK: - Provisioned Devices Card
@@ -348,41 +426,69 @@ struct CertificatesInfoView: View {
 	@ViewBuilder
 	private func entitlementsCard(entitlements: [String: AnyCodable]) -> some View {
 		VStack(alignment: .leading, spacing: 0) {
-			// Header
-			HStack {
-				Text(.localized("Entitlements"))
-					.font(.subheadline)
-					.fontWeight(.semibold)
-					.foregroundStyle(.primary)
-				Spacer()
-				Text("\(entitlements.count)")
-					.font(.subheadline)
-					.fontWeight(.semibold)
-					.foregroundStyle(.tint)
-			}
-			.padding(12)
-			
-			Divider()
-			
-			// Entitlements list
-			ForEach(Array(entitlements.keys.sorted().enumerated()), id: \.offset) { index, key in
-				if let value = entitlements[key]?.value {
+			// Header with expand/collapse button
+			Button {
+				withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+					isEntitlementsExpanded.toggle()
+				}
+			} label: {
+				HStack {
 					VStack(alignment: .leading, spacing: 4) {
-						Text(key)
+						Text(.localized("Entitlements"))
 							.font(.subheadline)
-							.fontWeight(.medium)
+							.fontWeight(.semibold)
 							.foregroundStyle(.primary)
-						Text(String(describing: value))
+						Text("Security Capabilities")
 							.font(.caption)
 							.foregroundStyle(.secondary)
-							.lineLimit(3)
 					}
-					.padding(.horizontal, 12)
-					.padding(.vertical, 8)
 					
-					if index < entitlements.count - 1 {
-						Divider()
-							.padding(.leading, 12)
+					Spacer()
+					
+					HStack(spacing: 8) {
+						Text("\(entitlements.count)")
+							.font(.subheadline)
+							.fontWeight(.semibold)
+							.foregroundStyle(.tint)
+						
+						Image(systemName: isEntitlementsExpanded ? "chevron.up" : "chevron.down")
+							.font(.caption)
+							.fontWeight(.semibold)
+							.foregroundStyle(.secondary)
+					}
+				}
+				.padding(12)
+			}
+			.buttonStyle(.plain)
+			
+			if isEntitlementsExpanded {
+				Divider()
+				
+				// Entitlements list
+				ForEach(Array(entitlements.keys.sorted().enumerated()), id: \.offset) { index, key in
+					if let value = entitlements[key]?.value {
+						VStack(alignment: .leading, spacing: 4) {
+							Text(EntitlementMapping.humanReadableName(for: key))
+								.font(.subheadline)
+								.fontWeight(.medium)
+								.foregroundStyle(.primary)
+							Text(key)
+								.font(.caption2)
+								.foregroundStyle(.secondary)
+								.lineLimit(1)
+							Text(String(describing: value))
+								.font(.caption)
+								.foregroundStyle(.secondary.opacity(0.8))
+								.lineLimit(3)
+						}
+						.padding(.horizontal, 12)
+						.padding(.vertical, 8)
+						.transition(.opacity.combined(with: .move(edge: .top)))
+						
+						if index < entitlements.count - 1 {
+							Divider()
+								.padding(.leading, 12)
+						}
 					}
 				}
 			}

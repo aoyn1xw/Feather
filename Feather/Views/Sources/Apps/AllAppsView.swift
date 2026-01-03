@@ -2,6 +2,36 @@ import SwiftUI
 import AltSourceKit
 import NimbleViews
 
+// MARK: - Did You Know Facts
+struct DidYouKnowFacts {
+	static let facts = [
+		"Feather is fully open-source and community-driven!",
+		"You can sign apps with your own Apple Developer certificate.",
+		"Feather supports multiple app sources for easy discovery.",
+		"Apps signed with Feather can be installed directly on your device.",
+		"You can import apps from URLs or local files.",
+		"Feather respects your privacy - all signing happens on your device.",
+		"Regular certificate rotation helps avoid revocations.",
+		"You can manage multiple certificates in Feather.",
+		"Source repositories can be added from any compatible URL.",
+		"Feather uses modern SwiftUI for a native iOS experience.",
+		"App entitlements control what permissions an app has.",
+		"Provisioning profiles contain your app signing information.",
+		"Free developer accounts can sign apps for 7 days.",
+		"Paid developer accounts provide 1-year certificates.",
+		"The PPQ check helps identify at-risk certificates.",
+		"You can backup your certificates to Files app.",
+		"Feather supports both IPA and TIPA file formats.",
+		"App icons can be customized before installation.",
+		"Bundle IDs should be unique to avoid conflicts.",
+		"Feather can re-sign previously signed apps."
+	]
+	
+	static func random() -> String {
+		facts.randomElement() ?? facts[0]
+	}
+}
+
 // MARK: - All Apps View
 struct AllAppsView: View {
 	@AppStorage("Feather.useGradients") private var _useGradients: Bool = true
@@ -13,6 +43,9 @@ struct AllAppsView: View {
 	var object: [AltSource]
 	@ObservedObject var viewModel: SourcesViewModel
 	@State private var _sources: [ASRepository]?
+	@State private var _isLoading = true
+	@State private var _loadedSourcesCount = 0
+	@State private var _currentFact = DidYouKnowFacts.random()
 	
 	// Computed property for all apps with their sources
 	private var _allAppsWithSource: [(source: ASRepository, app: ASRepository.App)] {
@@ -47,7 +80,10 @@ struct AllAppsView: View {
 			Color(uiColor: .systemBackground)
 				.ignoresSafeArea()
 			
-			if let _sources, !_sources.isEmpty {
+			if _isLoading {
+				// Modern Loading Screen
+				loadingScreen
+			} else if let _sources, !_sources.isEmpty {
 				ScrollView {
 					VStack(alignment: .leading, spacing: 16) {
 						// Header with title and search button
@@ -124,6 +160,25 @@ struct AllAppsView: View {
 			} else {
 				ProgressView()
 			}
+				}
+			} else {
+				// Empty state
+				VStack(spacing: 20) {
+					Spacer()
+					Image(systemName: "tray")
+						.font(.system(size: 60))
+						.foregroundStyle(.secondary)
+					Text("No Sources")
+						.font(.title2)
+						.fontWeight(.bold)
+						.foregroundStyle(.primary)
+					Text("Add sources to discover apps.")
+						.font(.subheadline)
+						.foregroundStyle(.secondary)
+						.multilineTextAlignment(.center)
+					Spacer()
+				}
+			}
 		}
 		.navigationBarHidden(true)
 		.sheet(isPresented: $_showSearchSheet) {
@@ -132,22 +187,124 @@ struct AllAppsView: View {
 				.presentationDragIndicator(.visible)
 		}
 		.onAppear {
-			if viewModel.isFinished {
-				_load()
-			}
+			_loadAllSources()
 		}
-		.onChange(of: viewModel.isFinished) { _ in
-			_load()
+		.onChange(of: object) { _ in
+			_loadAllSources()
 		}
 		.navigationDestinationIfAvailable(item: $_selectedRoute) { route in
 			SourceAppsDetailView(source: route.source, app: route.app)
 		}
 	}
 	
-	private func _load() {
+	// MARK: - Loading Screen
+	@ViewBuilder
+	private var loadingScreen: some View {
+		VStack(spacing: 30) {
+			Spacer()
+			
+			// Animated loading circle
+			ZStack {
+				Circle()
+					.stroke(Color.secondary.opacity(0.2), lineWidth: 8)
+					.frame(width: 80, height: 80)
+				
+				Circle()
+					.trim(from: 0, to: 0.7)
+					.stroke(Color.accentColor, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+					.frame(width: 80, height: 80)
+					.rotationEffect(.degrees(-90))
+					.rotationEffect(.degrees(_isLoading ? 360 : 0))
+					.animation(.linear(duration: 1.5).repeatForever(autoreverses: false), value: _isLoading)
+			}
+			
+			// Progress text
+			VStack(spacing: 8) {
+				Text("Loading Sources")
+					.font(.title2)
+					.fontWeight(.bold)
+					.foregroundStyle(.primary)
+				
+				Text("\(_loadedSourcesCount)/\(object.count) Sources are being loaded")
+					.font(.subheadline)
+					.foregroundStyle(.secondary)
+					.animation(.easeInOut(duration: 0.3), value: _loadedSourcesCount)
+			}
+			
+			Spacer()
+			
+			// Did you know section
+			VStack(spacing: 12) {
+				HStack(spacing: 8) {
+					Image(systemName: "lightbulb.fill")
+						.font(.system(size: 18))
+						.foregroundStyle(.yellow)
+					Text("Did you know?")
+						.font(.headline)
+						.fontWeight(.semibold)
+						.foregroundStyle(.primary)
+				}
+				
+				Text(_currentFact)
+					.font(.subheadline)
+					.foregroundStyle(.secondary)
+					.multilineTextAlignment(.center)
+					.lineLimit(3)
+					.padding(.horizontal, 40)
+					.transition(.opacity.combined(with: .scale))
+			}
+			.padding(.bottom, 40)
+		}
+		.frame(maxWidth: .infinity, maxHeight: .infinity)
+	}
+	
+	// MARK: - Load All Sources
+	private func _loadAllSources() {
+		_isLoading = true
+		_loadedSourcesCount = 0
+		_currentFact = DidYouKnowFacts.random()
+		
 		Task {
-			let loadedSources = object.compactMap { viewModel.sources[$0] }
-			_sources = loadedSources
+			var loadedSources: [ASRepository] = []
+			let totalSources = object.count
+			
+			// Load all sources one by one with progress updates
+			for (index, source) in object.enumerated() {
+				// Try to get from viewModel first (if already cached)
+				if let existingRepo = viewModel.sources[source] {
+					loadedSources.append(existingRepo)
+				}
+				
+				// Update progress
+				await MainActor.run {
+					_loadedSourcesCount = index + 1
+				}
+				
+				// Small delay for smooth animation
+				try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+			}
+			
+			// Ensure viewModel finishes loading if needed
+			if !viewModel.isFinished {
+				// Wait for viewModel to finish
+				while !viewModel.isFinished {
+					try? await Task.sleep(nanoseconds: 100_000_000)
+				}
+			}
+			
+			// Get final loaded sources from viewModel
+			let finalSources = object.compactMap { viewModel.sources[$0] }
+			
+			await MainActor.run {
+				_sources = finalSources
+				
+				// Add a small delay before hiding loading screen for better UX
+				DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+					withAnimation(.easeInOut(duration: 0.3)) {
+						_isLoading = false
+					}
+				}
+			}
 		}
 	}
 	
