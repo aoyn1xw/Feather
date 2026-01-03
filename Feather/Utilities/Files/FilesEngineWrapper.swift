@@ -94,7 +94,7 @@ class FilesEngine {
         guard let cStr = cPath else { return nil }
         
         let rawType = detectFileType(cStr)
-        return FileType(rawValue: Int32(rawType.rawValue))
+        return FileType(rawValue: Int32(rawType))
     }
     
     /// Get detailed file information
@@ -119,7 +119,7 @@ class FilesEngine {
         return FileInformation(
             path: pathStr,
             name: nameStr,
-            type: FileType(rawValue: Int32(cInfo.type.rawValue)) ?? .unknown,
+            type: FileType(rawValue: Int32(cInfo.type)) ?? .unknown,
             size: cInfo.size,
             magicSignature: magicStr,
             isDirectory: cInfo.isDirectory,
@@ -242,7 +242,7 @@ class FilesEngine {
             let info = FileInformation(
                 path: pathStr,
                 name: nameStr,
-                type: FileType(rawValue: Int32(cInfo.type.rawValue)) ?? .unknown,
+                type: FileType(rawValue: Int32(cInfo.type)) ?? .unknown,
                 size: cInfo.size,
                 magicSignature: magicStr,
                 isDirectory: cInfo.isDirectory,
