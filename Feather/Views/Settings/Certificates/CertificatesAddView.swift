@@ -1,6 +1,7 @@
 import SwiftUI
 import NimbleViews
 import UniformTypeIdentifiers
+import ZIPFoundation
 
 // MARK: - View
 struct CertificatesAddView: View {
@@ -13,6 +14,7 @@ struct CertificatesAddView: View {
 	
 	@State private var _isImportingP12Presenting = false
 	@State private var _isImportingMobileProvisionPresenting = false
+	@State private var _isImportingZipPresenting = false
 	
 	var saveButtonDisabled: Bool {
 		_p12URL == nil || _provisionURL == nil
@@ -41,6 +43,9 @@ struct CertificatesAddView: View {
 						_importButton(.localized("Import Provisioning File"), file: _provisionURL, iconName: "doc.fill.badge.gearshape") {
 							_isImportingMobileProvisionPresenting = true
 						}
+						_importButton(.localized("Import ZIP Certificate"), file: nil, iconName: "doc.zipper.fill", showCheckmark: false) {
+							_isImportingZipPresenting = true
+						}
 					} header: {
 						HStack(spacing: 8) {
 							Image(systemName: "folder.fill.badge.plus")
@@ -56,6 +61,8 @@ struct CertificatesAddView: View {
 								.fontWeight(.semibold)
 						}
 						.textCase(.none)
+					} footer: {
+						Text(.localized("You can import individual certificate and provisioning files, or a ZIP file containing both."))
 					}
 					Section {
 						HStack(spacing: 12) {
@@ -139,6 +146,16 @@ struct CertificatesAddView: View {
 				)
 				.ignoresSafeArea()
 			}
+			.sheet(isPresented: $_isImportingZipPresenting) {
+				FileImporterRepresentableView(
+					allowedContentTypes: [.certificateZip],
+					onDocumentsPicked: { urls in
+						guard let selectedFileURL = urls.first else { return }
+						_handleZipImport(selectedFileURL)
+					}
+				)
+				.ignoresSafeArea()
+			}
 		}
 	}
 }
@@ -150,6 +167,7 @@ extension CertificatesAddView {
 		_ title: String,
 		file: URL?,
 		iconName: String = "square.and.arrow.down.fill",
+		showCheckmark: Bool = true,
 		action: @escaping () -> Void
 	) -> some View {
 		Button {
@@ -173,7 +191,7 @@ extension CertificatesAddView {
 						)
 						.frame(width: 36, height: 36)
 					
-					Image(systemName: file == nil ? iconName : "checkmark.circle.fill")
+					Image(systemName: showCheckmark && file != nil ? "checkmark.circle.fill" : iconName)
 						.font(.system(size: 16))
 						.foregroundStyle(file == nil ? Color.accentColor : Color.green)
 				}
@@ -206,7 +224,7 @@ extension CertificatesAddView {
 			}
 			.padding(.vertical, 4)
 		}
-		.disabled(file != nil)
+		.disabled(showCheckmark && file != nil)
 		.animation(.easeInOut(duration: 0.3), value: file != nil)
 	}
 }
@@ -233,6 +251,116 @@ extension CertificatesAddView {
 			certificateName: _certificateName
 		) { _ in
 			dismiss()
+		}
+	}
+	
+	private func _handleZipImport(_ zipURL: URL) {
+		// Create a temporary directory for extraction
+		let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+		
+		do {
+			try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+			
+			// Extract the ZIP file using ZIPFoundation
+			try FileManager.default.unzipItem(at: zipURL, to: tempDir)
+			
+			// Find .p12 and .mobileprovision files
+			var foundP12: URL?
+			var foundProvision: URL?
+			
+			// Search recursively for certificate files
+			func searchDirectory(_ directory: URL) throws {
+				let items = try FileManager.default.contentsOfDirectory(
+					at: directory,
+					includingPropertiesForKeys: [.isDirectoryKey],
+					options: [.skipsHiddenFiles]
+				)
+				
+				for item in items {
+					let resourceValues = try item.resourceValues(forKeys: [.isDirectoryKey])
+					if resourceValues.isDirectory == true {
+						try searchDirectory(item)
+					} else {
+						let ext = item.pathExtension.lowercased()
+						if ext == "p12" && foundP12 == nil {
+							foundP12 = item
+						} else if ext == "mobileprovision" && foundProvision == nil {
+							foundProvision = item
+						}
+					}
+				}
+			}
+			
+			try searchDirectory(tempDir)
+			
+			// Validate that both files were found
+			guard let p12URL = foundP12, let provisionURL = foundProvision else {
+				var missingFiles: [String] = []
+				if foundP12 == nil { missingFiles.append(".p12") }
+				if foundProvision == nil { missingFiles.append(".mobileprovision") }
+				
+				throw CertificateImportError.missingCertificateFiles(missingFiles.joined(separator: " and "))
+			}
+			
+			// Copy files to a persistent temporary location
+			let persistentTempDir = FileManager.default.temporaryDirectory.appendingPathComponent("certificates-\(UUID().uuidString)")
+			try FileManager.default.createDirectory(at: persistentTempDir, withIntermediateDirectories: true)
+			
+			let newP12URL = persistentTempDir.appendingPathComponent(p12URL.lastPathComponent)
+			let newProvisionURL = persistentTempDir.appendingPathComponent(provisionURL.lastPathComponent)
+			
+			try FileManager.default.copyItem(at: p12URL, to: newP12URL)
+			try FileManager.default.copyItem(at: provisionURL, to: newProvisionURL)
+			
+			// Set the URLs
+			_p12URL = newP12URL
+			_provisionURL = newProvisionURL
+			
+			// Clean up temporary extraction directory
+			try? FileManager.default.removeItem(at: tempDir)
+			
+			// Show success message
+			UIAlertController.showAlertWithOk(
+				title: .localized("Success"),
+				message: .localized("Certificate files extracted successfully from ZIP. Please enter the password.")
+			)
+			
+		} catch let error as CertificateImportError {
+			// Clean up
+			try? FileManager.default.removeItem(at: tempDir)
+			
+			// Show specific error
+			UIAlertController.showAlertWithOk(
+				title: .localized("Import Failed"),
+				message: error.localizedDescription
+			)
+		} catch {
+			// Clean up
+			try? FileManager.default.removeItem(at: tempDir)
+			
+			// Show generic error
+			UIAlertController.showAlertWithOk(
+				title: .localized("Import Failed"),
+				message: .localized("Failed to extract ZIP file: \(error.localizedDescription)")
+			)
+		}
+	}
+}
+
+// MARK: - Certificate Import Errors
+enum CertificateImportError: LocalizedError {
+	case invalidZipFile
+	case missingCertificateFiles(String)
+	case extractionFailed
+	
+	var errorDescription: String? {
+		switch self {
+		case .invalidZipFile:
+			return NSLocalizedString("The selected file is not a valid ZIP archive.", comment: "")
+		case .missingCertificateFiles(let files):
+			return String(format: NSLocalizedString("Cannot find certificate files in uploaded ZIP. Missing: %@", comment: ""), files)
+		case .extractionFailed:
+			return NSLocalizedString("Failed to extract the ZIP file. The file may be corrupted or password-protected.", comment: "")
 		}
 	}
 }
