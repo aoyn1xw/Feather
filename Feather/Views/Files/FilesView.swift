@@ -967,11 +967,13 @@ struct FilesView: View {
                 try downloadManager.handlePachageFile(url: file.url, dl: dl)
                 
                 // Wait for the download/import to complete by checking the download status
+                let pollingIntervalSeconds: Double = 0.5
+                let maxWaitTimeSeconds: Double = 10.0
+                let maxAttempts = Int(maxWaitTimeSeconds / pollingIntervalSeconds)
                 var attempts = 0
-                let maxAttempts = 20 // 10 seconds max wait
                 
                 while attempts < maxAttempts {
-                    try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                    try await Task.sleep(nanoseconds: UInt64(pollingIntervalSeconds * 1_000_000_000))
                     
                     // Check if import is complete by trying to get the latest imported app
                     // We check if an app was imported very recently (within last 2 seconds)
@@ -997,16 +999,17 @@ struct FilesView: View {
                 throw NSError(
                     domain: "com.feather.files",
                     code: 1001,
-                    userInfo: [NSLocalizedDescriptionKey: "Import timed out. Please try again."]
+                    userInfo: [NSLocalizedDescriptionKey: .localized("Import timed out. Please try again.")]
                 )
                 
             } catch {
                 HapticsManager.shared.error()
                 AppLogManager.shared.error("Failed to open in signer: \(error.localizedDescription)", category: "Files")
                 
+                let errorMessage = String(format: .localized("Failed to import IPA file: %@"), error.localizedDescription)
                 UIAlertController.showAlertWithOk(
                     title: .localized("Error"),
-                    message: .localized("Failed to import IPA file: \(error.localizedDescription)")
+                    message: errorMessage
                 )
             }
         }
