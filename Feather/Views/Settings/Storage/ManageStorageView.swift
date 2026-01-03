@@ -89,8 +89,20 @@ struct ManageStorageView: View {
                         
                         if totalSpace > 0 {
                             RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.blue)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.blue,
+                                            Color.cyan,
+                                            Color.purple.opacity(0.8),
+                                            Color.pink.opacity(0.6)
+                                        ],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
                                 .frame(width: geometry.size.width * CGFloat(usedSpace) / CGFloat(totalSpace), height: 8)
+                                .shadow(color: Color.blue.opacity(0.4), radius: 4, x: 0, y: 2)
                         }
                     }
                 }

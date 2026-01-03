@@ -107,15 +107,13 @@ class DefaultFrameworksManager: ObservableObject {
 	}
 	
 	/// Get all .dylib files from default frameworks, extracting from .deb files if needed
-	/// - Returns: Array of .dylib file URLs
+	/// - Returns: Array of .dylib file URLs (these are persistent copies, not temp files)
 	func extractDylibsFromFrameworks() async throws -> [URL] {
 		var dylibURLs: [URL] = []
 		let tempDir = _fileManager.temporaryDirectory.appendingPathComponent("DefaultFrameworks_\(UUID().uuidString)", isDirectory: true)
 		
-		defer {
-			// Clean up temp directory
-			try? _fileManager.removeItem(at: tempDir)
-		}
+		// Note: We DO NOT clean up temp directory here because the dylib URLs need to remain valid
+		// The cleanup happens in the calling code after files are moved to their final destination
 		
 		try _fileManager.createDirectoryIfNeeded(at: tempDir)
 		
