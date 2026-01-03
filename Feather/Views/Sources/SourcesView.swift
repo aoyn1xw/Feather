@@ -309,8 +309,8 @@ private struct AllAppsCardView: View {
 		}
 		.background(cardBackground)
 		.overlay(cardStroke)
-		.shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
-		.shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 2)
+		.shadow(color: Color.black.opacity(0.02), radius: 2, x: 0, y: 1)
+		.shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 1)
 		.onAppear {
 			extractAppIconColor()
 		}
@@ -370,7 +370,7 @@ private struct AllAppsCardView: View {
 			Circle()
 				.fill(Color.white)
 				.frame(width: 40, height: 40)
-				.shadow(color: Color.black.opacity(0.12), radius: 4, x: 0, y: 2)
+				.shadow(color: Color.black.opacity(0.06), radius: 2, x: 0, y: 1)
 			
 			Image(systemName: "app.badge.fill")
 				.font(.system(size: 18))
@@ -403,7 +403,7 @@ private struct AllAppsCardView: View {
 		.padding(.vertical, 3)
 		.background(
 			Capsule()
-				.fill(appIconColor.opacity(0.1))
+				.fill(appIconColor.opacity(0.05))
 		)
 	}
 	
