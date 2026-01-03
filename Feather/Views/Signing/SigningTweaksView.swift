@@ -142,7 +142,7 @@ struct SigningTweaksView: View {
 					guard !urls.isEmpty else { return }
 					
 					for url in urls {
-						FileManager.default.moveAndStore(url, with: "FeatherTweak") { url in
+						FileManager.default.moveAndStore(url, with: "PortalTweak") { url in
 							options.injectionFiles.append(url)
 						}
 					}
@@ -185,8 +185,8 @@ extension SigningTweaksView {
 						}
 						
 						if !alreadyExists {
-							// Store the dylib in FeatherTweak directory
-							FileManager.default.moveAndStore(dylibURL, with: "FeatherTweak") { storedURL in
+							// Store the dylib in PortalTweak directory
+							FileManager.default.moveAndStore(dylibURL, with: "PortalTweak") { storedURL in
 								options.injectionFiles.append(storedURL)
 								addedCount += 1
 							}

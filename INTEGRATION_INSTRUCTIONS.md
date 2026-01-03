@@ -75,7 +75,7 @@ This document describes the new files added to the Feather project and how to in
 ### Files Tab - Core Features
 ✅ Import any file type via UIDocumentPickerViewController
 ✅ Export single/multiple files via share sheet
-✅ Files persist in app's Documents/FeatherFiles directory
+✅ Files persist in app's Documents/PortalFiles directory
 ✅ Grid and list layout views
 ✅ Search files by name
 ✅ Sort by name, date, size, type
@@ -267,7 +267,7 @@ When the project builds successfully, test the following:
 
 4. Some UI strings use `.localized()` which assumes a localization system is in place. If strings don't appear correctly, check the localization setup.
 
-5. The file manager operates within the app's sandbox at `Documents/FeatherFiles` for security.
+5. The file manager operates within the app's sandbox at `Documents/PortalFiles` for security.
 
 6. UIDocumentPickerViewController requires appropriate Info.plist keys for file access (these should already be configured if the app works with files).
 

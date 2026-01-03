@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// A SwiftUI header view for PulseSign with rotating subtitles
+/// A SwiftUI header view for Portal with rotating subtitles
 /// Changes subtitle when user switches tabs or when app returns to foreground
 struct CoreSignHeaderView: View {
     // MARK: - State
@@ -102,7 +102,7 @@ struct CoreSignHeaderView: View {
     
     private var titleSection: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("PulseSign")
+            Text("Portal")
                 .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundStyle(.primary)
             

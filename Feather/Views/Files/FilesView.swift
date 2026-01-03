@@ -1291,7 +1291,7 @@ class FileManagerService: ObservableObject {
     
     private init() {
         self.documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        self.baseDirectory = documentsDirectory.appendingPathComponent("FeatherFiles", isDirectory: true)
+        self.baseDirectory = documentsDirectory.appendingPathComponent("PortalFiles", isDirectory: true)
         self.currentDirectory = baseDirectory
         
         // Create base directory if needed

@@ -1,4 +1,4 @@
-NAME := Feather
+NAME := Portal
 PLATFORM := iphoneos
 SCHEMES := Feather
 TMP := $(TMPDIR)/$(NAME)

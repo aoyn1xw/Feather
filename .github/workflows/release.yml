@@ -29,7 +29,7 @@ jobs:
           rm -rf ~/Library/Developer/Xcode/DerivedData
           rm -rf ~/Library/Caches/com.apple.dt.Xcode
 
-      - name: Compile Feather
+      - name: Compile Portal
         run: |
           agvtool new-version -all $(git rev-list --count HEAD)
           make
@@ -45,7 +45,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Feather v${{ env.VERSION }}
+          name: Portal v${{ env.VERSION }}
           tag_name: v${{ env.VERSION }}
           files: |
             upload/*ipa

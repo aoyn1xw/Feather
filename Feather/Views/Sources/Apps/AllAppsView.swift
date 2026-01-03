@@ -5,26 +5,26 @@ import NimbleViews
 // MARK: - Did You Know Facts
 struct DidYouKnowFacts {
 	static let facts = [
-		"PulseSign is fully open-source and community-driven!",
+		"Portal is fully open-source and community-driven!",
 		"You can sign apps with your own Apple Developer certificate.",
-		"PulseSign supports multiple app sources for easy discovery.",
-		"Apps signed with PulseSign can be installed directly on your device.",
+		"Portal supports multiple app sources for easy discovery.",
+		"Apps signed with Portal can be installed directly on your device.",
 		"You can import apps from URLs or local files.",
-		"PulseSign respects your privacy - all signing happens on your device.",
+		"Portal respects your privacy - all signing happens on your device.",
 		"Regular certificate rotation helps avoid revocations.",
-		"You can manage multiple certificates in PulseSign.",
+		"You can manage multiple certificates in Portal.",
 		"Source repositories can be added from any compatible URL.",
-		"PulseSign uses modern SwiftUI for a native iOS experience.",
+		"Portal uses modern SwiftUI for a native iOS experience.",
 		"App entitlements control what permissions an app has.",
 		"Provisioning profiles contain your app signing information.",
 		"Free developer accounts can sign apps for 7 days.",
 		"Paid developer accounts provide 1-year certificates.",
 		"The PPQ check helps identify at-risk certificates.",
 		"You can backup your certificates to Files app.",
-		"PulseSign supports both IPA and TIPA file formats.",
+		"Portal supports both IPA and TIPA file formats.",
 		"App icons can be customized before installation.",
 		"Bundle IDs should be unique to avoid conflicts.",
-		"PulseSign can re-sign previously signed apps."
+		"Portal can re-sign previously signed apps."
 	]
 	
 	static func random() -> String {

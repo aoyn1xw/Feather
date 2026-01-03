@@ -159,7 +159,7 @@ struct MoveFileView: View {
     }
     
     private var currentNavigationDirectory: URL {
-        navigationPath.last ?? FileManagerService.shared.documentsDirectory.appendingPathComponent("FeatherFiles", isDirectory: true)
+        navigationPath.last ?? FileManagerService.shared.documentsDirectory.appendingPathComponent("PortalFiles", isDirectory: true)
     }
     
     private func loadFolders() {

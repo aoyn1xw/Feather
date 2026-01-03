@@ -31,7 +31,7 @@ struct OnboardingView: View {
                     
                     VStack(spacing: 16) {
                         // Title
-                        Text("Welcome to PulseSign")
+                        Text("Welcome to Portal")
                             .font(.system(size: 32, weight: .bold, design: .rounded))
                             .foregroundStyle(.primary)
                             .multilineTextAlignment(.center)
@@ -204,7 +204,7 @@ struct OnboardingViewLegacy: View {
                     
                     VStack(spacing: 16) {
                         // Title
-                        Text("Welcome to PulseSign")
+                        Text("Welcome to Portal")
                             .font(.system(size: 36, weight: .bold, design: .rounded))
                             .foregroundColor(.primary)
                             .multilineTextAlignment(.center)

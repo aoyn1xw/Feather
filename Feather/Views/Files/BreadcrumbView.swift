@@ -78,8 +78,8 @@ struct BreadcrumbView: View {
 // MARK: - Preview
 struct BreadcrumbView_Previews: PreviewProvider {
     static var previews: some View {
-        let baseDir = URL(fileURLWithPath: "/var/mobile/Documents/FeatherFiles")
-        let currentPath = "/var/mobile/Documents/FeatherFiles/Apps/MyApp/Resources"
+        let baseDir = URL(fileURLWithPath: "/var/mobile/Documents/PortalFiles")
+        let currentPath = "/var/mobile/Documents/PortalFiles/Apps/MyApp/Resources"
         
         BreadcrumbView(
             currentPath: currentPath,
