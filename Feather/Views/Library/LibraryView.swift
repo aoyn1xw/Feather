@@ -479,7 +479,6 @@ extension LibraryView {
 
 // MARK: - Library Card View (List)
 struct LibraryCardView: View {
-	@AppStorage("Feather.useGradients") private var _useGradients: Bool = true
 	var app: AppInfoPresentable
 	@Binding var selectedInfoAppPresenting: AnyApp?
 	@Binding var selectedSigningAppPresenting: AnyApp?
@@ -579,55 +578,32 @@ struct LibraryCardView: View {
 					.padding(.vertical, 8)
 					.background(
 						Capsule()
-							.fill(
-								_useGradients ?
-									LinearGradient(
-										colors: app.isSigned 
-											? [Color.green, Color.green.opacity(0.8)]
-											: [Color.accentColor, Color.accentColor.opacity(0.8)],
-										startPoint: .leading,
-										endPoint: .trailing
-									)
-									:
-									LinearGradient(
-										colors: app.isSigned 
-											? [Color.green, Color.green]
-											: [Color.accentColor, Color.accentColor],
-										startPoint: .leading,
-										endPoint: .trailing
-									)
-							)
+							.fill(app.isSigned ? Color.green : Color.accentColor)
 					)
 			}
 			.buttonStyle(.plain)
 		}
 		.padding(12)
-		.background(
+		.background(Color(UIColor.secondarySystemGroupedBackground))
+		.overlay(
 			RoundedRectangle(cornerRadius: 16, style: .continuous)
-				.fill(
-					_useGradients ?
-						LinearGradient(
-							colors: [
-								Color.secondary.opacity(0.12),
-								Color.secondary.opacity(0.08)
-							],
-							startPoint: .topLeading,
-							endPoint: .bottomTrailing
-						)
-						:
-						LinearGradient(
-							colors: [Color.secondary.opacity(0.15), Color.secondary.opacity(0.15)],
-							startPoint: .topLeading,
-							endPoint: .bottomTrailing
-						)
+				.strokeBorder(
+					LinearGradient(
+						colors: app.isSigned 
+							? [Color.green.opacity(0.6), Color.green.opacity(0.3)]
+							: [Color.orange.opacity(0.6), Color.orange.opacity(0.3)],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					),
+					lineWidth: 2
 				)
 		)
+		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 	}
 }
 
 // MARK: - Library Grid Card View
 struct LibraryGridCardView: View {
-	@AppStorage("Feather.useGradients") private var _useGradients: Bool = true
 	var app: AppInfoPresentable
 	@Binding var selectedInfoAppPresenting: AnyApp?
 	@Binding var selectedSigningAppPresenting: AnyApp?
@@ -706,24 +682,7 @@ struct LibraryGridCardView: View {
 				.padding(.vertical, 6)
 				.background(
 					Capsule()
-						.fill(
-							_useGradients ?
-								LinearGradient(
-									colors: app.isSigned 
-										? [Color.green, Color.green.opacity(0.8)]
-										: [Color.accentColor, Color.accentColor.opacity(0.8)],
-									startPoint: .leading,
-									endPoint: .trailing
-								)
-								:
-								LinearGradient(
-									colors: app.isSigned 
-										? [Color.green, Color.green]
-										: [Color.accentColor, Color.accentColor],
-									startPoint: .leading,
-									endPoint: .trailing
-								)
-						)
+						.fill(app.isSigned ? Color.green : Color.accentColor)
 				)
 				.onTapGesture {
 					if app.isSigned {
@@ -735,25 +694,20 @@ struct LibraryGridCardView: View {
 		}
 		.frame(maxWidth: .infinity)
 		.padding(12)
-		.background(
+		.background(Color(UIColor.secondarySystemGroupedBackground))
+		.overlay(
 			RoundedRectangle(cornerRadius: 16, style: .continuous)
-				.fill(
-					_useGradients ?
-						LinearGradient(
-							colors: [
-								Color.secondary.opacity(0.12),
-								Color.secondary.opacity(0.08)
-							],
-							startPoint: .topLeading,
-							endPoint: .bottomTrailing
-						)
-						:
-						LinearGradient(
-							colors: [Color.secondary.opacity(0.15), Color.secondary.opacity(0.15)],
-							startPoint: .topLeading,
-							endPoint: .bottomTrailing
-						)
+				.strokeBorder(
+					LinearGradient(
+						colors: app.isSigned 
+							? [Color.green.opacity(0.6), Color.green.opacity(0.3)]
+							: [Color.orange.opacity(0.6), Color.orange.opacity(0.3)],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					),
+					lineWidth: 2
 				)
 		)
+		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 	}
 }
