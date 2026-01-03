@@ -2,15 +2,15 @@ import SwiftUI
 
 // MARK: - View
 struct AppearanceTintColorView: View {
-	@AppStorage("Feather.userTintColor") private var selectedColorHex: String = "#B496DC"
+	@AppStorage("Feather.userTintColor") private var selectedColorHex: String = "#0077BE"
 	@AppStorage("Feather.userTintColorType") private var colorType: String = "solid"
-	@AppStorage("Feather.userTintGradientStart") private var gradientStartHex: String = "#B496DC"
+	@AppStorage("Feather.userTintGradientStart") private var gradientStartHex: String = "#0077BE"
 	@AppStorage("Feather.userTintGradientEnd") private var gradientEndHex: String = "#848ef9"
 	
 	@State private var isCustomSheetPresented = false
 	
 	private let tintOptions: [(name: String, hex: String)] = [
-		("Default", 		"#B496DC"),
+		("Ocean Blue", 		"#0077BE"),
 		("Classic", 		"#848ef9"),
 		("Berry",   		"#ff7a83"),
 		("Cool Blue", 		"#4161F1"),
@@ -322,10 +322,10 @@ struct CustomColorPickerView: View {
 				ToolbarItem(placement: .confirmationAction) {
 					Button("Save") {
 						if colorType == "solid" {
-							selectedColorHex = solidColor.toHex() ?? "#B496DC"
+							selectedColorHex = solidColor.toHex() ?? "#0077BE"
 							UIApplication.topViewController()?.view.window?.tintColor = UIColor(solidColor)
 						} else {
-							gradientStartHex = gradientStart.toHex() ?? "#B496DC"
+							gradientStartHex = gradientStart.toHex() ?? "#0077BE"
 							gradientEndHex = gradientEnd.toHex() ?? "#848ef9"
 						}
 						dismiss()

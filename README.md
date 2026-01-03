@@ -8,9 +8,9 @@
 
 Portal is a powerful iOS/iPadOS app signer and installer that lets you sign, manage, and install applications directly on your device. Built with SwiftUI, it provides a native, privacy-focused experience where all signing happens locally on your device — no external servers required for core functionality.
 
-| <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="Images/Image-dark.png"><source media="(prefers-color-scheme: light)" srcset="Images/Image-light.png"><img alt="Portal Screenshot" src="Images/Image-light.png"></picture></p> |
-|:-:|
-| Screenshot of Portal on iOS |
+<p align="center">
+  <img src="Images/erdis_komisches_iphone_ding.png" alt="Portal App Mockup" width="800">
+</p>
 
 ### Features
 

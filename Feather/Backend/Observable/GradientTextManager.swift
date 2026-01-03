@@ -7,7 +7,7 @@ class GradientTextManager: ObservableObject {
 	static let shared = GradientTextManager()
 	
 	@AppStorage("Feather.gradientTextEnabled") var isGradientTextEnabled: Bool = false
-	@AppStorage("Feather.gradientTextStartColor") var gradientStartColorHex: String = "#B496DC"
+	@AppStorage("Feather.gradientTextStartColor") var gradientStartColorHex: String = "#0077BE"
 	@AppStorage("Feather.gradientTextEndColor") var gradientEndColorHex: String = "#848ef9"
 	@AppStorage("Feather.gradientTextDirection") var gradientDirection: String = "horizontal"
 	@AppStorage("Feather.useAccessibilityFallback") var useAccessibilityFallback: Bool = false

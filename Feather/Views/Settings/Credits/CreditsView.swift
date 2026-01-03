@@ -24,7 +24,7 @@ struct CreditsView: View {
 			githubUsername: "aoyn1xw",
 			role: .localized("Developer"),
 			githubUrl: "https://github.com/aoyn1xw",
-			gradientColors: [SwiftUI.Color(hex: "#B496DC"), SwiftUI.Color(hex: "#848ef9")],
+			gradientColors: [SwiftUI.Color(hex: "#0077BE"), SwiftUI.Color(hex: "#00A8E8")],
 			icon: "person.fill"
 		),
 		CreditItem(

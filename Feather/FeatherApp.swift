@@ -95,10 +95,10 @@ struct FeatherApp: App {
         let colorType = UserDefaults.standard.string(forKey: "Feather.userTintColorType") ?? "solid"
         if colorType == "gradient" {
             // For gradient, use the start color as the tint
-            let gradientStartHex = UserDefaults.standard.string(forKey: "Feather.userTintGradientStart") ?? "#B496DC"
+            let gradientStartHex = UserDefaults.standard.string(forKey: "Feather.userTintGradientStart") ?? "#0077BE"
             UIApplication.topViewController()?.view.window?.tintColor = UIColor(SwiftUI.Color(hex: gradientStartHex))
         } else {
-            UIApplication.topViewController()?.view.window?.tintColor = UIColor(SwiftUI.Color(hex: UserDefaults.standard.string(forKey: "Feather.userTintColor") ?? "#B496DC"))
+            UIApplication.topViewController()?.view.window?.tintColor = UIColor(SwiftUI.Color(hex: UserDefaults.standard.string(forKey: "Feather.userTintColor") ?? "#0077BE"))
         }
     }
     

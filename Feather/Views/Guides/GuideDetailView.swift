@@ -8,9 +8,9 @@ struct GuideDetailView: View {
     @State private var parsedContent: ParsedGuideContent?
     @State private var isLoading = true
     @State private var errorMessage: String?
-    @AppStorage("Feather.userTintColor") private var selectedColorHex: String = "#B496DC"
+    @AppStorage("Feather.userTintColor") private var selectedColorHex: String = "#0077BE"
     @AppStorage("Feather.userTintColorType") private var colorType: String = "solid"
-    @AppStorage("Feather.userTintGradientStart") private var gradientStartHex: String = "#B496DC"
+    @AppStorage("Feather.userTintGradientStart") private var gradientStartHex: String = "#0077BE"
     @AppStorage("Feather.userTintGradientEnd") private var gradientEndHex: String = "#848ef9"
     
     var accentColor: Color {
