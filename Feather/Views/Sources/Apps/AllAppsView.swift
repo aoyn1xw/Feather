@@ -158,10 +158,6 @@ struct AllAppsView: View {
 					}
 				}
 			} else {
-				ProgressView()
-			}
-				}
-			} else {
 				// Empty state
 				VStack(spacing: 20) {
 					Spacer()
