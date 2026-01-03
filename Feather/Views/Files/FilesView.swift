@@ -44,6 +44,13 @@ struct FilesView: View {
     @State private var quickInspectFile: FileItem?
     @State private var dismissedCertificateBanner = false
     
+    // Constants for Open in Signer
+    private let importPollingIntervalSeconds: Double = 0.5
+    private let importMaxWaitTimeSeconds: Double = 10.0
+    private let importRecentThresholdSeconds: Double = 2.0
+    private let importErrorDomain = "com.feather.files"
+    private let importTimeoutErrorCode = 1001
+    
     // Settings
     @AppStorage("files_viewStyle") private var viewStyleSetting: String = "list"
     @AppStorage("files_sortOption") private var sortOptionSetting: String = "name"
@@ -967,19 +974,17 @@ struct FilesView: View {
                 try downloadManager.handlePachageFile(url: file.url, dl: dl)
                 
                 // Wait for the download/import to complete by checking the download status
-                let pollingIntervalSeconds: Double = 0.5
-                let maxWaitTimeSeconds: Double = 10.0
-                let maxAttempts = Int(maxWaitTimeSeconds / pollingIntervalSeconds)
+                let maxAttempts = Int(importMaxWaitTimeSeconds / importPollingIntervalSeconds)
                 var attempts = 0
                 
                 while attempts < maxAttempts {
-                    try await Task.sleep(nanoseconds: UInt64(pollingIntervalSeconds * 1_000_000_000))
+                    try await Task.sleep(nanoseconds: UInt64(importPollingIntervalSeconds * 1_000_000_000))
                     
                     // Check if import is complete by trying to get the latest imported app
-                    // We check if an app was imported very recently (within last 2 seconds)
+                    // We check if an app was imported very recently
                     if let importedApp = Storage.shared.getLatestImportedApp(),
                        let appDate = importedApp.date,
-                       Date().timeIntervalSince(appDate) < 2.0 {
+                       Date().timeIntervalSince(appDate) < importRecentThresholdSeconds {
                         // This is likely the app we just imported
                         // Trigger signing with default certificate
                         NotificationCenter.default.post(
@@ -997,8 +1002,8 @@ struct FilesView: View {
                 
                 // If we get here, the import didn't complete in time
                 throw NSError(
-                    domain: "com.feather.files",
-                    code: 1001,
+                    domain: importErrorDomain,
+                    code: importTimeoutErrorCode,
                     userInfo: [NSLocalizedDescriptionKey: .localized("Import timed out. Please try again.")]
                 )
                 

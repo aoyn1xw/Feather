@@ -73,7 +73,7 @@ struct ServerView: View {
 		.alert(.localized("Feature Unavailable"), isPresented: $showUnavailableDialog) {
 			Button(.localized("OK"), role: .cancel) { }
 		} message: {
-			Text(.localized("These features are unavailable because they are still being under development."))
+			Text(.localized("These features are unavailable because they are still under development."))
 		}
 	}
 	
