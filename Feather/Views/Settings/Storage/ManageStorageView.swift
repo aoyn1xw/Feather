@@ -1,5 +1,7 @@
 import SwiftUI
 import NimbleViews
+import Nuke
+import CoreData
 
 // MARK: - ManageStorageView
 struct ManageStorageView: View {
@@ -27,6 +29,7 @@ struct ManageStorageView: View {
                 storageOverviewSection
                 storageBreakdownSection
                 storageCleanupSection
+                advancedCleanupSection
             }
             .onAppear {
                 calculateStorageData()
@@ -95,7 +98,7 @@ struct ManageStorageView: View {
                 .padding(.bottom, 8)
             }
         } footer: {
-            Text(.localized("Shows storage used by Feather on this device"))
+            Text(.localized("Shows storage used by this app on this device"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -130,9 +133,9 @@ struct ManageStorageView: View {
             }
             .padding(.vertical, 4)
         } header: {
-            Text(.localized("STORAGE BREAKDOWN"))
+            Label(.localized("Storage Breakdown"), systemImage: "chart.pie")
         } footer: {
-            Text(.localized("Detailed breakdown of storage used by Feather categories"))
+            Text(.localized("Detailed breakdown of storage used by this app"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -204,9 +207,125 @@ struct ManageStorageView: View {
             }
             .padding(.vertical, 4)
         } header: {
-            Text(.localized("STORAGE CLEANUP"))
+            Label(.localized("Storage Cleanup"), systemImage: "arrow.clockwise")
         } footer: {
-            Text(.localized("Signed apps, imported apps, and certificates are never deleted during cleanup."))
+            Text(.localized("Free up space by removing temporary files and old data."))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+    
+    // MARK: - Advanced Cleanup Section
+    private var advancedCleanupSection: some View {
+        Section {
+            VStack(spacing: 8) {
+                // Reset Work Cache
+                cleanupOptionButton(
+                    title: .localized("Reset Work Cache"),
+                    systemImage: "folder.badge.minus",
+                    description: .localized("Clear temporary files"),
+                    action: {
+                        showResetAlert(
+                            title: .localized("Reset Work Cache"),
+                            message: "",
+                            action: clearWorkCache
+                        )
+                    }
+                )
+                
+                Divider()
+                    .padding(.leading, 52)
+                
+                // Reset Network Cache
+                cleanupOptionButton(
+                    title: .localized("Reset Network Cache"),
+                    systemImage: "network.badge.shield.half.filled",
+                    description: .localized("Clear cached images and network data"),
+                    action: {
+                        showResetAlert(
+                            title: .localized("Reset Network Cache"),
+                            message: formatBytes(Int64(URLCache.shared.currentDiskUsage)),
+                            action: clearNetworkCache
+                        )
+                    }
+                )
+                
+                Divider()
+                    .padding(.leading, 52)
+                
+                // Reset Sources
+                cleanupOptionButton(
+                    title: .localized("Reset Sources"),
+                    systemImage: "square.stack.3d.down.right",
+                    description: .localized("Remove all added sources"),
+                    action: {
+                        showResetAlert(
+                            title: .localized("Reset Sources"),
+                            message: "",
+                            action: resetSources
+                        )
+                    }
+                )
+                
+                Divider()
+                    .padding(.leading, 52)
+                
+                // Delete Signed Apps
+                cleanupOptionButton(
+                    title: .localized("Delete Signed Apps"),
+                    systemImage: "doc.badge.minus",
+                    description: .localized("Remove all signed IPA files"),
+                    action: {
+                        showResetAlert(
+                            title: .localized("Delete Signed Apps"),
+                            message: formatBytes(signedAppsSize),
+                            action: deleteSignedApps
+                        )
+                    },
+                    isDestructive: true
+                )
+                
+                Divider()
+                    .padding(.leading, 52)
+                
+                // Delete Imported Apps
+                cleanupOptionButton(
+                    title: .localized("Delete Imported Apps"),
+                    systemImage: "square.and.arrow.down.on.square",
+                    description: .localized("Remove all imported apps"),
+                    action: {
+                        showResetAlert(
+                            title: .localized("Delete Imported Apps"),
+                            message: formatBytes(importedAppsSize),
+                            action: deleteImportedApps
+                        )
+                    },
+                    isDestructive: true
+                )
+                
+                Divider()
+                    .padding(.leading, 52)
+                
+                // Delete Certificates
+                cleanupOptionButton(
+                    title: .localized("Delete Certificates"),
+                    systemImage: "key.horizontal",
+                    description: .localized("Remove all certificates"),
+                    action: {
+                        showResetAlert(
+                            title: .localized("Delete Certificates"),
+                            message: formatBytes(certificatesSize),
+                            action: resetCertificates
+                        )
+                    },
+                    isDestructive: true
+                )
+            }
+            .padding(.vertical, 4)
+        } header: {
+            Label(.localized("Advanced Cleanup"), systemImage: "gearshape.2")
+        } footer: {
+            Text(.localized("Delete specific data categories. These actions cannot be undone."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -222,6 +341,53 @@ struct ManageStorageView: View {
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 8)
+    }
+    
+    private func cleanupOptionButton(
+        title: LocalizedStringKey,
+        systemImage: String,
+        description: LocalizedStringKey,
+        action: @escaping () -> Void,
+        isDestructive: Bool = false
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                // Icon
+                ZStack {
+                    Circle()
+                        .fill(
+                            isDestructive
+                            ? Color.red.opacity(0.15)
+                            : Color.blue.opacity(0.15)
+                        )
+                        .frame(width: 40, height: 40)
+                    
+                    Image(systemName: systemImage)
+                        .font(.system(size: 18))
+                        .foregroundStyle(isDestructive ? Color.red : Color.blue)
+                }
+                
+                // Text
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.body)
+                        .foregroundStyle(isDestructive ? .red : .primary)
+                    
+                    Text(description)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+                
+                // Chevron
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
     
     // MARK: - Computed Properties
@@ -365,6 +531,81 @@ struct ManageStorageView: View {
     // MARK: - Formatting
     private func formatBytes(_ bytes: Int64) -> String {
         ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+    }
+    
+    // MARK: - Alert Helper
+    private func showResetAlert(
+        title: String,
+        message: String = "",
+        action: @escaping () -> Void
+    ) {
+        let alertAction = UIAlertAction(
+            title: .localized("Proceed"),
+            style: .destructive
+        ) { _ in
+            action()
+            HapticsManager.shared.success()
+            calculateStorageData()
+        }
+        
+        let style: UIAlertController.Style = UIDevice.current.userInterfaceIdiom == .pad
+        ? .alert
+        : .actionSheet
+        
+        var msg = ""
+        if !message.isEmpty { msg = message + "\n" }
+        msg.append(.localized("This action cannot be undone. Would you like to proceed?"))
+    
+        UIAlertController.showAlertWithCancel(
+            title: title,
+            message: msg,
+            style: style,
+            actions: [alertAction]
+        )
+    }
+    
+    // MARK: - Reset Methods (from ResetView)
+    private func clearWorkCache() {
+        let fileManager = FileManager.default
+        let tmpDirectory = fileManager.temporaryDirectory
+        
+        if let files = try? fileManager.contentsOfDirectory(atPath: tmpDirectory.path()) {
+            for file in files {
+                try? fileManager.removeItem(atPath: tmpDirectory.appendingPathComponent(file).path())
+            }
+        }
+    }
+    
+    private func clearNetworkCache() {
+        URLCache.shared.removeAllCachedResponses()
+        HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
+        
+        if let dataCache = ImagePipeline.shared.configuration.dataCache as? DataCache {
+            dataCache.removeAll()
+        }
+        
+        if let imageCache = ImagePipeline.shared.configuration.imageCache as? Nuke.ImageCache {
+            imageCache.removeAll()
+        }
+    }
+    
+    private func resetSources() {
+        Storage.shared.clearContext(request: AltSource.fetchRequest())
+    }
+    
+    private func deleteSignedApps() {
+        Storage.shared.clearContext(request: Signed.fetchRequest())
+        try? FileManager.default.removeFileIfNeeded(at: FileManager.default.signed)
+    }
+    
+    private func deleteImportedApps() {
+        Storage.shared.clearContext(request: Imported.fetchRequest())
+        try? FileManager.default.removeFileIfNeeded(at: FileManager.default.unsigned)
+    }
+    
+    private func resetCertificates() {
+        Storage.shared.clearContext(request: CertificatePair.fetchRequest())
+        try? FileManager.default.removeFileIfNeeded(at: FileManager.default.certificates)
     }
 }
 
