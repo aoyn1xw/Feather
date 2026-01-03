@@ -10,7 +10,7 @@ import SwiftUI
 
 // MARK: - Repository
 
-public struct ASRepository: Sendable, Decodable, Hashable, Identifiable {
+public struct ASRepository: Sendable, Decodable, Encodable, Hashable, Identifiable {
 	// Core data
 	public var id: String?
 	public var name: String?
@@ -115,28 +115,31 @@ public struct ASRepository: Sendable, Decodable, Hashable, Identifiable {
 		iconURL ?? apps.first?.iconURL
 	}
 
-	//	func encode(to encoder: any Encoder) throws {
-	//		var container = encoder.container(keyedBy: CodingKeys.self)
-	//		try container.encode(id, forKey: .id)
-	//		try container.encode(name, forKey: .name)
-	//
-	//		try container.encodeIfPresent(subtitle, forKey: .subtitle)
-	//		try container.encodeIfPresent(description, forKey: .description)
-	//		try container.encodeIfPresent(website, forKey: .website)
-	//
-	//		try container.encodeIfPresent(patreonURL, forKey: .patreonURL)
-	//		try container.encodeIfPresent(userInfo, forKey: .userInfo)
-	//
-	//		try container.encodeIfPresent(apps, forKey: .apps)
-	//		try container.encodeIfPresent(featuredApps, forKey: .featuredApps)
-	//		try container.encodeIfPresent(news, forKey: .news)
-	//	}
+	public func encode(to encoder: any Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+		try container.encodeIfPresent(id, forKey: .id)
+		try container.encodeIfPresent(name, forKey: .name)
+
+		try container.encodeIfPresent(subtitle, forKey: .subtitle)
+		try container.encodeIfPresent(description, forKey: .description)
+		try container.encodeIfPresent(website, forKey: .website)
+		try container.encodeIfPresent(iconURL, forKey: .iconURL)
+		try container.encodeIfPresent(headerURL, forKey: .headerURL)
+		try container.encodeIfPresent(tintColor, forKey: .tintColor)
+
+		try container.encodeIfPresent(patreonURL, forKey: .patreonURL)
+		try container.encodeIfPresent(userInfo, forKey: .userInfo)
+
+		try container.encode(apps, forKey: .apps)
+		try container.encodeIfPresent(featuredApps, forKey: .featuredApps)
+		try container.encodeIfPresent(news, forKey: .news)
+	}
 }
 
 // MARK: - App
 
 extension ASRepository {
-	public struct App: Sendable, Decodable, Hashable, Identifiable {
+	public struct App: Sendable, Decodable, Encodable, Hashable, Identifiable {
 		public var uuid = UUID()
 		
 		public var id: String?
@@ -181,7 +184,7 @@ extension ASRepository {
 		
 		public var marketplaceID: String?
 
-		public struct Screenshots: Decodable, Hashable, Sendable {
+		public struct Screenshots: Decodable, Encodable, Hashable, Sendable {
 			public var iPhone: [URL]?
 			public var iPad: [URL]?
 
@@ -387,7 +390,7 @@ extension ASRepository {
 			"\(id ?? uuid.uuidString).\(downloadURL?.absoluteString ?? uuid.uuidString)"
 		}
 
-		public struct Version: Decodable, Hashable, Identifiable, Comparable, Sendable {
+		public struct Version: Decodable, Encodable, Hashable, Identifiable, Comparable, Sendable {
 			public var id: String { version + (build ?? "") }
 			public var version: String
 			public var build: String?
@@ -444,7 +447,7 @@ extension ASRepository {
 // MARK: - News
 
 extension ASRepository {
-	public struct News: Sendable, Decodable, Hashable, Identifiable {
+	public struct News: Sendable, Decodable, Encodable, Hashable, Identifiable {
 		public var id: String
 		public var title: String
 		public var caption: String
@@ -480,18 +483,18 @@ extension ASRepository {
 }
 
 extension ASRepository {
-	public struct Permission: Decodable, Hashable, Sendable {
+	public struct Permission: Decodable, Encodable, Hashable, Sendable {
 		public var type: String
 		public var usageDescription: String
 	}
 }
 
 extension ASRepository {
-	public struct AppPermissions: Decodable, Hashable, Sendable {
+	public struct AppPermissions: Decodable, Encodable, Hashable, Sendable {
 		public var entitlements: [Entitlement]?
 		public var privacy: [Privacy]?
 
-		public struct Entitlement: Decodable, Hashable, Sendable {
+		public struct Entitlement: Decodable, Encodable, Hashable, Sendable {
 			public var name: String
 
 			public init(from decoder: any Decoder) throws {
@@ -500,12 +503,12 @@ extension ASRepository {
 			}
 		}
 
-		public struct Privacy: Decodable, Hashable, Sendable {
+		public struct Privacy: Decodable, Encodable, Hashable, Sendable {
 			public var name: String
 			public var usageDescription: String
 		}
 
-		public struct PrivacyDictionary: Decodable, Hashable, Sendable {
+		public struct PrivacyDictionary: Decodable, Encodable, Hashable, Sendable {
 			private var _permissions: [String: String]
 			
 			public var privacyArray: [Privacy] {
@@ -548,7 +551,7 @@ extension ASRepository {
 }
 
 extension ASRepository {
-	public struct UserInfo: Decodable, Hashable, Sendable {
+	public struct UserInfo: Decodable, Encodable, Hashable, Sendable {
 		public var patreonAccessToken: String?
 	}
 }
