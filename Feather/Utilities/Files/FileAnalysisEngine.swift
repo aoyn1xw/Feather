@@ -218,6 +218,7 @@ class FileAnalysisEngine {
     }
     
     private static func checkIfSigned(at path: String) -> Bool {
+        #if os(macOS)
         // Check for code signature using codesign command
         let task = Process()
         task.launchPath = "/usr/bin/codesign"
@@ -232,6 +233,10 @@ class FileAnalysisEngine {
         } catch {
             return false
         }
+        #else
+        // Code signature verification not supported on non-macOS platforms
+        return false
+        #endif
     }
     
     // MARK: - Hash Calculation
@@ -281,6 +286,7 @@ class FileAnalysisEngine {
             try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
             defer { try? FileManager.default.removeItem(at: tempDir) }
             
+            #if os(macOS)
             // Unzip IPA
             let task = Process()
             task.launchPath = "/usr/bin/unzip"
@@ -294,6 +300,10 @@ class FileAnalysisEngine {
             guard task.terminationStatus == 0 else {
                 return createStubIPAInfo()
             }
+            #else
+            // IPA extraction not supported on non-macOS platforms
+            return createStubIPAInfo()
+            #endif
             
             // Find app bundle
             let payloadDir = tempDir.appendingPathComponent("Payload")
@@ -433,6 +443,7 @@ class FileAnalysisEngine {
     }
     
     private static func checkMachOEncryption(at path: String) -> Bool {
+        #if os(macOS)
         let task = Process()
         task.launchPath = "/usr/bin/otool"
         task.arguments = ["-l", path]
@@ -453,9 +464,14 @@ class FileAnalysisEngine {
         }
         
         return false
+        #else
+        // Mach-O encryption check not supported on non-macOS platforms
+        return false
+        #endif
     }
     
     private static func checkMachOPIE(at path: String) -> Bool {
+        #if os(macOS)
         let task = Process()
         task.launchPath = "/usr/bin/otool"
         task.arguments = ["-hv", path]
@@ -476,9 +492,14 @@ class FileAnalysisEngine {
         }
         
         return false
+        #else
+        // Mach-O PIE check not supported on non-macOS platforms
+        return false
+        #endif
     }
     
     private static func getMachOLoadCommandCount(at path: String) -> Int {
+        #if os(macOS)
         let task = Process()
         task.launchPath = "/usr/bin/otool"
         task.arguments = ["-l", path]
@@ -501,9 +522,14 @@ class FileAnalysisEngine {
         }
         
         return 0
+        #else
+        // Mach-O load command counting not supported on non-macOS platforms
+        return 0
+        #endif
     }
     
     private static func checkIfArm64e(at path: String) -> Bool {
+        #if os(macOS)
         let task = Process()
         task.launchPath = "/usr/bin/file"
         task.arguments = [path]
@@ -524,6 +550,10 @@ class FileAnalysisEngine {
         }
         
         return false
+        #else
+        // arm64e detection not supported on non-macOS platforms
+        return false
+        #endif
     }
     
     // MARK: - Directory Scanning
