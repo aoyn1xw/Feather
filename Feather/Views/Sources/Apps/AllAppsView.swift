@@ -52,6 +52,9 @@ struct AllAppsView: View {
 					VStack(alignment: .leading, spacing: 16) {
 						// Header with title and search button
 						HStack {
+							Spacer()
+								.frame(width: 40)
+							
 							Text("All Apps")
 								.font(.largeTitle)
 								.fontWeight(.bold)

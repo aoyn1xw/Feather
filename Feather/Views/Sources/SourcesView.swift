@@ -111,7 +111,6 @@ struct SourcesView: View {
 			if !_filteredSources.isEmpty {
 				allAppsSection
 				repositoriesSection
-				fileManagerSection
 			}
 		}
 	}
@@ -148,38 +147,6 @@ struct SourcesView: View {
 				.buttonStyle(.plain)
 			}
 		}
-	}
-	
-	private var fileManagerSection: some View {
-		NBSection(.localized("File Manager")) {
-			NavigationLink(destination: FilesView()) {
-				fileManagerRow
-			}
-			.buttonStyle(.plain)
-		}
-	}
-	
-	private var fileManagerRow: some View {
-		HStack {
-			ConditionalImage(systemName: "folder.fill")
-				.font(.title3)
-				.foregroundStyle(.blue)
-			
-			VStack(alignment: .leading, spacing: 4) {
-				Text(.localized("File Manager"))
-					.font(.headline)
-				Text(.localized("Manage your files and documents"))
-					.font(.caption)
-					.foregroundStyle(.secondary)
-			}
-			
-			Spacer()
-			
-			ConditionalImage(systemName: "chevron.right")
-				.font(.body.bold())
-				.foregroundStyle(.secondary)
-		}
-		.padding(.vertical, 4)
 	}
 	
 	@ViewBuilder
