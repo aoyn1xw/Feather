@@ -2,6 +2,9 @@ import CoreData
 import AltSourceKit
 import OSLog
 
+// MARK: - Constants
+private let kSourceOrderMigrationKey = "SourceOrderMigrationCompleted"
+
 // MARK: - Class extension: Sources
 extension Storage {
 	/// Retrieve sources in an array, we don't normally need this in swiftUI but we have it for the copy sources action
@@ -128,9 +131,12 @@ extension Storage {
 	/// Initialize order values for existing sources that don't have one
 	/// This is called once on app launch to migrate existing data
 	func initializeSourceOrders() {
+		// Use a lock to prevent race conditions
+		objc_sync_enter(self)
+		defer { objc_sync_exit(self) }
+		
 		// Check if migration has already been done
-		let migrationKey = "SourceOrderMigrationCompleted"
-		guard !UserDefaults.standard.bool(forKey: migrationKey) else { return }
+		guard !UserDefaults.standard.bool(forKey: kSourceOrderMigrationKey) else { return }
 		
 		let request: NSFetchRequest<AltSource> = AltSource.fetchRequest()
 		request.sortDescriptors = [NSSortDescriptor(keyPath: \AltSource.date, ascending: true)]
@@ -149,7 +155,7 @@ extension Storage {
 			}
 			
 			// Mark migration as complete
-			UserDefaults.standard.set(true, forKey: migrationKey)
+			UserDefaults.standard.set(true, forKey: kSourceOrderMigrationKey)
 		} catch {
 			Logger.misc.error("Error initializing source orders: \(error)")
 			// Don't set migration flag if it failed - we'll try again next time

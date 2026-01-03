@@ -212,6 +212,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 		ResetView.clearWorkCache()
 		_addDefaultCertificates()
 		
+		// Initialize source ordering (one-time migration)
+		Storage.shared.initializeSourceOrders()
+		
 		// Log app launch
 		AppLogManager.shared.info("Application launched successfully", category: "Lifecycle")
 		

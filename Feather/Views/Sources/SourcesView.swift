@@ -51,7 +51,7 @@ struct SourcesView: View {
 		return filtered.sorted { s1, s2 in
 			switch _sortOrder {
 			case .custom:
-				// Use the Core Data order attribute (already fetched in order)
+				// FetchRequest already sorts by order, just preserve it
 				return s1.order < s2.order
 			case .alphabetical:
 				let p1 = viewModel.isPinned(s1)
@@ -102,10 +102,6 @@ struct SourcesView: View {
 						.presentationDetents([.large])
 						.presentationDragIndicator(.visible)
 				}
-		}
-		.task {
-			// Initialize order for existing sources (one-time migration)
-			Storage.shared.initializeSourceOrders()
 		}
 		.task(id: Array(_sources)) {
 			await viewModel.fetchSources(_sources)
