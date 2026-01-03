@@ -18,7 +18,7 @@ struct DefaultFrameworksView: View {
 					_emptyState()
 				}
 			} footer: {
-				Text(.localized("Add any default frameworks you wish to add every time you sign an app. When signing an app, go to Tweaks, then click the "Add Default Frameworks" button so all your desired frameworks can get added."))
+				Text(.localized("Add any default frameworks you wish to add every time you sign an app. When signing an app, go to Tweaks, then click the \"Add Default Frameworks\" button so all your desired frameworks can get added."))
 					.font(.footnote)
 					.foregroundColor(.secondary)
 			}

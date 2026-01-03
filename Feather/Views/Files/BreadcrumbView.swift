@@ -7,7 +7,6 @@ struct BreadcrumbView: View {
     let onNavigate: (URL) -> Void
     
     private var pathComponents: [(name: String, url: URL)] {
-        let currentURL = URL(fileURLWithPath: currentPath)
         let basePath = baseDirectory.path
         let relativePath = currentPath.replacingOccurrences(of: basePath, with: "")
         
