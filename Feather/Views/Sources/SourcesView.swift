@@ -17,7 +17,6 @@ struct SourcesView: View {
 	@State private var _showEditSourcesView = false
 	@State private var _sortOrder: SortOrder = .custom
 	@State private var _filterByPinned: FilterOption = .all
-	@State private var _hasInitialized = false
 	
 	enum SortOrder: String, CaseIterable {
 		case custom = "Custom Order"
@@ -104,19 +103,18 @@ struct SourcesView: View {
 						.presentationDragIndicator(.visible)
 				}
 		}
+		.task {
+			// Initialize order for existing sources (one-time migration)
+			Storage.shared.initializeSourceOrders()
+		}
 		.task(id: Array(_sources)) {
 			await viewModel.fetchSources(_sources)
 		}
+		#if !NIGHTLY && !DEBUG
 		.onAppear {
-			// Initialize order for existing sources (one-time migration)
-			if !_hasInitialized {
-				Storage.shared.initializeSourceOrders()
-				_hasInitialized = true
-			}
-			#if !NIGHTLY && !DEBUG
 			showStarPromptIfNeeded()
-			#endif
 		}
+		#endif
 	}
 	
 	// MARK: - View Components

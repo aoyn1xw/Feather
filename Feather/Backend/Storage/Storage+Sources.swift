@@ -110,9 +110,6 @@ extension Storage {
 	}
 	
 	func reorderSources(_ sources: [AltSource]) {
-		// Create a snapshot of the original order in case we need to revert
-		let originalOrders = sources.map { ($0, $0.order) }
-		
 		// Update the order
 		for (index, source) in sources.enumerated() {
 			source.order = Int16(index)
@@ -122,12 +119,8 @@ extension Storage {
 		do {
 			try context.save()
 		} catch {
-			// Revert changes on failure
-			for (source, originalOrder) in originalOrders {
-				source.order = originalOrder
-			}
 			Logger.misc.error("Error reordering sources: \(error)")
-			// Refresh context to ensure consistency
+			// Rollback to revert all changes
 			context.rollback()
 		}
 	}
