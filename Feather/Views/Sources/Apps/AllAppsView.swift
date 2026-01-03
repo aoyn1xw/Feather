@@ -261,16 +261,10 @@ struct AllAppsView: View {
 		_currentFact = DidYouKnowFacts.random()
 		
 		Task {
-			var loadedSources: [ASRepository] = []
 			let totalSources = object.count
 			
 			// Load all sources one by one with progress updates
-			for (index, source) in object.enumerated() {
-				// Try to get from viewModel first (if already cached)
-				if let existingRepo = viewModel.sources[source] {
-					loadedSources.append(existingRepo)
-				}
-				
+			for (index, _) in object.enumerated() {
 				// Update progress
 				await MainActor.run {
 					_loadedSourcesCount = index + 1
@@ -282,9 +276,12 @@ struct AllAppsView: View {
 			
 			// Ensure viewModel finishes loading if needed
 			if !viewModel.isFinished {
-				// Wait for viewModel to finish
-				while !viewModel.isFinished {
+				// Wait for viewModel to finish with timeout
+				var timeoutCount = 0
+				let maxTimeout = 100 // 10 seconds total (100 * 0.1s)
+				while !viewModel.isFinished && timeoutCount < maxTimeout {
 					try? await Task.sleep(nanoseconds: 100_000_000)
+					timeoutCount += 1
 				}
 			}
 			
