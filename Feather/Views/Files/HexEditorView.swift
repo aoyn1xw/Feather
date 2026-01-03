@@ -16,28 +16,83 @@ struct HexEditorView: View {
                 
                 VStack(spacing: 0) {
                     if isLoading {
-                        VStack(spacing: 16) {
-                            ProgressView()
-                                .scaleEffect(1.5)
-                            Text("Loading file...")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                        VStack(spacing: 20) {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color.purple.opacity(0.15), Color.purple.opacity(0.05)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 80, height: 80)
+                                
+                                Image(systemName: "0.square.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundStyle(
+                                        LinearGradient(
+                                            colors: [Color.purple, Color.purple.opacity(0.7)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                            }
+                            .shadow(color: Color.purple.opacity(0.3), radius: 8, x: 0, y: 4)
+                            
+                            VStack(spacing: 8) {
+                                ProgressView()
+                                    .scaleEffect(1.2)
+                                Text(.localized("Loading file..."))
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
+                        .padding(.top, 40)
                     } else {
                         ScrollView {
                             VStack(alignment: .leading, spacing: 0) {
-                                // File info header
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(fileURL.lastPathComponent)
-                                        .font(.headline)
-                                        .foregroundStyle(.primary)
-                                    Text("\(hexContent.split(separator: "\n").count) lines")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                // File info header with modern styling
+                                HStack(spacing: 12) {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .fill(
+                                                LinearGradient(
+                                                    colors: [Color.purple.opacity(0.15), Color.purple.opacity(0.08)],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            )
+                                            .frame(width: 48, height: 48)
+                                        
+                                        Image(systemName: "0.square.fill")
+                                            .font(.title3)
+                                            .foregroundStyle(
+                                                LinearGradient(
+                                                    colors: [Color.purple, Color.purple.opacity(0.8)],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            )
+                                    }
+                                    .shadow(color: Color.purple.opacity(0.2), radius: 4, x: 0, y: 2)
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(fileURL.lastPathComponent)
+                                            .font(.headline)
+                                            .foregroundStyle(.primary)
+                                        Text("\(hexContent.split(separator: "\n").count) lines")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
                                 .padding()
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color(UIColor.secondarySystemGroupedBackground))
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(Color(UIColor.secondarySystemGroupedBackground))
+                                )
+                                .padding()
                                 
                                 // Hex content
                                 Text(hexContent)

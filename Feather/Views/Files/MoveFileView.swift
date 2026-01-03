@@ -37,23 +37,46 @@ struct MoveFileView: View {
                 Form {
                     Section {
                         ForEach(files) { file in
-                            HStack {
-                                Image(systemName: file.icon)
-                                    .foregroundStyle(file.iconColor)
+                            HStack(spacing: 12) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [file.iconColor.opacity(0.15), file.iconColor.opacity(0.08)],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .frame(width: 36, height: 36)
+                                    
+                                    Image(systemName: file.icon)
+                                        .font(.body)
+                                        .foregroundStyle(file.iconColor)
+                                }
+                                
                                 Text(file.name)
+                                    .lineLimit(1)
                             }
                         }
                     } header: {
-                        Text(.localized("Files to Move"))
+                        Label(.localized("Files to Move"), systemImage: "arrow.up.doc")
                     }
                     
                     Section {
                         Button {
                             selectedDestination = currentNavigationDirectory
                         } label: {
-                            HStack {
-                                Image(systemName: "folder.fill")
-                                    .foregroundStyle(selectedDestination == currentNavigationDirectory ? .blue : .gray)
+                            HStack(spacing: 12) {
+                                ZStack {
+                                    Circle()
+                                        .fill(selectedDestination == currentNavigationDirectory ? Color.blue.opacity(0.15) : Color.gray.opacity(0.1))
+                                        .frame(width: 36, height: 36)
+                                    
+                                    Image(systemName: "folder.fill")
+                                        .font(.body)
+                                        .foregroundStyle(selectedDestination == currentNavigationDirectory ? Color.blue : Color.gray)
+                                }
+                                
                                 Text(.localized("Current Folder"))
                                 Spacer()
                                 if selectedDestination == currentNavigationDirectory {
@@ -70,9 +93,23 @@ struct MoveFileView: View {
                                     navigateToFolder(folder.url)
                                 }
                             } label: {
-                                HStack {
-                                    Image(systemName: folder.icon)
-                                        .foregroundStyle(folder.iconColor)
+                                HStack(spacing: 12) {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                            .fill(
+                                                LinearGradient(
+                                                    colors: [folder.iconColor.opacity(0.15), folder.iconColor.opacity(0.08)],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            )
+                                            .frame(width: 36, height: 36)
+                                        
+                                        Image(systemName: folder.icon)
+                                            .font(.body)
+                                            .foregroundStyle(folder.iconColor)
+                                    }
+                                    
                                     Text(folder.name)
                                     Spacer()
                                     Image(systemName: "chevron.right")
@@ -82,7 +119,7 @@ struct MoveFileView: View {
                             }
                         }
                     } header: {
-                        Text(.localized("Destination"))
+                        Label(.localized("Destination"), systemImage: "folder.badge.questionmark")
                     }
                     
                     if let error = errorMessage {
@@ -103,8 +140,14 @@ struct MoveFileView: View {
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(.localized("Move")) {
+                    Button {
                         moveFiles()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.right.circle.fill")
+                                .font(.body)
+                            Text(.localized("Move"))
+                        }
                     }
                     .disabled(selectedDestination == nil || isProcessing)
                 }
