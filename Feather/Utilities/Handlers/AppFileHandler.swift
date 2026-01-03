@@ -74,6 +74,62 @@ final class AppFileHandler: NSObject, @unchecked Sendable {
 				}
 			}
 		}
+		
+		// Load default frameworks after extraction
+		try await loadDefaultFrameworks()
+	}
+	
+	/// Load default frameworks into the extracted app
+	private func loadDefaultFrameworks() async throws {
+		guard let payloadURL = uniqueWorkDirPayload else {
+			return
+		}
+		
+		// Find the .app directory
+		guard let appURL = _fileManager.getPath(in: payloadURL, for: "app") else {
+			Logger.misc.warning("[\(self._uuid)] Could not find .app directory, skipping default frameworks")
+			return
+		}
+		
+		// Get default frameworks
+		let dylibURLs = try await DefaultFrameworksManager.shared.extractDylibsFromFrameworks()
+		
+		guard !dylibURLs.isEmpty else {
+			Logger.misc.info("[\(self._uuid)] No default frameworks to load")
+			return
+		}
+		
+		Logger.misc.info("[\(self._uuid)] Loading \(dylibURLs.count) default framework(s)")
+		AppLogManager.shared.info("Loading \(dylibURLs.count) default framework(s) into app", category: "DefaultFrameworks")
+		
+		// Create Frameworks directory if needed
+		let frameworksDir = appURL.appendingPathComponent("Frameworks")
+		try _fileManager.createDirectoryIfNeeded(at: frameworksDir)
+		
+		// Copy dylibs to app
+		var successCount = 0
+		for dylibURL in dylibURLs {
+			do {
+				let destURL = frameworksDir.appendingPathComponent(dylibURL.lastPathComponent)
+				
+				// Remove existing file if present
+				try? _fileManager.removeItem(at: destURL)
+				
+				// Copy dylib
+				try _fileManager.copyItem(at: dylibURL, to: destURL)
+				
+				Logger.misc.info("[\(self._uuid)] Loaded default framework: \(dylibURL.lastPathComponent)")
+				successCount += 1
+			} catch {
+				Logger.misc.error("[\(self._uuid)] Failed to load default framework \(dylibURL.lastPathComponent): \(error.localizedDescription)")
+				AppLogManager.shared.error("Failed to load default framework \(dylibURL.lastPathComponent): \(error.localizedDescription)", category: "DefaultFrameworks")
+				// Continue with other frameworks
+			}
+		}
+		
+		if successCount > 0 {
+			AppLogManager.shared.success("Successfully loaded \(successCount) default framework(s)", category: "DefaultFrameworks")
+		}
 	}
 	
 	func move() async throws {
