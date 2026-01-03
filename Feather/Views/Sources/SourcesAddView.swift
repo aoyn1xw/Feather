@@ -67,322 +67,390 @@ struct SourcesAddView: View {
 	var body: some View {
 		NBNavigationView(.localized("Add Source"), displayMode: .inline) {
 			ScrollView {
-				VStack(spacing: 16) {
-					// Import Results Section (shown after bulk import)
-					if _showImportResults {
-						_importResultsSection()
-					}
-					
-					// Regular UI when not showing import results
-					VStack(alignment: .leading, spacing: 16) {
-						Text(.localized("Source URL"))
-							.font(.headline)
-							.foregroundStyle(.primary)
-							.padding(.horizontal, 4)
-						
-						VStack(spacing: 0) {
-							HStack(spacing: 12) {
-								Image(systemName: "link.circle.fill")
-									.font(.title2)
-									.foregroundStyle(
-										LinearGradient(
-											colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
-											startPoint: .topLeading,
-											endPoint: .bottomTrailing
-										)
-									)
-								
-								TextField(.localized("Enter Source URL"), text: $_sourceURL)
-									.keyboardType(.URL)
-									.textInputAutocapitalization(.never)
-									.font(.body)
-							}
-							.padding()
-							.background(Color(UIColor.secondarySystemGroupedBackground))
-							.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-						}
-						
-						VStack(alignment: .leading, spacing: 8) {
-							Text(.localized("The only supported repositories are AltStore repositories."))
-								.font(.caption)
-								.foregroundStyle(.secondary)
-							Text(verbatim: "[\(String.localized("Learn more about how to setup a repository..."))](https://faq.altstore.io/developers/make-a-source)")
-								.font(.caption)
-								.foregroundStyle(.secondary)
-						}
-						.padding(.horizontal, 4)
-					}
-					.padding(.horizontal)
-					
-					// Import/Export Section
-					VStack(alignment: .leading, spacing: 16) {
-						HStack(spacing: 0) {
-							Button {
-								_isImporting = true
-								_fetchImportedRepositories(UIPasteboard.general.string) {
-									// Don't dismiss anymore - show results instead
-								}
-							} label: {
-								HStack(spacing: 16) {
-									ZStack {
-										Circle()
-											.fill(Color.blue.opacity(0.15))
-											.frame(width: 44, height: 44)
-											.blur(radius: 2)
-											.offset(y: 2)
-										
-										Circle()
-											.fill(
-												LinearGradient(
-													colors: [Color.blue, Color.blue.opacity(0.7)],
-													startPoint: .topLeading,
-													endPoint: .bottomTrailing
-												)
-											)
-											.frame(width: 44, height: 44)
-										
-										Image(systemName: "square.and.arrow.down")
-											.font(.title3)
-											.foregroundStyle(.white)
-									}
-									.shadow(color: Color.blue.opacity(0.3), radius: 8, x: 0, y: 4)
-									
-									Text(.localized("Import"))
-										.fontWeight(.semibold)
-										.foregroundStyle(.primary)
-									Spacer()
-									Image(systemName: "chevron.right")
-										.font(.caption)
-										.foregroundStyle(.tertiary)
-								}
-								.padding()
-							}
-							.background(Color(UIColor.secondarySystemGroupedBackground))
-							.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-							
-							Button {
-								_isExportMode = true
-								let sources = Storage.shared.getSources()
-								guard !sources.isEmpty else {
-									UIAlertController.showAlertWithOk(
-										title: .localized("Error"),
-										message: .localized("No sources to export")
-									)
-									_isExportMode = false
-									return
-								}
-								// Initialize selection with all sources
-								_selectedSourcesForExport = Set(sources.compactMap { $0.sourceURL?.absoluteString })
-							} label: {
-								HStack(spacing: 16) {
-									// Enhanced icon with glass effect
-									ZStack {
-										Circle()
-											.fill(Color.green.opacity(0.15))
-											.frame(width: 44, height: 44)
-											.blur(radius: 2)
-											.offset(y: 2)
-										
-										Circle()
-											.fill(
-												LinearGradient(
-													colors: [Color.green, Color.green.opacity(0.7)],
-													startPoint: .topLeading,
-													endPoint: .bottomTrailing
-												)
-											)
-											.frame(width: 44, height: 44)
-										
-										Image(systemName: "doc.on.doc")
-											.font(.title3)
-											.foregroundStyle(.white)
-									}
-									.shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
-									
-									Text(.localized("Export"))
-										.fontWeight(.semibold)
-										.foregroundStyle(.primary)
-									Spacer()
-									Image(systemName: "chevron.right")
-										.font(.caption)
-										.foregroundStyle(.tertiary)
-								}
-								.padding()
-							}
-							.background(Color(UIColor.secondarySystemGroupedBackground))
-							.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-						}
-						.padding(.horizontal)
-						
-						VStack(alignment: .leading, spacing: 8) {
-							Text(.localized("Supports importing from KravaShit/MapleSign and ESign."))
-								.font(.caption)
-								.foregroundStyle(.secondary)
-						}
-						.padding(.horizontal, 20)
-					}
-					
-					// Export mode UI
-					if _isExportMode {
-						_exportSelectionSection()
-					}
-					
-					if _isFetchingRecommended {
-						VStack(alignment: .leading, spacing: 16) {
-							Text(.localized("Featured"))
-								.font(.headline)
-								.foregroundStyle(.primary)
-								.padding(.horizontal, 4)
-							
-							VStack(spacing: 0) {
-								HStack {
-									Spacer()
-									VStack(spacing: 12) {
-										ProgressView()
-											.scaleEffect(1.2)
-										Text(.localized("Loading featured sources..."))
-											.font(.subheadline)
-											.foregroundStyle(.secondary)
-									}
-									.padding(.vertical, 20)
-									Spacer()
-								}
-								.padding()
-								.background(Color(UIColor.secondarySystemGroupedBackground))
-								.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-							}
-						}
-						.padding(.horizontal)
-					} else if !_filteredRecommendedSourcesData.isEmpty {
-						VStack(alignment: .leading, spacing: 16) {
-							Text(.localized("Featured"))
-								.font(.headline)
-								.foregroundStyle(.primary)
-								.padding(.horizontal, 4)
-							
-							VStack(spacing: 0) {
-								ForEach(_filteredRecommendedSourcesData, id: \.url) { (url, source) in
-									HStack(spacing: 16) {
-										FRIconCellView(
-											title: source.name ?? .localized("Unknown"),
-											subtitle: url.absoluteString,
-											iconUrl: source.currentIconURL
-										)
-										
-										Spacer()
-										
-										Button {
-											Storage.shared.addSource(url, repository: source) { _ in
-												_refreshFilteredRecommendedSourcesData()
-											}
-										} label: {
-											Text(.localized("Add"))
-												.font(.subheadline.bold())
-												.foregroundStyle(.white)
-												.padding(.horizontal, 24)
-												.padding(.vertical, 10)
-												.background(
-													ZStack {
-														// Shadow layer
-														Capsule()
-															.fill(Color.accentColor.opacity(0.3))
-															.blur(radius: 4)
-															.offset(y: 3)
-														
-														// Main gradient
-														Capsule()
-															.fill(
-																LinearGradient(
-																	colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
-																	startPoint: .topLeading,
-																	endPoint: .bottomTrailing
-																)
-															)
-													}
-												)
-												.shadow(color: Color.accentColor.opacity(0.4), radius: 8, x: 0, y: 4)
-										}
-										.buttonStyle(.borderless)
-									}
-									.padding()
-									
-									if _filteredRecommendedSourcesData.last?.url != url {
-										Divider()
-											.padding(.leading, 16)
-									}
-								}
-							}
-							.background(Color(UIColor.secondarySystemGroupedBackground))
-							.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-							
-							VStack(alignment: .leading, spacing: 8) {
-								Text(.localized("Open an [issue](https://github.com/khcrysalis/Feather/issues) on GitHub if you want your source to be featured."))
-									.font(.caption)
-									.foregroundStyle(.secondary)
-							}
-							.padding(.horizontal, 4)
-						}
-						.padding(.horizontal)
-					}
-				}
-				.padding(.bottom, 20)
+				_mainContent
 			}
 			.background(Color(UIColor.systemGroupedBackground))
 			.toolbar {
-				if _isExportMode {
-					NBToolbarButton(role: .cancel, action: {
-						_isExportMode = false
-						_selectedSourcesForExport.removeAll()
-					})
-					
-					NBToolbarButton(
-						.localized("Export Selected"),
-						style: .text,
-						placement: .confirmationAction,
-						isDisabled: _selectedSourcesForExport.isEmpty
-					) {
-						let selectedUrls = _selectedSourcesForExport.joined(separator: "\n")
-						UIPasteboard.general.string = selectedUrls
-						UIAlertController.showAlertWithOk(
-							title: .localized("Success"),
-							message: .localized("Sources copied to clipboard")
-						) {
-							_isExportMode = false
-							_selectedSourcesForExport.removeAll()
-						}
-					}
-				} else if _showImportResults {
-					NBToolbarButton(.localized("Done"), style: .text, placement: .confirmationAction) {
-						_showImportResults = false
-						_importedSources.removeAll()
-						_isImporting = false
-					}
-				} else {
-					NBToolbarButton(role: .cancel)
-					
-					if !_isImporting {
-						NBToolbarButton(
-							.localized("Save"),
-							style: .text,
-							placement: .confirmationAction,
-							isDisabled: _sourceURL.isEmpty
-						) {
-							FR.handleSource(_sourceURL) {
-								dismiss()
-							}
-						}
-					} else {
-						ToolbarItem(placement: .confirmationAction) {
-							ProgressView()
-						}
-					}
-				}
+				_toolbarContent
 			}
 			.animation(.default, value: _filteredRecommendedSourcesData.map { $0.data.id ?? "" })
 			.task {
 				await _fetchRecommendedRepositories()
 			}
 		}
+	}
+	
+	// MARK: - Main Content
+	@ViewBuilder
+	private var _mainContent: some View {
+		VStack(spacing: 16) {
+			// Import Results Section (shown after bulk import)
+			if _showImportResults {
+				_importResultsSection()
+			}
+			
+			// Regular UI when not showing import results
+			_sourceURLSection
+			
+			// Import/Export Section
+			_importExportSection
+			
+			// Export mode UI
+			if _isExportMode {
+				_exportSelectionSection()
+			}
+			
+			// Featured sources section
+			_featuredSourcesSection
+		}
+		.padding(.bottom, 20)
+	}
+	
+	// MARK: - Toolbar Content
+	@ToolbarContentBuilder
+	private var _toolbarContent: some ToolbarContent {
+		if _isExportMode {
+			ToolbarItem(placement: .cancellationAction) {
+				Button(role: .cancel) {
+					_isExportMode = false
+					_selectedSourcesForExport.removeAll()
+				} label: {
+					Text(.localized("Cancel"))
+				}
+			}
+			
+			ToolbarItem(placement: .confirmationAction) {
+				Button {
+					let selectedUrls = _selectedSourcesForExport.joined(separator: "\n")
+					UIPasteboard.general.string = selectedUrls
+					UIAlertController.showAlertWithOk(
+						title: .localized("Success"),
+						message: .localized("Sources copied to clipboard")
+					) {
+						_isExportMode = false
+						_selectedSourcesForExport.removeAll()
+					}
+				} label: {
+					Text(.localized("Export Selected"))
+				}
+				.disabled(_selectedSourcesForExport.isEmpty)
+			}
+		} else if _showImportResults {
+			ToolbarItem(placement: .confirmationAction) {
+				Button {
+					_showImportResults = false
+					_importedSources.removeAll()
+					_isImporting = false
+				} label: {
+					Text(.localized("Done"))
+				}
+			}
+		} else {
+			NBToolbarButton(role: .cancel)
+			
+			if !_isImporting {
+				NBToolbarButton(
+					.localized("Save"),
+					style: .text,
+					placement: .confirmationAction,
+					isDisabled: _sourceURL.isEmpty
+				) {
+					FR.handleSource(_sourceURL) {
+						dismiss()
+					}
+				}
+			} else {
+				ToolbarItem(placement: .confirmationAction) {
+					ProgressView()
+				}
+			}
+		}
+	}
+	
+	// MARK: - Source URL Section
+	@ViewBuilder
+	private var _sourceURLSection: some View {
+		VStack(alignment: .leading, spacing: 16) {
+			Text(.localized("Source URL"))
+				.font(.headline)
+				.foregroundStyle(.primary)
+				.padding(.horizontal, 4)
+			
+			VStack(spacing: 0) {
+				HStack(spacing: 12) {
+					Image(systemName: "link.circle.fill")
+						.font(.title2)
+						.foregroundStyle(
+							LinearGradient(
+								colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+					
+					TextField(.localized("Enter Source URL"), text: $_sourceURL)
+						.keyboardType(.URL)
+						.textInputAutocapitalization(.never)
+						.font(.body)
+				}
+				.padding()
+				.background(Color(UIColor.secondarySystemGroupedBackground))
+				.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+			}
+			
+			VStack(alignment: .leading, spacing: 8) {
+				Text(.localized("The only supported repositories are AltStore repositories."))
+					.font(.caption)
+					.foregroundStyle(.secondary)
+				Text(verbatim: "[\(String.localized("Learn more about how to setup a repository..."))](https://faq.altstore.io/developers/make-a-source)")
+					.font(.caption)
+					.foregroundStyle(.secondary)
+			}
+			.padding(.horizontal, 4)
+		}
+		.padding(.horizontal)
+	}
+	
+	// MARK: - Import/Export Section
+	@ViewBuilder
+	private var _importExportSection: some View {
+		VStack(alignment: .leading, spacing: 16) {
+			HStack(spacing: 0) {
+				_importButton
+				_exportButton
+			}
+			.padding(.horizontal)
+			
+			VStack(alignment: .leading, spacing: 8) {
+				Text(.localized("Supports importing from KravaShit/MapleSign and ESign."))
+					.font(.caption)
+					.foregroundStyle(.secondary)
+			}
+			.padding(.horizontal, 20)
+		}
+	}
+	
+	// MARK: - Import Button
+	@ViewBuilder
+	private var _importButton: some View {
+		Button {
+			_isImporting = true
+			_fetchImportedRepositories(UIPasteboard.general.string) {
+				// Don't dismiss anymore - show results instead
+			}
+		} label: {
+			HStack(spacing: 16) {
+				ZStack {
+					Circle()
+						.fill(Color.blue.opacity(0.15))
+						.frame(width: 44, height: 44)
+						.blur(radius: 2)
+						.offset(y: 2)
+					
+					Circle()
+						.fill(
+							LinearGradient(
+								colors: [Color.blue, Color.blue.opacity(0.7)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+						.frame(width: 44, height: 44)
+					
+					Image(systemName: "square.and.arrow.down")
+						.font(.title3)
+						.foregroundStyle(.white)
+				}
+				.shadow(color: Color.blue.opacity(0.3), radius: 8, x: 0, y: 4)
+				
+				Text(.localized("Import"))
+					.fontWeight(.semibold)
+					.foregroundStyle(.primary)
+				Spacer()
+				Image(systemName: "chevron.right")
+					.font(.caption)
+					.foregroundStyle(.tertiary)
+			}
+			.padding()
+		}
+		.background(Color(UIColor.secondarySystemGroupedBackground))
+		.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+	}
+	
+	// MARK: - Export Button
+	@ViewBuilder
+	private var _exportButton: some View {
+		Button {
+			_isExportMode = true
+			let sources = Storage.shared.getSources()
+			guard !sources.isEmpty else {
+				UIAlertController.showAlertWithOk(
+					title: .localized("Error"),
+					message: .localized("No sources to export")
+				)
+				_isExportMode = false
+				return
+			}
+			// Initialize selection with all sources
+			_selectedSourcesForExport = Set(sources.compactMap { $0.sourceURL?.absoluteString })
+		} label: {
+			HStack(spacing: 16) {
+				// Enhanced icon with glass effect
+				ZStack {
+					Circle()
+						.fill(Color.green.opacity(0.15))
+						.frame(width: 44, height: 44)
+						.blur(radius: 2)
+						.offset(y: 2)
+					
+					Circle()
+						.fill(
+							LinearGradient(
+								colors: [Color.green, Color.green.opacity(0.7)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+						.frame(width: 44, height: 44)
+					
+					Image(systemName: "doc.on.doc")
+						.font(.title3)
+						.foregroundStyle(.white)
+				}
+				.shadow(color: Color.green.opacity(0.3), radius: 8, x: 0, y: 4)
+				
+				Text(.localized("Export"))
+					.fontWeight(.semibold)
+					.foregroundStyle(.primary)
+				Spacer()
+				Image(systemName: "chevron.right")
+					.font(.caption)
+					.foregroundStyle(.tertiary)
+			}
+			.padding()
+		}
+		.background(Color(UIColor.secondarySystemGroupedBackground))
+		.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+	}
+	
+	// MARK: - Featured Sources Section
+	@ViewBuilder
+	private var _featuredSourcesSection: some View {
+		if _isFetchingRecommended {
+			_loadingFeaturedSection
+		} else if !_filteredRecommendedSourcesData.isEmpty {
+			_featuredSourcesList
+		}
+	}
+	
+	// MARK: - Loading Featured Section
+	@ViewBuilder
+	private var _loadingFeaturedSection: some View {
+		VStack(alignment: .leading, spacing: 16) {
+			Text(.localized("Featured"))
+				.font(.headline)
+				.foregroundStyle(.primary)
+				.padding(.horizontal, 4)
+			
+			VStack(spacing: 0) {
+				HStack {
+					Spacer()
+					VStack(spacing: 12) {
+						ProgressView()
+							.scaleEffect(1.2)
+						Text(.localized("Loading featured sources..."))
+							.font(.subheadline)
+							.foregroundStyle(.secondary)
+					}
+					.padding(.vertical, 20)
+					Spacer()
+				}
+				.padding()
+				.background(Color(UIColor.secondarySystemGroupedBackground))
+				.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+			}
+		}
+		.padding(.horizontal)
+	}
+	
+	// MARK: - Featured Sources List
+	@ViewBuilder
+	private var _featuredSourcesList: some View {
+		VStack(alignment: .leading, spacing: 16) {
+			Text(.localized("Featured"))
+				.font(.headline)
+				.foregroundStyle(.primary)
+				.padding(.horizontal, 4)
+			
+			VStack(spacing: 0) {
+				ForEach(_filteredRecommendedSourcesData, id: \.url) { (url, source) in
+					_featuredSourceRow(url: url, source: source)
+					
+					if _filteredRecommendedSourcesData.last?.url != url {
+						Divider()
+							.padding(.leading, 16)
+					}
+				}
+			}
+			.background(Color(UIColor.secondarySystemGroupedBackground))
+			.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+			
+			VStack(alignment: .leading, spacing: 8) {
+				Text(.localized("Open an [issue](https://github.com/khcrysalis/Feather/issues) on GitHub if you want your source to be featured."))
+					.font(.caption)
+					.foregroundStyle(.secondary)
+			}
+			.padding(.horizontal, 4)
+		}
+		.padding(.horizontal)
+	}
+	
+	// MARK: - Featured Source Row
+	@ViewBuilder
+	private func _featuredSourceRow(url: URL, source: ASRepository) -> some View {
+		HStack(spacing: 16) {
+			FRIconCellView(
+				title: source.name ?? .localized("Unknown"),
+				subtitle: url.absoluteString,
+				iconUrl: source.currentIconURL
+			)
+			
+			Spacer()
+			
+			Button {
+				Storage.shared.addSource(url, repository: source) { _ in
+					_refreshFilteredRecommendedSourcesData()
+				}
+			} label: {
+				Text(.localized("Add"))
+					.font(.subheadline.bold())
+					.foregroundStyle(.white)
+					.padding(.horizontal, 24)
+					.padding(.vertical, 10)
+					.background(
+						ZStack {
+							// Shadow layer
+							Capsule()
+								.fill(Color.accentColor.opacity(0.3))
+								.blur(radius: 4)
+								.offset(y: 3)
+							
+							// Main gradient
+							Capsule()
+								.fill(
+									LinearGradient(
+										colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
+						}
+					)
+					.shadow(color: Color.accentColor.opacity(0.4), radius: 8, x: 0, y: 4)
+			}
+			.buttonStyle(.borderless)
+		}
+		.padding()
 	}
 	
 	// MARK: - Import Results Section
