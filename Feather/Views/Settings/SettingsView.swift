@@ -69,14 +69,6 @@ struct SettingsView: View {
                     Text(.localized("View storage usage breakdown and clean up cached files."))
                 }
                 
-                Section {
-                    NavigationLink(destination: ResetView()) {
-                        ConditionalLabel(title: .localized("Reset"), systemImage: "trash")
-                    }
-                } footer: {
-                    Text(.localized("Reset the applications sources, certificates, apps, and general contents."))
-                }
-                
                 if isDeveloperModeEnabled {
                     NBSection("Developer") {
                         NavigationLink(destination: DeveloperView()) {
