@@ -201,10 +201,15 @@ extension ASRepository {
 				self.iPhone = []
 			}
 
+			public func encode(to encoder: any Encoder) throws {
+				var container = encoder.container(keyedBy: CodingKeys.self)
+				try container.encodeIfPresent(iPhone, forKey: .iPhone)
+				try container.encodeIfPresent(iPad, forKey: .iPad)
+			}
+
 			public enum CodingKeys: String, CodingKey {
 				case iPhone = "iphone"
 				case iPad = "ipad"
-				case url
 			}
 		}
 
@@ -428,6 +433,17 @@ extension ASRepository {
 					OSVersion.self,
 					forKey: .minOSVersion
 				)
+			}
+
+			public func encode(to encoder: any Encoder) throws {
+				var container = encoder.container(keyedBy: CodingKeys.self)
+				try container.encode(version, forKey: .version)
+				try container.encodeIfPresent(build, forKey: .build)
+				try container.encodeIfPresent(date, forKey: .date)
+				try container.encodeIfPresent(localizedDescription, forKey: .localizedDescription)
+				try container.encodeIfPresent(downloadURL, forKey: .downloadURL)
+				try container.encodeIfPresent(size, forKey: .size)
+				try container.encodeIfPresent(minOSVersion, forKey: .minOSVersion)
 			}
 
 			static public func < (lhs: Self, rhs: Self) -> Bool {
