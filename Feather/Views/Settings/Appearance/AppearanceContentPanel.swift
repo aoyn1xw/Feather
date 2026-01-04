@@ -184,49 +184,55 @@ struct AppearanceContentPanel: View {
                 
                 if viewModel.showTime {
                     Toggle("Show Seconds", isOn: $viewModel.showSeconds)
+                    Toggle("Animate Time Changes", isOn: $viewModel.animateTime)
+                    Toggle("Use Accent Color", isOn: $viewModel.timeAccentColored)
                     
-                    Button {
-                        showTimeColorPicker = true
-                    } label: {
-                        HStack {
-                            Text("Time Color")
-                            Spacer()
-                            Circle()
-                                .fill(Color(hex: viewModel.timeColorHex))
-                                .frame(width: 30, height: 30)
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.primary.opacity(0.2), lineWidth: 1)
-                                )
+                    if !viewModel.timeAccentColored {
+                        Button {
+                            showTimeColorPicker = true
+                        } label: {
+                            HStack {
+                                Text("Time Color")
+                                Spacer()
+                                Circle()
+                                    .fill(Color(hex: viewModel.timeColorHex))
+                                    .frame(width: 30, height: 30)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.primary.opacity(0.2), lineWidth: 1)
+                                    )
+                            }
                         }
                     }
                 }
             }
             
-            // Battery Section
-            Section(header: Text("Battery Display")) {
-                Toggle("Show Battery", isOn: $viewModel.showBattery)
-                
-                if viewModel.showBattery {
-                    Picker("Battery Style", selection: $viewModel.batteryStyle) {
-                        Text("Icon Only").tag("icon")
-                        Text("Percentage Only").tag("percentage")
-                        Text("Icon & Percentage").tag("both")
+            // Widget Section (replaces Battery Section)
+            Section(header: Text("Right Widget")) {
+                Picker("Widget Type", selection: $viewModel.widgetTypeRaw) {
+                    ForEach(StatusBarWidgetType.allCases, id: \.rawValue) { type in
+                        Text(type.displayName).tag(type.rawValue)
                     }
+                }
+                
+                if viewModel.widgetType != .none {
+                    Toggle("Use Accent Color", isOn: $viewModel.widgetAccentColored)
                     
-                    Button {
-                        showBatteryColorPicker = true
-                    } label: {
-                        HStack {
-                            Text("Battery Color")
-                            Spacer()
-                            Circle()
-                                .fill(Color(hex: viewModel.batteryColorHex))
-                                .frame(width: 30, height: 30)
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.primary.opacity(0.2), lineWidth: 1)
-                                )
+                    if !viewModel.widgetAccentColored {
+                        Button {
+                            showBatteryColorPicker = true
+                        } label: {
+                            HStack {
+                                Text("Widget Color")
+                                Spacer()
+                                Circle()
+                                    .fill(Color(hex: viewModel.batteryColorHex))
+                                    .frame(width: 30, height: 30)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.primary.opacity(0.2), lineWidth: 1)
+                                    )
+                            }
                         }
                     }
                 }

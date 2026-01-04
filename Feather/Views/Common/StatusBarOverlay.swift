@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct StatusBarOverlay: View {
+    // Legacy custom text/symbol settings
     @AppStorage("statusBar.customText") private var customText: String = ""
     @AppStorage("statusBar.showCustomText") private var showCustomText: Bool = false
     @AppStorage("statusBar.sfSymbol") private var sfSymbol: String = "circle.fill"
@@ -30,10 +31,30 @@ struct StatusBarOverlay: View {
     @AppStorage("statusBar.borderWidth") private var borderWidth: Double = 0
     @AppStorage("statusBar.borderColor") private var borderColorHex: String = "#007AFF"
     
+    // Time display settings
+    @AppStorage("statusBar.showTime") private var showTime: Bool = false
+    @AppStorage("statusBar.showSeconds") private var showSeconds: Bool = false
+    @AppStorage("statusBar.animateTime") private var animateTime: Bool = true
+    @AppStorage("statusBar.timeAccentColored") private var timeAccentColored: Bool = false
+    @AppStorage("statusBar.timeColor") private var timeColorHex: String = "#FFFFFF"
+    
+    // Widget settings
+    @AppStorage("statusBar.widgetType") private var widgetTypeRaw: String = "none"
+    @AppStorage("statusBar.widgetAccentColored") private var widgetAccentColored: Bool = false
+    @AppStorage("statusBar.batteryColor") private var batteryColorHex: String = "#FFFFFF"
+    
     @State private var isVisible = false
+    @State private var currentTime = Date()
+    
+    // Timer for updating time
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     // Nearly transparent but still blocks the status bar area
     private let nearlyTransparentOpacity: Double = 0.00001
+    
+    private var widgetType: StatusBarWidgetType {
+        StatusBarWidgetType(rawValue: widgetTypeRaw) ?? .none
+    }
 
     private var selectedFontDesign: Font.Design {
         switch fontDesign {
@@ -63,9 +84,23 @@ struct StatusBarOverlay: View {
         default: return nil
         }
     }
+    
+    private var timeAnimation: Animation? {
+        animateTime ? .easeInOut(duration: 0.3) : nil
+    }
+    
+    private var timeString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = showSeconds ? "HH:mm:ss" : "HH:mm"
+        return formatter.string(from: currentTime)
+    }
+    
+    private var hasContent: Bool {
+        showCustomText || showSFSymbol || showTime || widgetType != .none
+    }
 
     var body: some View {
-        if showCustomText || showSFSymbol {
+        if hasContent {
             ZStack {
                 // Always overlay to hide default status bar area
                 Color.black
@@ -76,62 +111,46 @@ struct StatusBarOverlay: View {
                     .allowsHitTesting(false)
                 
                 VStack(spacing: 0) {
-                    ZStack(alignment: selectedAlignment) {
-                        // Background with shadow for better visibility
-                        if showBackground {
-                            Group {
-                                if blurBackground {
-                                    Capsule()
-                                        .fill(.ultraThinMaterial)
-                                        .overlay(
-                                            Capsule()
-                                                .fill(SwiftUI.Color(hex: backgroundColorHex).opacity(backgroundOpacity))
-                                        )
-                                } else {
-                                    Capsule()
-                                        .fill(SwiftUI.Color(hex: backgroundColorHex).opacity(backgroundOpacity))
-                                }
-                            }
-                            .cornerRadius(cornerRadius)
-                            .overlay(
-                                Capsule()
-                                    .stroke(SwiftUI.Color(hex: borderColorHex), lineWidth: borderWidth)
-                                    .cornerRadius(cornerRadius)
-                            )
-                            .shadow(
-                                color: shadowEnabled ? SwiftUI.Color(hex: shadowColorHex).opacity(0.3) : .clear,
-                                radius: shadowEnabled ? shadowRadius : 0,
-                                x: 0,
-                                y: shadowEnabled ? 2 : 0
-                            )
+                    HStack(spacing: 8) {
+                        // Left side: Time display
+                        if showTime {
+                            Text(timeString)
+                                .font(.system(size: fontSize, weight: isBold ? .bold : .regular, design: selectedFontDesign))
+                                .foregroundStyle(timeAccentColored ? SwiftUI.Color(hex: colorHex) : SwiftUI.Color(hex: timeColorHex))
+                                .lineLimit(1)
+                                .animation(timeAnimation, value: timeString)
+                        }
+                        
+                        Spacer()
+                        
+                        // Center: Legacy custom text/symbol (for backward compatibility)
+                        if showCustomText && !customText.isEmpty {
+                            Text(customText)
+                                .font(.system(size: fontSize, weight: isBold ? .bold : .regular, design: selectedFontDesign))
+                                .foregroundStyle(SwiftUI.Color(hex: colorHex))
+                                .lineLimit(1)
                         }
 
-                        HStack(spacing: 8) {
-                            if showCustomText && !customText.isEmpty {
-                                Text(customText)
-                                    .font(.system(size: fontSize, weight: isBold ? .bold : .regular, design: selectedFontDesign))
-                                    .foregroundStyle(SwiftUI.Color(hex: colorHex))
-                                    .lineLimit(1)
-                            }
-
-                            if showSFSymbol && !sfSymbol.isEmpty {
-                                Image(systemName: sfSymbol)
-                                    .font(.system(size: fontSize, weight: isBold ? .bold : .regular, design: selectedFontDesign))
-                                    .foregroundStyle(SwiftUI.Color(hex: colorHex))
-                            }
+                        if showSFSymbol && !sfSymbol.isEmpty {
+                            Image(systemName: sfSymbol)
+                                .font(.system(size: fontSize, weight: isBold ? .bold : .regular, design: selectedFontDesign))
+                                .foregroundStyle(SwiftUI.Color(hex: colorHex))
                         }
-                        .padding(.horizontal, showBackground ? 12 : 0)
-                        .padding(.vertical, showBackground ? 6 : 0)
-                        .opacity(isVisible ? 1 : 0)
-                        .scaleEffect(isVisible ? 1 : (animationType == "scale" ? 0.8 : 1))
-                        .offset(y: isVisible ? 0 : (animationType == "slide" ? -20 : 0))
+                        
+                        Spacer()
+                        
+                        // Right side: Widget display
+                        buildWidget()
                     }
+                    .padding(.horizontal, 12)
                     .padding(.leading, leftPadding)
                     .padding(.trailing, rightPadding)
                     .padding(.top, topPadding + 8) // Add 8pt to account for notch/status bar
                     .padding(.bottom, bottomPadding)
-                    .frame(maxWidth: .infinity, alignment: selectedAlignment)
-
+                    .opacity(isVisible ? 1 : 0)
+                    .scaleEffect(isVisible ? 1 : (animationType == "scale" ? 0.8 : 1))
+                    .offset(y: isVisible ? 0 : (animationType == "slide" ? -20 : 0))
+                    
                     Spacer()
                 }
                 .ignoresSafeArea()
@@ -139,6 +158,7 @@ struct StatusBarOverlay: View {
             }
             .zIndex(10000)
             .onAppear {
+                currentTime = Date()
                 if enableAnimation {
                     withAnimation(contentAnimation) {
                         isVisible = true
@@ -147,6 +167,36 @@ struct StatusBarOverlay: View {
                     isVisible = true
                 }
             }
+            .onReceive(timer) { time in
+                currentTime = time
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func buildWidget() -> some View {
+        let widgetColor = widgetAccentColored ? SwiftUI.Color(hex: colorHex) : SwiftUI.Color(hex: batteryColorHex)
+        
+        switch widgetType {
+        case .none:
+            EmptyView()
+        case .text:
+            if !customText.isEmpty {
+                Text(customText)
+                    .font(.system(size: fontSize, weight: isBold ? .bold : .regular, design: selectedFontDesign))
+                    .foregroundStyle(widgetColor)
+                    .lineLimit(1)
+            }
+        case .sfSymbol:
+            if !sfSymbol.isEmpty {
+                Image(systemName: sfSymbol)
+                    .font(.system(size: fontSize, weight: isBold ? .bold : .regular, design: selectedFontDesign))
+                    .foregroundStyle(widgetColor)
+            }
+        case .battery:
+            SystemBatteryView()
+                .foregroundStyle(widgetColor)
+                .frame(width: 60)
         }
     }
 }

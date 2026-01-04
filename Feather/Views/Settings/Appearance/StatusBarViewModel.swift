@@ -1,6 +1,23 @@
 import SwiftUI
 import Combine
 
+// MARK: - Widget Type Enum
+enum StatusBarWidgetType: String, CaseIterable {
+    case none = "none"
+    case text = "text"
+    case sfSymbol = "symbol"
+    case battery = "battery"
+    
+    var displayName: String {
+        switch self {
+        case .none: return "None"
+        case .text: return "Text"
+        case .sfSymbol: return "SF Symbol"
+        case .battery: return "Battery"
+        }
+    }
+}
+
 // MARK: - View Model
 class StatusBarViewModel: ObservableObject {
     // Custom Text
@@ -52,13 +69,25 @@ class StatusBarViewModel: ObservableObject {
     // System Integration
     @AppStorage("statusBar.hideDefaultStatusBar") var hideDefaultStatusBar: Bool = true
     
-    // Time and Battery
+    // Time and Battery - NEW unified widget approach
     @AppStorage("statusBar.showTime") var showTime: Bool = false
     @AppStorage("statusBar.showSeconds") var showSeconds: Bool = false
+    @AppStorage("statusBar.animateTime") var animateTime: Bool = true
+    @AppStorage("statusBar.timeAccentColored") var timeAccentColored: Bool = false
     @AppStorage("statusBar.timeColor") var timeColorHex: String = "#FFFFFF"
-    @AppStorage("statusBar.showBattery") var showBattery: Bool = false
+    
+    @AppStorage("statusBar.widgetType") var widgetTypeRaw: String = "none"
+    @AppStorage("statusBar.widgetAccentColored") var widgetAccentColored: Bool = false
     @AppStorage("statusBar.batteryColor") var batteryColorHex: String = "#FFFFFF"
     @AppStorage("statusBar.batteryStyle") var batteryStyle: String = "icon" // "icon", "percentage", "both"
+    
+    // Legacy compatibility - keep for now
+    @AppStorage("statusBar.showBattery") var showBattery: Bool = false
+    
+    var widgetType: StatusBarWidgetType {
+        get { StatusBarWidgetType(rawValue: widgetTypeRaw) ?? .none }
+        set { widgetTypeRaw = newValue.rawValue }
+    }
     
     // SF Symbols Picker State
     @Published var searchText: String = ""
@@ -208,7 +237,11 @@ class StatusBarViewModel: ObservableObject {
         hideDefaultStatusBar = true
         showTime = false
         showSeconds = false
+        animateTime = true
+        timeAccentColored = false
         timeColorHex = "#FFFFFF"
+        widgetTypeRaw = "none"
+        widgetAccentColored = false
         showBattery = false
         batteryColorHex = "#FFFFFF"
         batteryStyle = "icon"
