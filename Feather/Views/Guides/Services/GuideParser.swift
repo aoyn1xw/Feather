@@ -109,6 +109,7 @@ class GuideParser {
         
         // Check for accent:// pattern and remove literal brackets
         // Pattern: [Some Text](accent://) -> Some Text with accent flag
+        // Pattern: (accent://) at start -> remaining text with accent flag
         // Also handles: [Some Text] -> Some Text without accent flag
         var isAccent = false
         let accentPattern = #"^\[([^\]]+)\]\(accent://[^\)]*\)$"#
@@ -123,6 +124,10 @@ class GuideParser {
                   let match = regex.firstMatch(in: text, options: [], range: NSRange(text.startIndex..., in: text)),
                   let textRange = Range(match.range(at: 1), in: text) {
             text = String(text[textRange])
+        } else if text.hasPrefix("(accent://)") {
+            // Handle (accent://) prefix - strip it and mark as accent
+            text = String(text.dropFirst("(accent://)".count)).trimmingCharacters(in: .whitespaces)
+            isAccent = true
         }
         
         if level > 0 && !text.isEmpty {
@@ -188,6 +193,29 @@ class GuideParser {
         var i = text.startIndex
         
         while i < text.endIndex {
+            // Check for (accent://) wrapped text syntax
+            if text[i] == "(" {
+                let startPos = i
+                // Look ahead for "accent://"
+                let afterParen = text.index(after: i)
+                let checkText = String(text[afterParen...])
+                
+                if checkText.hasPrefix("accent://") {
+                    // Find the closing parenthesis
+                    if let closeParenRange = text.range(of: ")", range: afterParen..<text.endIndex) {
+                        // Save any accumulated text before this
+                        if !currentText.isEmpty {
+                            result.append(.text(currentText))
+                            currentText = ""
+                        }
+                        
+                        // Skip the entire (accent://) wrapper - it's just a marker
+                        i = closeParenRange.upperBound
+                        continue
+                    }
+                }
+            }
+            
             // Check for image syntax (skip it in inline content)
             if text[i] == "!" && i < text.index(before: text.endIndex) && text[text.index(after: i)] == "[" {
                 // Find the end of the image
@@ -250,10 +278,47 @@ class GuideParser {
         
         // Add any remaining text
         if !currentText.isEmpty {
-            // Check if the text contains accent:// (as plain text reference)
-            // This handles cases like: "Check out accent://something"
+            // Check if the text contains (accent://) or accent:// (as plain text reference)
+            // This handles cases like: "(accent://)Part 1" or "Check out accent://something"
             var remainingText = currentText
             
+            // First check for (accent://) pattern - text immediately following this gets accent color
+            while let accentMarkerRange = remainingText.range(of: "(accent://)") {
+                // Add text before the marker if any
+                let beforeMarker = String(remainingText[..<accentMarkerRange.lowerBound])
+                if !beforeMarker.isEmpty {
+                    result.append(.text(beforeMarker))
+                }
+                
+                // Skip the (accent://) marker itself
+                let afterMarker = accentMarkerRange.upperBound
+                
+                // Find the end of text to apply accent to (until next space or end)
+                var accentTextEnd = afterMarker
+                while accentTextEnd < remainingText.endIndex {
+                    let char = remainingText[accentTextEnd]
+                    if char.isWhitespace {
+                        break
+                    }
+                    accentTextEnd = remainingText.index(after: accentTextEnd)
+                }
+                
+                // Extract the text that should have accent color
+                let accentText = String(remainingText[afterMarker..<accentTextEnd])
+                if !accentText.isEmpty {
+                    result.append(.accentText(accentText))
+                }
+                
+                // Continue with the rest
+                if accentTextEnd < remainingText.endIndex {
+                    remainingText = String(remainingText[accentTextEnd...])
+                } else {
+                    remainingText = ""
+                    break
+                }
+            }
+            
+            // Then check for standalone accent:// pattern
             while let accentRange = remainingText.range(of: "accent://") {
                 // Add text before accent if any
                 let beforeAccent = String(remainingText[..<accentRange.lowerBound])

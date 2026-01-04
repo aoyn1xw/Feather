@@ -63,6 +63,7 @@ struct FeatherApp: App {
 					.overlay(StatusBarOverlay())
 				}
 			}
+			.handleStatusBarHiding()
 			.onAppear {
 				// Scan for dylibs at launch
 				_checkForDylibs()

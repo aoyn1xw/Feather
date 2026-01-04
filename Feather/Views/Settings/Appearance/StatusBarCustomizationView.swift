@@ -328,8 +328,12 @@ Text(.localized("Customize the appearance of status bar elements"))
             // System Integration Section
             NBSection(.localized("System Integration")) {
                 Toggle(String.localized("Hide Default Status Bar"), isOn: $hideDefaultStatusBar)
+                    .onChange(of: hideDefaultStatusBar) { _ in
+                        // Post notification to update status bar visibility
+                        NotificationCenter.default.post(name: NSNotification.Name("StatusBarHidingPreferenceChanged"), object: nil)
+                    }
             } footer: {
-                Text(.localized("When enabled, the custom status bar fully replaces the system status bar. Note: System status bar (battery, signal, time) will still be visible in the notch/Dynamic Island area."))
+                Text(.localized("When enabled, completely hides the system status bar at the OS level across all screens."))
             }
 
 // Padding Section
