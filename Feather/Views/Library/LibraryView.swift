@@ -288,6 +288,11 @@ struct LibraryView: View {
 					_selectedInstallAppPresenting = AnyApp(base: latest)
 				}
 			}
+			.onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.openSigningView"))) { notification in
+				if let app = notification.object as? AppInfoPresentable {
+					_selectedSigningAppPresenting = AnyApp(base: app)
+				}
+			}
 			.overlay {
 				if _showImportAnimation {
 					ZStack {
