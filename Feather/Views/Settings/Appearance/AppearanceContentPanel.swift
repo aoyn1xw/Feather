@@ -8,6 +8,8 @@ struct AppearanceContentPanel: View {
     @State private var showShadowColorPicker = false
     @State private var showBorderColorPicker = false
     @State private var showSymbolPicker = false
+    @State private var showTimeColorPicker = false
+    @State private var showBatteryColorPicker = false
     
     var body: some View {
         List {
@@ -176,6 +178,60 @@ struct AppearanceContentPanel: View {
                 }
             }
             
+            // Time Section
+            Section(header: Text("Time Display")) {
+                Toggle("Show Time", isOn: $viewModel.showTime)
+                
+                if viewModel.showTime {
+                    Toggle("Show Seconds", isOn: $viewModel.showSeconds)
+                    
+                    Button {
+                        showTimeColorPicker = true
+                    } label: {
+                        HStack {
+                            Text("Time Color")
+                            Spacer()
+                            Circle()
+                                .fill(Color(hex: viewModel.timeColorHex))
+                                .frame(width: 30, height: 30)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.primary.opacity(0.2), lineWidth: 1)
+                                )
+                        }
+                    }
+                }
+            }
+            
+            // Battery Section
+            Section(header: Text("Battery Display")) {
+                Toggle("Show Battery", isOn: $viewModel.showBattery)
+                
+                if viewModel.showBattery {
+                    Picker("Battery Style", selection: $viewModel.batteryStyle) {
+                        Text("Icon Only").tag("icon")
+                        Text("Percentage Only").tag("percentage")
+                        Text("Icon & Percentage").tag("both")
+                    }
+                    
+                    Button {
+                        showBatteryColorPicker = true
+                    } label: {
+                        HStack {
+                            Text("Battery Color")
+                            Spacer()
+                            Circle()
+                                .fill(Color(hex: viewModel.batteryColorHex))
+                                .frame(width: 30, height: 30)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.primary.opacity(0.2), lineWidth: 1)
+                                )
+                        }
+                    }
+                }
+            }
+            
             // Reset Section
             Section {
                 Button(role: .destructive) {
@@ -201,6 +257,12 @@ struct AppearanceContentPanel: View {
         }
         .sheet(isPresented: $showBorderColorPicker) {
             ColorPickerSheet(selectedColor: $viewModel.selectedBorderColor, colorHex: $viewModel.borderColorHex)
+        }
+        .sheet(isPresented: $showTimeColorPicker) {
+            ColorPickerSheet(selectedColor: $viewModel.selectedTimeColor, colorHex: $viewModel.timeColorHex)
+        }
+        .sheet(isPresented: $showBatteryColorPicker) {
+            ColorPickerSheet(selectedColor: $viewModel.selectedBatteryColor, colorHex: $viewModel.batteryColorHex)
         }
         .sheet(isPresented: $showSymbolPicker) {
             SFSymbolsPickerView(viewModel: viewModel)

@@ -174,49 +174,7 @@ struct SFSymbolsPickerView: View {
                 }
                 .padding(.bottom, 8)
                 
-                // Symbol configuration
-                VStack(spacing: 12) {
-                    HStack {
-                        Text("Weight:")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Picker("Weight", selection: $viewModel.selectedWeight) {
-                            ForEach(weights, id: \.self) { weight in
-                                Text(weight).tag(weight)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        
-                        Spacer()
-                        
-                        Text("Scale:")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Picker("Scale", selection: $viewModel.selectedScale) {
-                            ForEach(scales, id: \.self) { scale in
-                                Text(scale.capitalized).tag(scale)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 200)
-                    }
-                    .padding(.horizontal)
-                    
-                    HStack {
-                        Text("Rendering:")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Picker("Rendering", selection: $viewModel.selectedRenderingMode) {
-                            ForEach(renderingModes, id: \.self) { mode in
-                                Text(mode.capitalized).tag(mode)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                    }
-                    .padding(.horizontal)
-                }
-                .padding(.vertical, 8)
-                .background(Color(uiColor: .systemGroupedBackground))
+
                 
                 // Tabs for Recents and Favorites
                 if !viewModel.recentSymbols.isEmpty || !viewModel.favoriteSymbols.isEmpty {
@@ -364,19 +322,6 @@ struct SFSymbolsPickerView: View {
             baseFont = .title2
         }
         
-        let weight: Font.Weight
-        switch viewModel.selectedWeight {
-        case "ultraLight": weight = .ultraLight
-        case "thin": weight = .thin
-        case "light": weight = .light
-        case "medium": weight = .medium
-        case "semibold": weight = .semibold
-        case "bold": weight = .bold
-        case "heavy": weight = .heavy
-        case "black": weight = .black
-        default: weight = .regular
-        }
-        
-        return baseFont.weight(weight)
+        return baseFont.weight(.regular)
     }
 }

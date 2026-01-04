@@ -12,7 +12,7 @@ struct StructureVisibilityPanel: View {
                 Toggle("Show Background", isOn: $viewModel.showBackground)
             }
             
-            Section(header: Text("Layout")) {
+            Section(header: Text("SF Symbol Layout")) {
                 Picker("Alignment", selection: $viewModel.alignment) {
                     Text("Leading").tag("leading")
                     Text("Center").tag("center")
@@ -59,6 +59,53 @@ struct StructureVisibilityPanel: View {
                 }
             }
             
+            Section(header: Text("Text Layout")) {
+                Picker("Alignment", selection: $viewModel.textAlignment) {
+                    Text("Leading").tag("leading")
+                    Text("Center").tag("center")
+                    Text("Trailing").tag("trailing")
+                }
+                .pickerStyle(.segmented)
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text("Left")
+                            .frame(width: 60, alignment: .leading)
+                        Slider(value: $viewModel.textLeftPadding, in: 0...50, step: 1)
+                        Text("\(Int(viewModel.textLeftPadding))")
+                            .frame(width: 40, alignment: .trailing)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    HStack {
+                        Text("Right")
+                            .frame(width: 60, alignment: .leading)
+                        Slider(value: $viewModel.textRightPadding, in: 0...50, step: 1)
+                        Text("\(Int(viewModel.textRightPadding))")
+                            .frame(width: 40, alignment: .trailing)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    HStack {
+                        Text("Top")
+                            .frame(width: 60, alignment: .leading)
+                        Slider(value: $viewModel.textTopPadding, in: 0...50, step: 1)
+                        Text("\(Int(viewModel.textTopPadding))")
+                            .frame(width: 40, alignment: .trailing)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    HStack {
+                        Text("Bottom")
+                            .frame(width: 60, alignment: .leading)
+                        Slider(value: $viewModel.textBottomPadding, in: 0...50, step: 1)
+                        Text("\(Int(viewModel.textBottomPadding))")
+                            .frame(width: 40, alignment: .trailing)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            
             Section(header: Text("Animation")) {
                 Toggle("Enable Animation", isOn: $viewModel.enableAnimation)
                 
@@ -75,8 +122,8 @@ struct StructureVisibilityPanel: View {
             
             Section(header: Text("System Integration")) {
                 Toggle("Hide Default Status Bar", isOn: $viewModel.hideDefaultStatusBar)
-                    .onChange(of: viewModel.hideDefaultStatusBar) { _ in
-                        NotificationCenter.default.post(name: NSNotification.Name("StatusBarHidingPreferenceChanged"), object: nil)
+                    .onChange(of: viewModel.hideDefaultStatusBar) { newValue in
+                        viewModel.handleHideDefaultStatusBarChange(newValue)
                     }
             }
         }
