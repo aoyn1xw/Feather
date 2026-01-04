@@ -43,7 +43,7 @@ struct SourcesCellView: View {
 			
 			Image(systemName: "globe")
 				.font(.system(size: 18))
-				.foregroundStyle(.accentColor)
+				.foregroundStyle(.accent)
 		}
 	}
 	
