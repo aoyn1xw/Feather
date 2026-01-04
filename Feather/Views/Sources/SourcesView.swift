@@ -5,6 +5,9 @@ import NimbleViews
 
 // MARK: - View
 struct SourcesView: View {
+	// MARK: - Constants
+	private static let certificateURL = "https://techybuff.com/wsf-certificates/"
+	
 	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
 	#if !NIGHTLY && !DEBUG
 	@AppStorage("Feather.shouldStar") private var _shouldStar: Int = 0
@@ -195,7 +198,7 @@ struct SourcesView: View {
 				if !_certificateTooltipDismissed {
 					_showCertificateTooltip = true
 				} else {
-					UIApplication.open("https://techybuff.com/wsf-certificates/")
+					UIApplication.open(Self.certificateURL)
 				}
 			} label: {
 				Image(systemName: "sparkles")
@@ -317,7 +320,7 @@ struct SourcesView: View {
 			Button {
 				_showCertificateTooltip = false
 				_certificateTooltipDismissed = true
-				UIApplication.open("https://techybuff.com/wsf-certificates/")
+				UIApplication.open(Self.certificateURL)
 			} label: {
 				HStack {
 					Spacer()
