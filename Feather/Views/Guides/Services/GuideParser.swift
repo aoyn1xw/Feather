@@ -107,8 +107,26 @@ class GuideParser {
         
         text = text.trimmingCharacters(in: .whitespaces)
         
+        // Check for accent:// pattern and remove literal brackets
+        // Pattern: [Some Text](accent://) -> Some Text with accent flag
+        // Also handles: [Some Text] -> Some Text without accent flag
+        var isAccent = false
+        let accentPattern = #"^\[([^\]]+)\]\(accent://[^\)]*\)$"#
+        let bracketOnlyPattern = #"^\[([^\]]+)\]$"#
+        
+        if let regex = try? NSRegularExpression(pattern: accentPattern, options: []),
+           let match = regex.firstMatch(in: text, options: [], range: NSRange(text.startIndex..., in: text)),
+           let textRange = Range(match.range(at: 1), in: text) {
+            text = String(text[textRange])
+            isAccent = true
+        } else if let regex = try? NSRegularExpression(pattern: bracketOnlyPattern, options: []),
+                  let match = regex.firstMatch(in: text, options: [], range: NSRange(text.startIndex..., in: text)),
+                  let textRange = Range(match.range(at: 1), in: text) {
+            text = String(text[textRange])
+        }
+        
         if level > 0 && !text.isEmpty {
-            return .heading(level: level, text: text)
+            return .heading(level: level, text: text, isAccent: isAccent)
         }
         
         return nil

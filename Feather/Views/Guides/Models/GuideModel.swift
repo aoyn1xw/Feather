@@ -85,7 +85,7 @@ enum InlineContent: Identifiable {
 }
 
 enum GuideElement: Identifiable {
-    case heading(level: Int, text: String)
+    case heading(level: Int, text: String, isAccent: Bool)
     case paragraph(content: [InlineContent])
     case codeBlock(language: String?, code: String)
     case image(url: String, altText: String?)
@@ -95,8 +95,8 @@ enum GuideElement: Identifiable {
     
     var id: String {
         switch self {
-        case .heading(let level, let text):
-            return "heading-\(level)-\(text.hashValue)"
+        case .heading(let level, let text, let isAccent):
+            return "heading-\(level)-\(text.hashValue)-\(isAccent)"
         case .paragraph(let content):
             return "paragraph-\(content.map { $0.id }.joined().hashValue)"
         case .codeBlock(let language, let code):

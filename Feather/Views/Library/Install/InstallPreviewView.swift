@@ -16,10 +16,12 @@ struct InstallPreviewView: View {
 	@StateObject var installer: ServerInstaller
 	
 	@State var isSharing: Bool
+	@State var fromLibraryTab: Bool = true  // Track if installation was initiated from Library tab
 	
-	init(app: AppInfoPresentable, isSharing: Bool = false) {
+	init(app: AppInfoPresentable, isSharing: Bool = false, fromLibraryTab: Bool = true) {
 		self.app = app
 		self.isSharing = isSharing
+		self.fromLibraryTab = fromLibraryTab
 		let viewModel = InstallerStatusViewModel(isIdevice: UserDefaults.standard.integer(forKey: "Feather.installationMethod") == 1)
 		self._viewModel = StateObject(wrappedValue: viewModel)
 		self._installer = StateObject(wrappedValue: try! ServerInstaller(app: app, viewModel: viewModel))
@@ -80,13 +82,80 @@ struct InstallPreviewView: View {
 	private func _button() -> some View {
 		ZStack {
 			if viewModel.isCompleted {
-				Button {
-					UIApplication.openApp(with: app.identifier ?? "")
-				} label: {
-					NBButton("Open", systemImage: "", style: .text)
+				if fromLibraryTab {
+					// Show only Open button when installing from Library tab (original behavior)
+					Button {
+						UIApplication.openApp(with: app.identifier ?? "")
+					} label: {
+						NBButton("Open", systemImage: "", style: .text)
+					}
+					.padding()
+					.compatTransition()
+				} else {
+					// Show Install and Modify buttons when installing from sources or elsewhere
+					HStack(spacing: 12) {
+						// Modify button - opens signing page
+						Button {
+							// Dismiss current sheet and navigate to signing
+							dismiss()
+							// Post notification to open signing view
+							DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+								NotificationCenter.default.post(
+									name: Notification.Name("Feather.openSigningView"),
+									object: app
+								)
+							}
+						} label: {
+							HStack(spacing: 6) {
+								Image(systemName: "pencil")
+									.font(.system(size: 14, weight: .semibold))
+								Text("Modify")
+									.font(.system(size: 15, weight: .semibold))
+							}
+							.foregroundStyle(.white)
+							.padding(.horizontal, 20)
+							.padding(.vertical, 10)
+							.background(
+								LinearGradient(
+									colors: [Color.accentColor, Color.accentColor.opacity(0.9)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+							.clipShape(Capsule())
+							.shadow(color: Color.accentColor.opacity(0.4), radius: 8, x: 0, y: 4)
+						}
+						
+						// Install button - triggers immediate installation
+						Button {
+							// Reset viewModel and re-trigger installation
+							viewModel.status = .none
+							viewModel.overallProgress = 0
+							_install()
+						} label: {
+							HStack(spacing: 6) {
+								Image(systemName: "arrow.down.circle.fill")
+									.font(.system(size: 14, weight: .semibold))
+								Text("Install")
+									.font(.system(size: 15, weight: .semibold))
+							}
+							.foregroundStyle(.white)
+							.padding(.horizontal, 20)
+							.padding(.vertical, 10)
+							.background(
+								LinearGradient(
+									colors: [Color.green, Color.green.opacity(0.9)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+							.clipShape(Capsule())
+							.shadow(color: Color.green.opacity(0.4), radius: 8, x: 0, y: 4)
+						}
+					}
+					.padding()
+					.compatTransition()
 				}
-				.padding()
-				.compatTransition()
 			}
 		}
 		.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
