@@ -305,20 +305,14 @@ struct GuideDetailView: View {
     }
     
     // Static regex patterns for better performance
-    private static let codeRegex = try? NSRegularExpression(pattern: "`([^`]+)`")
-    private static let boldRegex = try? NSRegularExpression(pattern: "(\\*\\*|__)([^*_]+)(\\*\\*|__)")
-    private static let italicRegex = try? NSRegularExpression(pattern: "(?<!\\*|_)(\\*|_)([^*_]+?)\\1(?!\\*|_)")
+    private static let codeRegex = try? NSRegularExpression(pattern: "`([^`]+)`", options: [])
+    private static let boldRegex = try? NSRegularExpression(pattern: "\\*\\*(.+?)\\*\\*|__(.+?)__", options: [])
+    private static let italicRegex = try? NSRegularExpression(pattern: "(?<!\\*)\\*(?!\\*)(.+?)(?<!\\*)\\*(?!\\*)|(?<!_)_(?!_)(.+?)(?<!_)_(?!_)", options: [])
     
     // Simple inline markdown parser for bold, italic, and inline code
     private func parseInlineMarkdown(_ text: String) -> AttributedString {
-        var workingText = text
-        
-        // Track formatting information with adjusted positions
-        struct FormattingInfo {
-            var startIndex: Int
-            var length: Int
-            let type: FormatType
-        }
+        var resultText = text
+        var ranges: [(range: Range<String.Index>, type: FormatType)] = []
         
         enum FormatType {
             case code
@@ -326,183 +320,96 @@ struct GuideDetailView: View {
             case italic
         }
         
-        var formatInfos: [FormattingInfo] = []
-        
-        // Find inline code (backticks) - process first as they take precedence
+        // Process code first (highest priority)
         if let regex = Self.codeRegex {
-            let matches = regex.matches(in: workingText, range: NSRange(location: 0, length: (workingText as NSString).length))
-            for match in matches {
-                if match.numberOfRanges >= 2,
-                   let contentRange = Range(match.range(at: 1), in: workingText) {
-                    let content = String(workingText[contentRange])
-                    formatInfos.append(FormattingInfo(
-                        startIndex: match.range.location,
-                        length: content.count,
-                        type: .code
-                    ))
+            let matches = regex.matches(in: resultText, options: [], range: NSRange(resultText.startIndex..., in: resultText))
+            // Process in reverse to maintain indices
+            for match in matches.reversed() {
+                if let matchRange = Range(match.range, in: resultText),
+                   match.numberOfRanges >= 2,
+                   let contentRange = Range(match.range(at: 1), in: resultText) {
+                    let content = String(resultText[contentRange])
+                    resultText.replaceSubrange(matchRange, with: content)
+                    
+                    // Calculate new range after replacement
+                    let newStart = matchRange.lowerBound
+                    let newEnd = resultText.index(newStart, offsetBy: content.count)
+                    ranges.append((range: newStart..<newEnd, type: .code))
                 }
             }
         }
         
-        // Find bold (**text** or __text__)
+        // Process bold (before italic to handle ** vs *)
         if let regex = Self.boldRegex {
-            let matches = regex.matches(in: workingText, range: NSRange(location: 0, length: (workingText as NSString).length))
-            for match in matches {
-                if match.numberOfRanges >= 3 {
-                    let fullRange = match.range
-                    let contentRange = match.range(at: 2)
+            let matches = regex.matches(in: resultText, options: [], range: NSRange(resultText.startIndex..., in: resultText))
+            for match in matches.reversed() {
+                if let matchRange = Range(match.range, in: resultText) {
+                    // Try group 1 (for **text**) or group 2 (for __text__)
+                    var content = ""
+                    var contentRange: Range<String.Index>?
                     
-                    // Check if this range overlaps with code ranges
-                    let overlapsWithCode = formatInfos.contains { info in
-                        info.type == .code &&
-                        !(fullRange.location + fullRange.length <= info.startIndex || fullRange.location >= info.startIndex + info.length)
+                    if match.numberOfRanges >= 2, let range1 = Range(match.range(at: 1), in: resultText), !resultText[range1].isEmpty {
+                        contentRange = range1
+                        content = String(resultText[range1])
+                    } else if match.numberOfRanges >= 3, let range2 = Range(match.range(at: 2), in: resultText), !resultText[range2].isEmpty {
+                        contentRange = range2
+                        content = String(resultText[range2])
                     }
                     
-                    if !overlapsWithCode, let content = Range(contentRange, in: workingText) {
-                        formatInfos.append(FormattingInfo(
-                            startIndex: fullRange.location,
-                            length: String(workingText[content]).count,
-                            type: .bold
-                        ))
+                    if let _ = contentRange {
+                        resultText.replaceSubrange(matchRange, with: content)
+                        
+                        let newStart = matchRange.lowerBound
+                        let newEnd = resultText.index(newStart, offsetBy: content.count)
+                        ranges.append((range: newStart..<newEnd, type: .bold))
                     }
                 }
             }
         }
         
-        // Find italic (*text* or _text_)
+        // Process italic last
         if let regex = Self.italicRegex {
-            let matches = regex.matches(in: workingText, range: NSRange(location: 0, length: (workingText as NSString).length))
-            for match in matches {
-                if match.numberOfRanges >= 3 {
-                    let fullRange = match.range
-                    let contentRange = match.range(at: 2)
+            let matches = regex.matches(in: resultText, options: [], range: NSRange(resultText.startIndex..., in: resultText))
+            for match in matches.reversed() {
+                if let matchRange = Range(match.range, in: resultText) {
+                    var content = ""
+                    var contentRange: Range<String.Index>?
                     
-                    // Check if this range overlaps with code or bold ranges
-                    let overlaps = formatInfos.contains { info in
-                        (info.type == .code || info.type == .bold) &&
-                        !(fullRange.location + fullRange.length <= info.startIndex || fullRange.location >= info.startIndex + info.length)
+                    if match.numberOfRanges >= 2, let range1 = Range(match.range(at: 1), in: resultText), !resultText[range1].isEmpty {
+                        contentRange = range1
+                        content = String(resultText[range1])
+                    } else if match.numberOfRanges >= 3, let range2 = Range(match.range(at: 2), in: resultText), !resultText[range2].isEmpty {
+                        contentRange = range2
+                        content = String(resultText[range2])
                     }
                     
-                    if !overlaps, let content = Range(contentRange, in: workingText) {
-                        formatInfos.append(FormattingInfo(
-                            startIndex: fullRange.location,
-                            length: String(workingText[content]).count,
-                            type: .italic
-                        ))
+                    if let _ = contentRange {
+                        resultText.replaceSubrange(matchRange, with: content)
+                        
+                        let newStart = matchRange.lowerBound
+                        let newEnd = resultText.index(newStart, offsetBy: content.count)
+                        ranges.append((range: newStart..<newEnd, type: .italic))
                     }
                 }
             }
         }
         
-        // Sort by position (descending) to replace from end to start
-        let sortedFormats = formatInfos.sorted { $0.startIndex > $1.startIndex }
+        // Create attributed string
+        var result = AttributedString(resultText)
         
-        // Collect replacements to apply in reverse order
-        struct Replacement {
-            let range: NSRange
-            let content: String
-            let type: FormatType
-        }
-        
-        var replacements: [Replacement] = []
-        
-        // First pass: collect all replacements with their content
-        for info in sortedFormats {
-            let nsRange: NSRange
-            
-            // Find the actual markdown range based on type
-            if info.type == .code {
-                // Code: `content` - need to find backticks
-                let searchStart = max(0, info.startIndex - 1)
-                let searchEnd = info.startIndex + info.length + 1
-                let searchRange = NSRange(location: searchStart, length: min(searchEnd - searchStart, (workingText as NSString).length - searchStart))
-                
-                if let codeMatch = Self.codeRegex?.matches(in: workingText, range: searchRange).first,
-                   codeMatch.numberOfRanges >= 2 {
-                    nsRange = codeMatch.range
-                    if let contentRange = Range(codeMatch.range(at: 1), in: workingText) {
-                        replacements.append(Replacement(
-                            range: nsRange,
-                            content: String(workingText[contentRange]),
-                            type: .code
-                        ))
-                    }
-                }
-            } else if info.type == .bold {
-                // Bold: **content** or __content__
-                let searchStart = max(0, info.startIndex - 2)
-                let searchEnd = info.startIndex + info.length + 2
-                let searchRange = NSRange(location: searchStart, length: min(searchEnd - searchStart, (workingText as NSString).length - searchStart))
-                
-                if let boldMatch = Self.boldRegex?.matches(in: workingText, range: searchRange).first,
-                   boldMatch.numberOfRanges >= 3 {
-                    nsRange = boldMatch.range
-                    if let contentRange = Range(boldMatch.range(at: 2), in: workingText) {
-                        replacements.append(Replacement(
-                            range: nsRange,
-                            content: String(workingText[contentRange]),
-                            type: .bold
-                        ))
-                    }
-                }
-            } else { // italic
-                // Italic: *content* or _content_
-                let searchStart = max(0, info.startIndex - 1)
-                let searchEnd = info.startIndex + info.length + 1
-                let searchRange = NSRange(location: searchStart, length: min(searchEnd - searchStart, (workingText as NSString).length - searchStart))
-                
-                if let italicMatch = Self.italicRegex?.matches(in: workingText, range: searchRange).first,
-                   italicMatch.numberOfRanges >= 3 {
-                    nsRange = italicMatch.range
-                    if let contentRange = Range(italicMatch.range(at: 2), in: workingText) {
-                        replacements.append(Replacement(
-                            range: nsRange,
-                            content: String(workingText[contentRange]),
-                            type: .italic
-                        ))
-                    }
+        // Apply formatting
+        for (range, type) in ranges {
+            if let attrRange = Range(range, in: result) {
+                switch type {
+                case .code:
+                    result[attrRange].font = .system(.body, design: .monospaced)
+                    result[attrRange].backgroundColor = Color.secondary.opacity(0.2)
+                case .bold:
+                    result[attrRange].font = .body.bold()
+                case .italic:
+                    result[attrRange].font = .body.italic()
                 }
             }
-        }
-        
-        // Second pass: apply replacements from end to start
-        var nsWorkingText = workingText as NSString
-        for replacement in replacements {
-            nsWorkingText = nsWorkingText.replacingCharacters(in: replacement.range, with: replacement.content) as NSString
-        }
-        workingText = nsWorkingText as String
-        
-        // Create attributed string with cleaned text
-        var result = AttributedString(workingText)
-        
-        // Third pass: apply formatting to the cleaned string
-        // Adjust positions based on cumulative offset from replacements
-        var cumulativeOffset = 0
-        let sortedReplacements = replacements.sorted { $0.range.location < $1.range.location }
-        
-        for replacement in sortedReplacements {
-            let adjustedStart = replacement.range.location - cumulativeOffset
-            let adjustedLength = replacement.content.count
-            
-            if adjustedStart >= 0 && adjustedStart + adjustedLength <= workingText.count {
-                let startIndex = workingText.index(workingText.startIndex, offsetBy: adjustedStart)
-                let endIndex = workingText.index(startIndex, offsetBy: adjustedLength)
-                
-                if let attrRange = Range(startIndex..<endIndex, in: result) {
-                    switch replacement.type {
-                    case .code:
-                        result[attrRange].font = .system(.body, design: .monospaced)
-                        result[attrRange].backgroundColor = Color.secondary.opacity(0.2)
-                    case .bold:
-                        result[attrRange].font = .body.bold()
-                    case .italic:
-                        result[attrRange].font = .body.italic()
-                    }
-                }
-            }
-            
-            // Update offset: removed characters - added characters
-            cumulativeOffset += replacement.range.length - replacement.content.count
         }
         
         return result

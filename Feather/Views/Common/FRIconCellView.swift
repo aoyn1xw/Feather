@@ -57,7 +57,14 @@ struct FRIconCellView: View {
 	}
 	
 	var standardIcon: some View {
-		Image("App_Unknown")
-			.appIconStyle(size: size, isCircle: isCircle)
+		ZStack {
+			RoundedRectangle(cornerRadius: isCircle ? size / 2 : size * 0.2237, style: .continuous)
+				.fill(Color.accentColor.opacity(0.15))
+				.frame(width: size, height: size)
+			
+			Image(systemName: "globe")
+				.font(.system(size: size * 0.5))
+				.foregroundStyle(.accentColor)
+		}
 	}
 }

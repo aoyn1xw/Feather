@@ -10,45 +10,84 @@ struct SourcesCellView: View {
 	
 	var source: AltSource
 	
+	private var iconView: some View {
+		Group {
+			if let iconURL = source.iconURL {
+				LazyImage(url: iconURL) { state in
+					if let image = state.image {
+						image
+							.resizable()
+							.aspectRatio(contentMode: .fill)
+							.frame(width: 36, height: 36)
+							.clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+							.onAppear {
+								if let uiImage = state.imageContainer?.image {
+									extractDominantColor(from: uiImage)
+								}
+							}
+					} else {
+						placeholderIcon
+					}
+				}
+			} else {
+				placeholderIcon
+			}
+		}
+	}
+	
+	private var placeholderIcon: some View {
+		ZStack {
+			RoundedRectangle(cornerRadius: 8, style: .continuous)
+				.fill(Color.accentColor.opacity(0.15))
+				.frame(width: 36, height: 36)
+			
+			Image(systemName: "globe")
+				.font(.system(size: 18))
+				.foregroundStyle(.accentColor)
+		}
+	}
+	
+	private func extractDominantColor(from image: UIImage) {
+		guard let inputImage = CIImage(image: image) else { return }
+		let extentVector = CIVector(x: inputImage.extent.origin.x, y: inputImage.extent.origin.y, z: inputImage.extent.size.width, w: inputImage.extent.size.height)
+		
+		guard let filter = CIFilter(name: "CIAreaAverage", parameters: [kCIInputImageKey: inputImage, kCIInputExtentKey: extentVector]) else { return }
+		guard let outputImage = filter.outputImage else { return }
+		
+		var bitmap = [UInt8](repeating: 0, count: 4)
+		let context = CIContext(options: [.workingColorSpace: kCFNull as Any])
+		context.render(outputImage, toBitmap: &bitmap, rowBytes: 4, bounds: CGRect(x: 0, y: 0, width: 1, height: 1), format: .RGBA8, colorSpace: nil)
+		
+		dominantColor = Color(red: Double(bitmap[0]) / 255, green: Double(bitmap[1]) / 255, blue: Double(bitmap[2]) / 255)
+	}
+	
 	// MARK: Body
 	var body: some View {
 		let isPinned = viewModel.isPinned(source)
 		
-		HStack(spacing: 16) {
-			// Icon and content
-			FRIconCellView(
-				title: source.name ?? .localized("Unknown"),
-				subtitle: source.sourceURL?.absoluteString ?? "",
-				iconUrl: source.iconURL,
-				onColorExtracted: { color in
-					dominantColor = color
-				}
-			)
+		HStack(spacing: 12) {
+			// Icon only - smaller and more compact
+			iconView
+			
+			// Title only - no subtitle
+			Text(source.name ?? .localized("Unknown"))
+				.font(.body)
+				.fontWeight(.medium)
+				.foregroundStyle(.primary)
+				.lineLimit(1)
 			
 			Spacer()
 			
 			if isPinned {
-				HStack(spacing: 4) {
-					Image(systemName: "pin.fill")
-						.font(.caption2)
-						.foregroundStyle(dominantColor)
-					Text("Pinned")
-						.font(.caption2)
-						.fontWeight(.semibold)
-						.foregroundStyle(dominantColor)
-				}
-				.padding(.horizontal, 10)
-				.padding(.vertical, 5)
-				.background(
-					Capsule()
-						.fill(dominantColor.opacity(0.12))
-				)
+				Image(systemName: "pin.fill")
+					.font(.caption)
+					.foregroundStyle(dominantColor)
 			}
 		}
-		.padding(.horizontal, 14)
-		.padding(.vertical, 10)
+		.padding(.horizontal, 12)
+		.padding(.vertical, 8)
 		.background(
-			RoundedRectangle(cornerRadius: 12, style: .continuous)
+			RoundedRectangle(cornerRadius: 10, style: .continuous)
 				.fill(
 					LinearGradient(
 						colors: [
@@ -61,10 +100,10 @@ struct SourcesCellView: View {
 				)
 		)
 		.overlay(
-			RoundedRectangle(cornerRadius: 12, style: .continuous)
+			RoundedRectangle(cornerRadius: 10, style: .continuous)
 				.stroke(dominantColor.opacity(0.2), lineWidth: 0.5)
 		)
-		.shadow(color: dominantColor.opacity(0.1), radius: 4, x: 0, y: 2)
+		.shadow(color: dominantColor.opacity(0.1), radius: 2, x: 0, y: 1)
 		.swipeActions(edge: .leading) {
 			Button {
 				viewModel.togglePin(for: source)
