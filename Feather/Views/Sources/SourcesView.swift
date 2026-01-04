@@ -107,6 +107,9 @@ struct SourcesView: View {
 						.presentationDetents([.large])
 						.presentationDragIndicator(.visible)
 				}
+				.sheet(isPresented: $_showCertificateTooltip) {
+					certificateTooltipView
+				}
 		}
 		.task(id: Array(_sources)) {
 			await viewModel.fetchSources(_sources)
@@ -195,18 +198,11 @@ struct SourcesView: View {
 		
 		ToolbarItem(placement: .topBarTrailing) {
 			Button {
-				if !_certificateTooltipDismissed {
-					_showCertificateTooltip = true
-				} else {
-					UIApplication.open(Self.certificateURL)
-				}
+				_showCertificateTooltip = true
 			} label: {
 				Image(systemName: "sparkles")
 					.font(.system(size: 17, weight: .medium))
 					.foregroundStyle(.tint)
-			}
-			.popover(isPresented: $_showCertificateTooltip, arrowEdge: .top) {
-				certificateTooltipView
 			}
 		}
 		
@@ -301,41 +297,145 @@ struct SourcesView: View {
 	}
 	
 	private var certificateTooltipView: some View {
-		VStack(alignment: .leading, spacing: 12) {
-			HStack {
-				Text("Buy cheap developer certificates here!")
-					.font(.subheadline)
-					.foregroundStyle(.primary)
-				Spacer()
-				Button {
-					_showCertificateTooltip = false
-					_certificateTooltipDismissed = true
-				} label: {
-					Image(systemName: "xmark.circle.fill")
-						.font(.system(size: 18))
-						.foregroundStyle(.secondary)
+		NavigationView {
+			ScrollView {
+				VStack(spacing: 24) {
+					// Header with icon
+					VStack(spacing: 16) {
+						ZStack {
+							Circle()
+								.fill(
+									LinearGradient(
+										gradient: Gradient(colors: [Color.blue.opacity(0.2), Color.purple.opacity(0.2)]),
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
+								.frame(width: 80, height: 80)
+							
+							Image(systemName: "checkmark.shield.fill")
+								.font(.system(size: 40))
+								.foregroundStyle(
+									LinearGradient(
+										gradient: Gradient(colors: [.blue, .purple]),
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
+						}
+						
+						Text("Developer Certificates")
+							.font(.title2.bold())
+							.multilineTextAlignment(.center)
+					}
+					.padding(.top, 20)
+					
+					// Content sections
+					VStack(alignment: .leading, spacing: 20) {
+						// Section 1: Stability
+						certificateSectionCard(
+							icon: "checkmark.circle.fill",
+							iconColor: .green,
+							title: "Superior Stability",
+							description: "Developer certificates offer significantly better stability and reliability than enterprise certificates. They are issued directly by Apple for app development and testing, which means apps signed with them are far less likely to be revoked or suddenly stop working."
+						)
+						
+						// Section 2: Enterprise Issues
+						certificateSectionCard(
+							icon: "exclamationmark.triangle.fill",
+							iconColor: .orange,
+							title: "Enterprise Certificate Risks",
+							description: "Enterprise certificates are meant only for internal company use and are frequently abused for public distribution. Apple actively revokes these certificates, causing apps to break without warning. This makes them unreliable for users who expect long term access."
+						)
+						
+						// Section 3: Future-proof
+						certificateSectionCard(
+							icon: "star.fill",
+							iconColor: .blue,
+							title: "Future-Proof Choice",
+							description: "Overall, developer certificates follow Apple's intended security model and work more consistently with iOS features. They are the safer, more future proof option for anyone who values stability and trust."
+						)
+					}
+					.padding(.horizontal, 20)
+					
+					// Action button
+					Button {
+						_showCertificateTooltip = false
+						_certificateTooltipDismissed = true
+						UIApplication.open(Self.certificateURL)
+					} label: {
+						HStack {
+							Image(systemName: "cart.fill")
+							Text("Get Developer Certificate")
+								.font(.headline)
+						}
+						.frame(maxWidth: .infinity)
+						.padding(.vertical, 16)
+						.background(
+							LinearGradient(
+								gradient: Gradient(colors: [.blue, .purple]),
+								startPoint: .leading,
+								endPoint: .trailing
+							)
+						)
+						.foregroundStyle(.white)
+						.cornerRadius(12)
+					}
+					.padding(.horizontal, 20)
+					
+					// Dismiss button
+					Button {
+						_showCertificateTooltip = false
+						_certificateTooltipDismissed = true
+					} label: {
+						Text("Maybe Later")
+							.font(.subheadline)
+							.foregroundStyle(.secondary)
+					}
+					.padding(.bottom, 20)
 				}
 			}
-			
-			Button {
-				_showCertificateTooltip = false
-				_certificateTooltipDismissed = true
-				UIApplication.open(Self.certificateURL)
-			} label: {
-				HStack {
-					Spacer()
-					Text("Learn More")
-						.font(.subheadline.weight(.semibold))
-					Spacer()
+			.navigationTitle("Developer Certificates")
+			.navigationBarTitleDisplayMode(.inline)
+			.toolbar {
+				ToolbarItem(placement: .navigationBarTrailing) {
+					Button {
+						_showCertificateTooltip = false
+						_certificateTooltipDismissed = true
+					} label: {
+						Image(systemName: "xmark.circle.fill")
+							.font(.system(size: 20))
+							.foregroundStyle(.secondary)
+					}
 				}
-				.padding(.vertical, 8)
-				.background(Color.accentColor)
-				.foregroundStyle(.white)
-				.cornerRadius(8)
+			}
+		}
+		.presentationDetents([.large])
+		.presentationDragIndicator(.visible)
+	}
+	
+	@ViewBuilder
+	private func certificateSectionCard(icon: String, iconColor: Color, title: String, description: String) -> some View {
+		HStack(alignment: .top, spacing: 12) {
+			Image(systemName: icon)
+				.font(.system(size: 24))
+				.foregroundStyle(iconColor)
+				.frame(width: 40, height: 40)
+			
+			VStack(alignment: .leading, spacing: 6) {
+				Text(title)
+					.font(.headline)
+					.foregroundStyle(.primary)
+				
+				Text(description)
+					.font(.subheadline)
+					.foregroundStyle(.secondary)
+					.fixedSize(horizontal: false, vertical: true)
 			}
 		}
 		.padding(16)
-		.frame(maxWidth: 280)
+		.background(Color(uiColor: .secondarySystemGroupedBackground))
+		.cornerRadius(12)
 	}
 	
 	#if !NIGHTLY && !DEBUG

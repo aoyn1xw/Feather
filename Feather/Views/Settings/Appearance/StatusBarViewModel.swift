@@ -38,12 +38,27 @@ class StatusBarViewModel: ObservableObject {
     @AppStorage("statusBar.topPadding") var topPadding: Double = 0
     @AppStorage("statusBar.bottomPadding") var bottomPadding: Double = 0
     
+    // Text Layout
+    @AppStorage("statusBar.textAlignment") var textAlignment: String = "center"
+    @AppStorage("statusBar.textLeftPadding") var textLeftPadding: Double = 0
+    @AppStorage("statusBar.textRightPadding") var textRightPadding: Double = 0
+    @AppStorage("statusBar.textTopPadding") var textTopPadding: Double = 0
+    @AppStorage("statusBar.textBottomPadding") var textBottomPadding: Double = 0
+    
     // Animation
     @AppStorage("statusBar.enableAnimation") var enableAnimation: Bool = false
     @AppStorage("statusBar.animationType") var animationType: String = "bounce"
     
     // System Integration
     @AppStorage("statusBar.hideDefaultStatusBar") var hideDefaultStatusBar: Bool = true
+    
+    // Time and Battery
+    @AppStorage("statusBar.showTime") var showTime: Bool = false
+    @AppStorage("statusBar.showSeconds") var showSeconds: Bool = false
+    @AppStorage("statusBar.timeColor") var timeColorHex: String = "#FFFFFF"
+    @AppStorage("statusBar.showBattery") var showBattery: Bool = false
+    @AppStorage("statusBar.batteryColor") var batteryColorHex: String = "#FFFFFF"
+    @AppStorage("statusBar.batteryStyle") var batteryStyle: String = "icon" // "icon", "percentage", "both"
     
     // SF Symbols Picker State
     @Published var searchText: String = ""
@@ -59,12 +74,16 @@ class StatusBarViewModel: ObservableObject {
     @Published var selectedBackgroundColor: Color = .black
     @Published var selectedShadowColor: Color = .black
     @Published var selectedBorderColor: Color = .blue
+    @Published var selectedTimeColor: Color = .white
+    @Published var selectedBatteryColor: Color = .white
     
     init() {
         selectedColor = Color(hex: colorHex)
         selectedBackgroundColor = Color(hex: backgroundColorHex)
         selectedShadowColor = Color(hex: shadowColorHex)
         selectedBorderColor = Color(hex: borderColorHex)
+        selectedTimeColor = Color(hex: timeColorHex)
+        selectedBatteryColor = Color(hex: batteryColorHex)
         
         // Load recent and favorite symbols from UserDefaults
         if let recents = UserDefaults.standard.stringArray(forKey: "statusBar.recentSymbols") {
@@ -104,6 +123,57 @@ class StatusBarViewModel: ObservableObject {
         favoriteSymbols.contains(symbol)
     }
     
+    func handleHideDefaultStatusBarChange(_ newValue: Bool) {
+        // If user is trying to disable (show default status bar) and there are custom changes
+        if !newValue && hasCustomChanges() {
+            // Show confirmation alert
+            let alert = UIAlertController(
+                title: "Show Default Status Bar?",
+                message: "If you disable this, you won't see the custom Status Bar changes anymore. Are you sure?",
+                preferredStyle: .alert
+            )
+            
+            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { [weak self] _ in
+                // Revert the toggle
+                DispatchQueue.main.async {
+                    self?.hideDefaultStatusBar = true
+                }
+            })
+            
+            alert.addAction(UIAlertAction(title: "Confirm", style: .destructive) { [weak self] _ in
+                // Clear custom changes
+                self?.clearCustomChanges()
+                // Post notification
+                NotificationCenter.default.post(name: NSNotification.Name("StatusBarHidingPreferenceChanged"), object: nil)
+            })
+            
+            // Present the alert
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let rootViewController = windowScene.windows.first?.rootViewController {
+                var topController = rootViewController
+                while let presented = topController.presentedViewController {
+                    topController = presented
+                }
+                topController.present(alert, animated: true)
+            }
+        } else {
+            // No custom changes or enabling hide, just post notification
+            NotificationCenter.default.post(name: NSNotification.Name("StatusBarHidingPreferenceChanged"), object: nil)
+        }
+    }
+    
+    func hasCustomChanges() -> Bool {
+        return showCustomText || showSFSymbol || showBackground || showTime || showBattery
+    }
+    
+    func clearCustomChanges() {
+        showCustomText = false
+        showSFSymbol = false
+        showBackground = false
+        showTime = false
+        showBattery = false
+    }
+    
     func resetToDefaults() {
         customText = ""
         showCustomText = false
@@ -128,13 +198,26 @@ class StatusBarViewModel: ObservableObject {
         rightPadding = 0
         topPadding = 0
         bottomPadding = 0
+        textAlignment = "center"
+        textLeftPadding = 0
+        textRightPadding = 0
+        textTopPadding = 0
+        textBottomPadding = 0
         enableAnimation = false
         animationType = "bounce"
         hideDefaultStatusBar = true
+        showTime = false
+        showSeconds = false
+        timeColorHex = "#FFFFFF"
+        showBattery = false
+        batteryColorHex = "#FFFFFF"
+        batteryStyle = "icon"
         
         selectedColor = .blue
         selectedBackgroundColor = .black
         selectedShadowColor = .black
         selectedBorderColor = .blue
+        selectedTimeColor = .white
+        selectedBatteryColor = .white
     }
 }
