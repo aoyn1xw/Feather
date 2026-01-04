@@ -64,7 +64,7 @@ struct FRIconCellView: View {
 			
 			Image(systemName: "globe")
 				.font(.system(size: size * 0.5))
-				.foregroundStyle(.accent)
+				.foregroundStyle(Color.accentColor)
 		}
 	}
 }
