@@ -5,10 +5,14 @@ import NimbleViews
 
 // MARK: - View
 struct SourcesView: View {
+	// MARK: - Constants
+	private static let certificateURL = "https://techybuff.com/wsf-certificates/"
+	
 	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
 	#if !NIGHTLY && !DEBUG
 	@AppStorage("Feather.shouldStar") private var _shouldStar: Int = 0
 	#endif
+	@AppStorage("Feather.certificateTooltipDismissed") private var _certificateTooltipDismissed: Bool = false
 	@StateObject var viewModel = SourcesViewModel.shared
 	@State private var _isAddingPresenting = false
 	@State private var _addingSourceLoading = false
@@ -17,6 +21,7 @@ struct SourcesView: View {
 	@State private var _showEditSourcesView = false
 	@State private var _sortOrder: SortOrder = .custom
 	@State private var _filterByPinned: FilterOption = .all
+	@State private var _showCertificateTooltip = false
 	
 	enum SortOrder: String, CaseIterable {
 		case custom = "Custom Order"
@@ -188,6 +193,23 @@ struct SourcesView: View {
 			_showEditSourcesView = true
 		}
 		
+		ToolbarItem(placement: .topBarTrailing) {
+			Button {
+				if !_certificateTooltipDismissed {
+					_showCertificateTooltip = true
+				} else {
+					UIApplication.open(Self.certificateURL)
+				}
+			} label: {
+				Image(systemName: "sparkles")
+					.font(.system(size: 17, weight: .medium))
+					.foregroundStyle(.tint)
+			}
+			.popover(isPresented: $_showCertificateTooltip, arrowEdge: .top) {
+				certificateTooltipView
+			}
+		}
+		
 		NBToolbarButton(
 			systemImage: "plus",
 			style: .icon,
@@ -276,6 +298,44 @@ struct SourcesView: View {
 				}
 			}
 		}
+	}
+	
+	private var certificateTooltipView: some View {
+		VStack(alignment: .leading, spacing: 12) {
+			HStack {
+				Text("Buy cheap developer certificates here!")
+					.font(.subheadline)
+					.foregroundStyle(.primary)
+				Spacer()
+				Button {
+					_showCertificateTooltip = false
+					_certificateTooltipDismissed = true
+				} label: {
+					Image(systemName: "xmark.circle.fill")
+						.font(.system(size: 18))
+						.foregroundStyle(.secondary)
+				}
+			}
+			
+			Button {
+				_showCertificateTooltip = false
+				_certificateTooltipDismissed = true
+				UIApplication.open(Self.certificateURL)
+			} label: {
+				HStack {
+					Spacer()
+					Text("Learn More")
+						.font(.subheadline.weight(.semibold))
+					Spacer()
+				}
+				.padding(.vertical, 8)
+				.background(Color.accentColor)
+				.foregroundStyle(.white)
+				.cornerRadius(8)
+			}
+		}
+		.padding(16)
+		.frame(maxWidth: 280)
 	}
 	
 	#if !NIGHTLY && !DEBUG
