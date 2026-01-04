@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import UIKit
 
 class Download: Identifiable, @unchecked Sendable {
 	@Published var progress: Double = 0.0
