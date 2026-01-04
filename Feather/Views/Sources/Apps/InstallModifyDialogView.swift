@@ -157,7 +157,7 @@ struct InstallModifyDialogView: View {
 	private var appInfoCard: some View {
 		HStack(spacing: 12) {
 			// App icon
-			if let iconURL = (app as? Signed)?.artworkURL ?? (app as? Imported)?.artworkURL {
+			if let iconURL = (app as? Signed)?.iconURL ?? (app as? Imported)?.iconURL {
 				AsyncImage(url: iconURL) { phase in
 					switch phase {
 					case .empty:
