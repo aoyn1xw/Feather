@@ -4,6 +4,16 @@ import UIKit
 import Darwin
 import IDeviceSwift
 
+// MARK: - Certificate Experience Type
+enum CertificateExperience: String, CaseIterable {
+    case developer = "Developer"
+    case enterprise = "Enterprise"
+    
+    var displayName: String {
+        return self.rawValue
+    }
+}
+
 // MARK: - View
 struct SettingsView: View {
     @State private var _currentIcon: String? = UIApplication.shared.alternateIconName
@@ -11,6 +21,8 @@ struct SettingsView: View {
     @State private var lastTapTime: Date?
     @State private var showDeveloperConfirmation = false
     @AppStorage("isDeveloperModeEnabled") private var isDeveloperModeEnabled = false
+    @AppStorage("Feather.certificateExperience") private var certificateExperience: String = CertificateExperience.developer.rawValue
+    @AppStorage("forceShowGuides") private var forceShowGuides = false
     
     // MARK: Body
     var body: some View {
@@ -33,6 +45,36 @@ struct SettingsView: View {
                     NavigationLink(destination: HapticsView()) {
                         ConditionalLabel(title: .localized("Haptics"), systemImage: "iphone.radiowaves.left.and.right")
                     }
+                }
+                
+                NBSection(.localized("Experience")) {
+                    Picker(.localized("Certificate Type"), selection: $certificateExperience) {
+                        ForEach(CertificateExperience.allCases, id: \.rawValue) { experience in
+                            Text(experience.displayName).tag(experience.rawValue)
+                        }
+                    }
+                    .onChange(of: certificateExperience) { newValue in
+                        // Always enable Guides for Enterprise
+                        if newValue == CertificateExperience.enterprise.rawValue {
+                            forceShowGuides = true
+                        }
+                    }
+                } footer: {
+                    Text(.localized("Select your certificate type. Enterprise certificates will enable the Guides feature."))
+                }
+                
+                NBSection(.localized("App Icons")) {
+                    HStack {
+                        Image(systemName: "app.badge")
+                            .font(.title3)
+                            .foregroundStyle(.secondary)
+                        Text(.localized("App Icons Soon"))
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                } footer: {
+                    Text(.localized("Customize your app icon. Coming soon!"))
                 }
                 
                 NBSection(.localized("Features")) {
