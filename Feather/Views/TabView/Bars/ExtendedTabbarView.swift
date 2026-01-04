@@ -91,7 +91,7 @@ struct ExtendedTabbarView: View {
 		}
 		.sheet(isPresented: $showInstallModifySheet) {
 			if let app = appToInstall {
-				InstallPreviewView(app: app, isSharing: false, fromLibraryTab: false)
+				InstallModifyDialogView(app: app)
 			}
 		}
 		.onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.showInstallModifyPopup"))) { notification in

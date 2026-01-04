@@ -13,6 +13,8 @@ struct ExperimentalTabbarView: View {
     @AppStorage("Feather.tabBar.library") private var showLibrary = true
     @AppStorage("Feather.tabBar.files") private var showFiles = true
     @AppStorage("Feather.tabBar.guides") private var showGuides = true
+    @AppStorage("Feather.certificateExperience") private var certificateExperience: String = "Developer"
+    @AppStorage("forceShowGuides") private var forceShowGuides = false
     @Namespace private var animation
     
     var visibleTabs: [TabEnum] {
@@ -20,7 +22,14 @@ struct ExperimentalTabbarView: View {
         if showHome { tabs.append(.home) }
         if showLibrary { tabs.append(.library) }
         if showFiles { tabs.append(.files) }
-        if showGuides { tabs.append(.guides) }
+        
+        // Only show Guides if:
+        // 1. forceShowGuides is enabled (set by Enterprise certificate)
+        // 2. OR certificate experience is Enterprise
+        if showGuides && (forceShowGuides || certificateExperience == "Enterprise") {
+            tabs.append(.guides)
+        }
+        
         tabs.append(.settings)
         return tabs
     }

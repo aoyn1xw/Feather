@@ -63,18 +63,15 @@ struct SettingsView: View {
                     Text(.localized("Select your certificate type. Enterprise certificates will enable the Guides feature."))
                 }
                 
-                NBSection(.localized("App Icons")) {
-                    HStack {
-                        Image(systemName: "app.badge")
-                            .font(.title3)
-                            .foregroundStyle(.secondary)
-                        Text(.localized("App Icons Soon"))
-                            .foregroundStyle(.secondary)
-                        Spacer()
+                // Only show App Icons when NOT in Enterprise mode
+                if certificateExperience != CertificateExperience.enterprise.rawValue {
+                    NBSection(.localized("App Icons")) {
+                        NavigationLink(destination: AppIconsPageView(currentIcon: $_currentIcon)) {
+                            ConditionalLabel(title: .localized("App Icons"), systemImage: "app.badge")
+                        }
+                    } footer: {
+                        Text(.localized("Customize your app icon. Coming soon!"))
                     }
-                    .padding(.vertical, 8)
-                } footer: {
-                    Text(.localized("Customize your app icon. Coming soon!"))
                 }
                 
                 NBSection(.localized("Features")) {
