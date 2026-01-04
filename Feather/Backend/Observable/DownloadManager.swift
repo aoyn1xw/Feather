@@ -20,15 +20,18 @@ class Download: Identifiable, @unchecked Sendable {
 	let url: URL
 	let fileName: String
 	let onlyArchiving: Bool
+	let fromSourcesView: Bool  // Track if download is from Sources view
     
     init(
 		id: String,
 		url: URL,
-		onlyArchiving: Bool = false
+		onlyArchiving: Bool = false,
+		fromSourcesView: Bool = false
 	) {
 		self.id = id
         self.url = url
 		self.onlyArchiving = onlyArchiving
+		self.fromSourcesView = fromSourcesView
         self.fileName = url.lastPathComponent
     }
 }
@@ -60,14 +63,15 @@ class DownloadManager: NSObject, ObservableObject {
     
     func startDownload(
 		from url: URL,
-		id: String = UUID().uuidString
+		id: String = UUID().uuidString,
+		fromSourcesView: Bool = false
 	) -> Download {
         if let existingDownload = downloads.first(where: { $0.url == url }) {
             resumeDownload(existingDownload)
             return existingDownload
         }
         
-		let download = Download(id: id, url: url)
+		let download = Download(id: id, url: url, fromSourcesView: fromSourcesView)
         
         let task = _session.downloadTask(with: url)
         download.task = task
@@ -131,23 +135,59 @@ class DownloadManager: NSObject, ObservableObject {
 extension DownloadManager: URLSessionDownloadDelegate {
 	
 	func handlePachageFile(url: URL, dl: Download) throws {
-		FR.handlePackageFile(url, download: dl) { err in
-			if err != nil {
-				HapticsManager.shared.error()
-				AppLogManager.shared.error("Failed to handle package file: \(err?.localizedDescription ?? "Unknown error")", category: "Download")
-			} else {
-				// Success - send notification if enabled
-				if UserDefaults.standard.bool(forKey: "Feather.notificationsEnabled") {
-					let appName = url.deletingPathExtension().lastPathComponent
-					NotificationManager.shared.sendAppSignedNotification(appName: appName)
+		// If download is from Sources view, show Install/Modify popup
+		if dl.fromSourcesView {
+			FR.handlePackageFile(url, download: dl) { err in
+				if err != nil {
+					HapticsManager.shared.error()
+					AppLogManager.shared.error("Failed to handle package file: \(err?.localizedDescription ?? "Unknown error")", category: "Download")
+					
+					DispatchQueue.main.async {
+						UIAlertController.showAlertWithOk(
+							title: .localized("Download Error"),
+							message: err?.localizedDescription ?? "Unknown error"
+						)
+					}
+				} else {
+					// Success - show Install/Modify popup for apps from Sources view
+					AppLogManager.shared.success("Successfully handled package file: \(url.lastPathComponent)", category: "Download")
+					
+					// Post notification to show Install/Modify popup
+					DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+						NotificationCenter.default.post(
+							name: Notification.Name("Feather.showInstallModifyPopup"),
+							object: url
+						)
+					}
 				}
-				AppLogManager.shared.success("Successfully handled package file: \(url.lastPathComponent)", category: "Download")
+				
+				DispatchQueue.main.async {
+					if let index = DownloadManager.shared.getDownloadIndex(by: dl.id) {
+						DownloadManager.shared.downloads.remove(at: index)
+						self._updateBackgroundAudioState()
+					}
+				}
 			}
-			
-			DispatchQueue.main.async {
-				if let index = DownloadManager.shared.getDownloadIndex(by: dl.id) {
-					DownloadManager.shared.downloads.remove(at: index)
-                    self._updateBackgroundAudioState()
+		} else {
+			// Original behavior for Library tab downloads
+			FR.handlePackageFile(url, download: dl) { err in
+				if err != nil {
+					HapticsManager.shared.error()
+					AppLogManager.shared.error("Failed to handle package file: \(err?.localizedDescription ?? "Unknown error")", category: "Download")
+				} else {
+					// Success - send notification if enabled
+					if UserDefaults.standard.bool(forKey: "Feather.notificationsEnabled") {
+						let appName = url.deletingPathExtension().lastPathComponent
+						NotificationManager.shared.sendAppSignedNotification(appName: appName)
+					}
+					AppLogManager.shared.success("Successfully handled package file: \(url.lastPathComponent)", category: "Download")
+				}
+				
+				DispatchQueue.main.async {
+					if let index = DownloadManager.shared.getDownloadIndex(by: dl.id) {
+						DownloadManager.shared.downloads.remove(at: index)
+						self._updateBackgroundAudioState()
+					}
 				}
 			}
 		}

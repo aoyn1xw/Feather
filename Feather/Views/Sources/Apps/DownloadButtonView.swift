@@ -88,7 +88,7 @@ struct DownloadButtonView: View {
 			} else {
 				Button {
 					if let url = app.currentDownloadUrl {
-						_ = downloadManager.startDownload(from: url, id: app.currentUniqueId)
+						_ = downloadManager.startDownload(from: url, id: app.currentUniqueId, fromSourcesView: true)
 					}
 				} label: {
 					ZStack {
