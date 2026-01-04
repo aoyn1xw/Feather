@@ -261,7 +261,7 @@ struct AllAppsView: View {
 		_currentFact = DidYouKnowFacts.random()
 		
 		Task {
-			let totalSources = object.count
+			_ = object.count
 			
 			// Load all sources one by one with progress updates
 			for (index, _) in object.enumerated() {
