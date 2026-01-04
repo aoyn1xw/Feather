@@ -24,9 +24,6 @@ struct AppearanceView: View {
 	@AppStorage("Feather.showIconsInAppearance")
 	private var _showIconsInAppearance: Bool = true
 	
-	@AppStorage("Feather.animationSpeed")
-	private var _animationSpeed: Double = 0.35
-	
 	@AppStorage("Feather.useNewAllAppsView")
 	private var _useNewAllAppsView: Bool = true
 	
@@ -69,26 +66,8 @@ struct AppearanceView: View {
 						Text(.localized("Show Icons"))
 					}
 				}
-				
-				VStack(alignment: .leading, spacing: 8) {
-					if _showIconsInAppearance {
-						Label(.localized("Animation Speed"), systemImage: "hare.fill")
-					} else {
-						Text(.localized("Animation Speed"))
-					}
-					
-					HStack {
-						Text(.localized("Slow"))
-							.font(.caption)
-							.foregroundStyle(.secondary)
-						Slider(value: $_animationSpeed, in: 0.1...1.0, step: 0.05)
-						Text(.localized("Fast"))
-							.font(.caption)
-							.foregroundStyle(.secondary)
-					}
-				}
 			} footer: {
-				Text(.localized("Customize visual effects and animation speeds. Hiding icons will affect the entire app."))
+				Text(.localized("Hiding icons will affect the entire app."))
 			}
 			
 			NBSection(.localized("Sources")) {
