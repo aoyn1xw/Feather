@@ -367,8 +367,6 @@ private struct AllAppsCardView: View {
 			textContent
 			
 			Spacer()
-			
-			chevronIcon
 		}
 		.padding(.horizontal, isRegular ? 12 : 10)
 		.padding(.vertical, isRegular ? 10 : 8)
@@ -414,12 +412,6 @@ private struct AllAppsCardView: View {
 			Capsule()
 				.fill(appIconColor.opacity(0.05))
 		)
-	}
-	
-	private var chevronIcon: some View {
-		Image(systemName: "chevron.right")
-			.font(.body.bold())
-			.foregroundStyle(.secondary)
 	}
 	
 	private var cardBackground: some View {
