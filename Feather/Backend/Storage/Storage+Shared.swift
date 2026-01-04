@@ -64,10 +64,14 @@ protocol AppInfoPresentable {
 
 extension Signed: AppInfoPresentable {
 	var isSigned: Bool { true }
-	var iconURL: URL? { nil }
+	var iconURL: URL? {
+		Storage.shared.getAppIconFile(for: self)
+	}
 }
 
 extension Imported: AppInfoPresentable {
 	var isSigned: Bool { false }
-	var iconURL: URL? { nil }
+	var iconURL: URL? {
+		Storage.shared.getAppIconFile(for: self)
+	}
 }
