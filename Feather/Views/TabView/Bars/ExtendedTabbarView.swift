@@ -19,7 +19,7 @@ struct ExtendedTabbarView: View {
 	
 	@State private var _isAddingPresenting = false
 	@State private var showInstallModifySheet = false
-	@State private var appToInstall: StoredApp?
+	@State private var appToInstall: (any AppInfoPresentable)?
 	
 	@FetchRequest(
 		entity: AltSource.entity(),
@@ -99,10 +99,20 @@ struct ExtendedTabbarView: View {
 			if let url = notification.object as? URL {
 				// Find the app in library by checking the file name
 				let fileName = url.deletingPathExtension().lastPathComponent
-				if let app = Storage.shared.getAllApps().first(where: { 
+				
+				// Check both Signed and Imported apps
+				let signedRequest = Signed.fetchRequest()
+				let importedRequest = Imported.fetchRequest()
+				
+				if let signed = try? Storage.shared.context.fetch(signedRequest).first(where: { 
 					$0.name?.contains(fileName) == true || $0.identifier?.contains(fileName) == true
 				}) {
-					appToInstall = app
+					appToInstall = signed
+					showInstallModifySheet = true
+				} else if let imported = try? Storage.shared.context.fetch(importedRequest).first(where: { 
+					$0.name?.contains(fileName) == true || $0.identifier?.contains(fileName) == true
+				}) {
+					appToInstall = imported
 					showInstallModifySheet = true
 				}
 			}
