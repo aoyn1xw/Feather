@@ -130,7 +130,9 @@ struct InstallPreviewView: View {
 						Button {
 							// Reset viewModel and re-trigger installation
 							viewModel.status = .none
-							viewModel.overallProgress = 0
+							viewModel.uploadProgress = 0
+							viewModel.packageProgress = 0
+							viewModel.installProgress = 0
 							_install()
 						} label: {
 							HStack(spacing: 6) {
